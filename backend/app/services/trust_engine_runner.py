@@ -321,6 +321,11 @@ def _account_findings(payload: dict[str, Any]) -> list[dict[str, Any]]:
     return mapped
 
 
+def _display_name(provider_name: str) -> str:
+    """Human-facing vendor label for a provider id like ``glm_vision``."""
+    return {"glm_vision": "GLM"}.get(provider_name, provider_name)
+
+
 def _relabel_vision_provider(payload: dict[str, Any], provider: Any) -> None:
     """Correct the engine's hardcoded ``qwen_vision`` label on the image role.
 
@@ -343,6 +348,11 @@ def _relabel_vision_provider(payload: dict[str, Any], provider: Any) -> None:
             role["model"] = model
         if prompt_version:
             role["prompt_version"] = prompt_version
+        # The engine also hardcodes "Qwen" in the human-readable summary, which
+        # would misreport which vendor actually ran.
+        summary = role.get("summary")
+        if isinstance(summary, str) and "Qwen" in summary:
+            role["summary"] = summary.replace("Qwen", _display_name(name))
 
     metadata = payload.get("model_metadata")
     if isinstance(metadata, dict):

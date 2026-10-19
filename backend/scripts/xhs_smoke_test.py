@@ -42,7 +42,7 @@ def _crawl(url: str, account_url: str | None = None):
     print("TruLens — 小红书链接抓取 Smoke Test")
     print(_rule())
     print(f"  链接       : {url}")
-    print(f"  持久 profile: {settings.xhs_user_data_path}")
+    print(f"  持久 profile: {settings.xhs_user_data_path_absolute}")
     print(f"  超时       : {settings.xhs_timeout_seconds}s")
 
     try:

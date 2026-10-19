@@ -1444,6 +1444,28 @@ function CheckSection({ active, replayKey, staticMode }: { active: boolean; repl
   );
 }
 
+/**
+ * Cross-check links drawn off the right edge of the result cards (viewBox 0 0 300 220).
+ * Shared with App.tsx so both copies of the merge scene stay in sync.
+ *
+ * `from`/`to` are the measured vertical centres of the cards in that viewBox
+ * (T≈38, R≈92, U≈146, S≈200), so every line leaves and re-enters the card rail
+ * on the row it belongs to instead of floating between rows. The curve is
+ * horizontal at both ends and bows `bow` px into the gutter — that is what makes
+ * it read as a connector between two rows rather than a decorative loop.
+ */
+export const MERGE_LINK_ANCHOR_X = 186;
+const MERGE_CARD_CENTER_Y = { T: 38, R: 92, U: 146, S: 200 } as const;
+const mergeLinkPath = (from: number, to: number, bow: number) =>
+  `M${MERGE_LINK_ANCHOR_X} ${from} ` +
+  `C${MERGE_LINK_ANCHOR_X + bow} ${from} ${MERGE_LINK_ANCHOR_X + bow} ${to} ${MERGE_LINK_ANCHOR_X} ${to}`;
+
+export const MERGE_CROSS_LINKS = [
+  { id: "t-s", tone: "conflict", from: MERGE_CARD_CENTER_Y.T, to: MERGE_CARD_CENTER_Y.S, bow: 58 },
+  { id: "r-u", tone: "conflict", from: MERGE_CARD_CENTER_Y.R, to: MERGE_CARD_CENTER_Y.U, bow: 42 },
+  { id: "u-s", tone: "doubtful", from: MERGE_CARD_CENTER_Y.U, to: MERGE_CARD_CENTER_Y.S, bow: 33 },
+].map((link) => ({ ...link, d: mergeLinkPath(link.from, link.to, link.bow) }));
+
 function MergeSection({
   active,
   replayKey,
@@ -1509,18 +1531,29 @@ function MergeSection({
             <div className="flow-inputs merge-results">
               <small>四个维度的结果</small>
               <svg aria-hidden="true" className="merge-cross-links" viewBox="0 0 300 220">
-                {[
-                  { d: "M186 185 C275 185 275 77 186 77", tone: "conflict" },
-                  { d: "M186 23 C292 23 292 185 186 185", tone: "conflict" },
-                  { d: "M186 131 C250 131 250 185 186 185", tone: "doubtful" },
-                ].map((link, index) => (
-                  <path
-                    className={`cross-link-${link.tone}`}
-                    d={link.d}
-                    key={link.d}
-                    pathLength="1"
-                    style={{ opacity: crossOpacity, strokeDashoffset: 1 - crossLinkProgress[index] }}
-                  />
+                {MERGE_CROSS_LINKS.map((link, index) => (
+                  <g key={link.id}>
+                    <path
+                      className={`cross-link-${link.tone}`}
+                      d={link.d}
+                      pathLength="1"
+                      style={{ opacity: crossOpacity, strokeDashoffset: 1 - crossLinkProgress[index] }}
+                    />
+                    <circle
+                      className={`cross-link-dot cross-link-dot-${link.tone}`}
+                      cx={MERGE_LINK_ANCHOR_X}
+                      cy={link.from}
+                      r="2.4"
+                      style={{ opacity: crossOpacity * crossLinkProgress[index] }}
+                    />
+                    <circle
+                      className={`cross-link-dot cross-link-dot-${link.tone}`}
+                      cx={MERGE_LINK_ANCHOR_X}
+                      cy={link.to}
+                      r="2.4"
+                      style={{ opacity: crossOpacity * crossLinkProgress[index] }}
+                    />
+                  </g>
                 ))}
               </svg>
               {agentScenes.map((scene, index) => (
@@ -3311,9 +3344,9 @@ function WhoUsesSection({
           {whoUsesContent.cards.map((card, index) => (
             <motion.article
               className="promise-card who-use-card"
-              initial={reducedMotion ? false : { opacity: 0, y: 24 }}
+              initial={reducedMotion ? false : { opacity: 0, y: 14 }}
               key={card.id}
-              transition={{ delay: reducedMotion ? 0 : index * 0.12, duration: reducedMotion ? 0 : 0.5, ease: [0.22, 0.7, 0.2, 1] }}
+              transition={{ delay: reducedMotion ? 0 : index * 0.06, duration: reducedMotion ? 0 : 0.5, ease: [0.22, 0.7, 0.2, 1] }}
               viewport={{ amount: 0.22, once: true }}
               whileInView={{ opacity: 1, y: 0 }}
             >
@@ -7433,6 +7466,19 @@ function ArchivedResult({
 type CreatorIssueSeverity = "must" | "suggest" | "tip";
 type CreatorIssueStatus = "accepted" | "ignored";
 
+const SELFCHECK_CANVAS_CJK_FONT = '"Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Source Han Sans SC", "Noto Sans CJK SC", sans-serif';
+
+/** In-memory progress of one 发布前自检 report (kept by the parent while the session lasts). */
+export type CreatorSelfCheckProgress = {
+  draft: string;
+  issueStatus: Record<string, CreatorIssueStatus>;
+  imageHandled: boolean;
+  latestResult: CreatorCheckRead | null;
+  rechecked: boolean;
+  acceptedMustIds: string[];
+  acceptedSuggestionIds: string[];
+};
+
 type CreatorDraftIssue = {
   id: string;
   severity: CreatorIssueSeverity;
@@ -7468,6 +7514,12 @@ function CreatorSelfCheckReport({
   onReturnModify,
   result = null,
   technicalView,
+  onRecheck,
+  progress,
+  onProgressChange,
+  onCompletionChange,
+  appeals = [],
+  onDispute,
 }: {
   error?: string | null;
   input: CreatorReportInput;
@@ -7478,16 +7530,33 @@ function CreatorSelfCheckReport({
   onReturnModify: (draft: string) => void;
   result?: CreatorCheckRead | null;
   technicalView: boolean;
+  /** Real 再次检测: re-runs checkCreator with the current draft (same arguments as the first check). */
+  onRecheck?: (draft: string) => Promise<CreatorCheckRead>;
+  /** Progress kept by the parent so leaving and returning to the report keeps it. */
+  progress?: CreatorSelfCheckProgress | null;
+  onProgressChange?: (progress: CreatorSelfCheckProgress) => void;
+  onCompletionChange?: (state: { complete: boolean; reasons: string[] }) => void;
+  /** Appeals already submitted for this self-check (recorded only; scores do not change). */
+  appeals?: Array<{ code: DimensionCode; issueId?: string }>;
+  /** 「我有异议」: open the appeal flow with this issue pre-selected. */
+  onDispute?: (dispute: { code: DimensionCode; text: string; issueId?: string }) => void;
 }) {
-  const [draft, setDraft] = useState(input.draft);
-  const [issueStatus, setIssueStatus] = useState<Record<string, CreatorIssueStatus>>({});
+  const [draft, setDraft] = useState(progress?.draft ?? input.draft);
+  const [issueStatus, setIssueStatus] = useState<Record<string, CreatorIssueStatus>>(progress?.issueStatus ?? {});
+  // Latest real result from 再次检测 (null until the first recheck) and what the user did.
+  const [latestResult, setLatestResult] = useState<CreatorCheckRead | null>(progress?.latestResult ?? null);
+  const [rechecked, setRechecked] = useState(progress?.rechecked ?? false);
+  const [acceptedMustIds, setAcceptedMustIds] = useState<string[]>(progress?.acceptedMustIds ?? []);
+  const [acceptedSuggestionIds, setAcceptedSuggestionIds] = useState<string[]>(progress?.acceptedSuggestionIds ?? []);
+  const [recheckError, setRecheckError] = useState<string | null>(null);
   const [hoveredIssue, setHoveredIssue] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<number | null>(input.images.length ? 0 : null);
-  const [imageHandled, setImageHandled] = useState(false);
+  const [imageHandled, setImageHandled] = useState(progress?.imageHandled ?? false);
   const [flashDraft, setFlashDraft] = useState(false);
   const [isRechecking, setIsRechecking] = useState(false);
 
-  const activeIssues = result?.issues ?? creatorDraftIssues;
+  const currentResult = latestResult ?? result;
+  const activeIssues = currentResult?.issues ?? creatorDraftIssues;
   const unresolvedIssues = activeIssues.filter((issue) => !issueStatus[issue.id]);
   const requiredCount = unresolvedIssues.filter((issue) => issue.severity === "must").length;
   const ignoredCount = Object.values(issueStatus).filter((status) => status === "ignored").length;
@@ -7499,11 +7568,16 @@ function CreatorSelfCheckReport({
   const pendingCount = requiredCount + suggestionCount + tipCount;
   const acceptedRequired = activeIssues.filter((issue) => issue.severity === "must" && issueStatus[issue.id] === "accepted").length;
   const baseCopyScore = result?.copy_score ?? 28;
-  const copyScore = Math.min(96, baseCopyScore + acceptedRequired * 10 + (issueStatus.disclosure === "accepted" ? 4 : 0));
+  // Real runs show real numbers only: first check → latest 再次检测. The demo keeps its old preview.
+  const copyScore = result
+    ? Math.round(currentResult?.copy_score ?? baseCopyScore)
+    : Math.min(96, baseCopyScore + acceptedRequired * 10 + (issueStatus.disclosure === "accepted" ? 4 : 0));
   const hasImages = input.images.length > 0 || result?.image_score != null;
-  const imageScore = result?.image_score ?? (hasImages ? imageHandled ? 90 : 82 : null);
-  const imageDimension = result?.report.dimensions.find((dimension) => dimension.code === "R");
-  const imageNeedsReview = result
+  const baseImageScore = result?.image_score ?? (hasImages ? 82 : null);
+  const imageScore = result ? (currentResult?.image_score ?? baseImageScore) : (hasImages ? imageHandled ? 90 : 82 : null);
+  const imageAfterScore = result ? imageScore : imageScore != null ? (imageHandled ? Math.min(96, imageScore + 8) : imageScore) : null;
+  const imageDimension = currentResult?.report.dimensions.find((dimension) => dimension.code === "R");
+  const imageNeedsReview = currentResult
     ? Boolean(imageDimension?.assessed && imageDimension.risk_level !== "low")
     : hasImages;
   const imageFinding = imageDimension?.evidence[0]?.reason || imageDimension?.evidence[0]?.evidence;
@@ -7517,7 +7591,7 @@ function CreatorSelfCheckReport({
         : "revise"
       : "ready";
   const publicationTitle = { ready: "可以发布", revise: "建议修改后发布", hold: "建议暂缓发布" }[publicationState];
-  const checkDate = result?.check_date || new Intl.DateTimeFormat("zh-CN", { year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+  const checkDate = currentResult?.check_date || new Intl.DateTimeFormat("zh-CN", { year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
 
   if (loading) {
     return (
@@ -7567,6 +7641,10 @@ function CreatorSelfCheckReport({
       return current.replace(issue.original, issue.suggestion);
     });
     setIssueStatus((current) => ({ ...current, [issue.id]: "accepted" }));
+    if (issue.severity === "must") setAcceptedMustIds((current) => (current.includes(issue.id) ? current : [...current, issue.id]));
+    else setAcceptedSuggestionIds((current) => (current.includes(issue.id) ? current : [...current, issue.id]));
+    // The copy changed, so a previous 再次检测 no longer reflects it.
+    setRechecked(false);
     flashUpdatedDraft();
   };
 
@@ -7574,11 +7652,34 @@ function CreatorSelfCheckReport({
     const disclosure = "（图片已做轻度磨皮处理）";
     setDraft((current) => current.includes(disclosure) ? current : `${current.trim()}\n${disclosure}`);
     setImageHandled(true);
+    setAcceptedSuggestionIds((current) => (current.includes("image") ? current : [...current, "image"]));
+    setRechecked(false);
     flashUpdatedDraft();
   };
 
   const runRecheck = () => {
     if (isRechecking) return;
+    if (onRecheck && result) {
+      setIsRechecking(true);
+      setRecheckError(null);
+      void onRecheck(draft)
+        .then((next) => {
+          // New result: 必改 must be re-adopted if still flagged; an explicit 忽略 of a
+          // 建议 / 提示 carries over when the same item comes back.
+          setIssueStatus((previous) => {
+            const carried: Record<string, CreatorIssueStatus> = {};
+            next.issues.forEach((issue) => {
+              if (issue.severity !== "must" && previous[issue.id] === "ignored") carried[issue.id] = "ignored";
+            });
+            return carried;
+          });
+          setLatestResult(next);
+          setRechecked(true);
+        })
+        .catch((err: unknown) => setRecheckError(err instanceof Error ? err.message : String(err)))
+        .finally(() => setIsRechecking(false));
+      return;
+    }
     setIsRechecking(true);
     window.setTimeout(() => {
       const nextStatus: Record<string, CreatorIssueStatus> = {};
@@ -7596,7 +7697,15 @@ function CreatorSelfCheckReport({
     }, 1500);
   };
 
-  const saveBadgeAsPng = () => {
+  const saveBadgeAsPng = async () => {
+    if (!selfCheckComplete) return;
+    // Canvas text falls back silently: wait for webfonts, and list system CJK fonts so a
+    // machine without Noto Sans SC still renders Chinese instead of boxes.
+    try {
+      await document.fonts?.ready;
+    } catch {
+      /* drawing with the fallback chain is still fine */
+    }
     const canvas = document.createElement("canvas");
     canvas.width = 1200;
     canvas.height = 630;
@@ -7634,13 +7743,13 @@ function CreatorSelfCheckReport({
     context.restore();
 
     context.fillStyle = "#332d3b";
-    context.font = '600 48px "Noto Sans SC", sans-serif';
+    context.font = `600 48px ${SELFCHECK_CANVAS_CJK_FONT}`;
     context.fillText("已完成发布前自检", 270, 135);
     context.fillStyle = "#648471";
-    context.font = '500 30px "Noto Sans SC", sans-serif';
+    context.font = `500 30px ${SELFCHECK_CANVAS_CJK_FONT}`;
     context.fillText(requiredCount ? `仍有 ${requiredCount} 处待处理` : "无必改项", 272, 185);
     context.fillStyle = "#8a8290";
-    context.font = '22px "Noto Sans SC", sans-serif';
+    context.font = `22px ${SELFCHECK_CANVAS_CJK_FONT}`;
     context.fillText(`自检日期  ${checkDate}  ·  ${result ? "真实分析" : "示例数据"}`, 272, 230);
 
     context.strokeStyle = "#e1dbe8";
@@ -7652,7 +7761,7 @@ function CreatorSelfCheckReport({
 
     const scoreBlocks = [
       { code: "S", label: "文案真实性", before: Math.round(baseCopyScore), after: Math.round(copyScore), x: 88, color: "#e5f0e9" },
-      ...(hasImages && imageScore != null ? [{ code: "R", label: "图像原生性", before: Math.round(imageScore), after: Math.round(imageHandled ? Math.min(96, imageScore + 8) : imageScore), x: 612, color: "#e6eef7" }] : []),
+      ...(hasImages && imageScore != null ? [{ code: "R", label: "图像原生性", before: Math.round(baseImageScore ?? imageScore), after: Math.round(imageAfterScore ?? imageScore), x: 612, color: "#e6eef7" }] : []),
     ];
     scoreBlocks.forEach((block) => {
       context.fillStyle = block.color;
@@ -7663,13 +7772,13 @@ function CreatorSelfCheckReport({
       context.font = '600 25px ui-monospace, monospace';
       context.fillText(block.code, block.x + 30, 408);
       context.fillStyle = "#746d79";
-      context.font = '24px "Noto Sans SC", sans-serif';
+      context.font = `24px ${SELFCHECK_CANVAS_CJK_FONT}`;
       context.fillText(block.label, block.x + 103, 390);
       context.fillStyle = "#8e8793";
       context.font = '500 40px Georgia, serif';
       context.fillText(String(block.before), block.x + 103, 444);
       context.fillStyle = "#9589a0";
-      context.font = '24px "Noto Sans SC", sans-serif';
+      context.font = `24px ${SELFCHECK_CANVAS_CJK_FONT}`;
       context.fillText("→", block.x + 170, 440);
       context.fillStyle = block.code === "S" ? "#5f806c" : "#5d7b96";
       context.font = '500 52px Georgia, serif';
@@ -7677,16 +7786,16 @@ function CreatorSelfCheckReport({
     });
 
     context.fillStyle = "#5d5563";
-    context.font = '500 23px "Noto Sans SC", sans-serif';
-    context.fillText(`已处理 ${acceptedRequired} 处必改  ·  采纳 ${acceptedSuggestions} 条建议`, 88, 500);
+    context.font = `500 23px ${SELFCHECK_CANVAS_CJK_FONT}`;
+    context.fillText(`已处理 ${handledMustCount} 处必改  ·  采纳 ${acceptedSuggestions} 条建议`, 88, 500);
     context.fillStyle = "#9a939f";
-    context.font = '20px "Noto Sans SC", sans-serif';
+    context.font = `20px ${SELFCHECK_CANVAS_CJK_FONT}`;
     context.fillText("仅代表自检时点的结果，不代表平台审核或背书。", 88, 555);
     canvas.toBlob((blob) => {
       if (!blob) return;
       const link = document.createElement("a");
       link.href = URL.createObjectURL(blob);
-      link.download = `TruLens-发布前自检-${new Date().toISOString().slice(0, 10)}.png`;
+      link.download = `TruLens-发布前自检-${new Intl.DateTimeFormat("sv-SE").format(new Date())}.png`;
       link.click();
       URL.revokeObjectURL(link.href);
     }, "image/png");
@@ -7765,14 +7874,103 @@ function CreatorSelfCheckReport({
       ? result.good_points
       : ["暂未识别到明确优点"]
     : ["语气有个人体验色彩", "没有医疗化功效描述"];
-  const acceptedSuggestions = Object.values(issueStatus).filter((status) => status === "accepted").length;
+  const acceptedSuggestions = result ? acceptedSuggestionIds.length : Object.values(issueStatus).filter((status) => status === "accepted").length;
+  const handledMustCount = result ? acceptedMustIds.length : acceptedRequired;
+
+  // 自检完成: nothing to fix on the first check, or — after a real 再次检测 — no 必改 left
+  // and every 建议 / 提示 (and the image suggestion) adopted or explicitly ignored.
+  const openMust = activeIssues.filter((issue) => issue.severity === "must" && issueStatus[issue.id] !== "accepted").length;
+  const openOther = activeIssues.filter((issue) => issue.severity !== "must" && !issueStatus[issue.id]).length + (imageNeedsReview && !imageHandled ? 1 : 0);
+  const initiallyClean = Boolean(result) && !rechecked && (result?.issues.length ?? 0) === 0 && !imageNeedsReview;
+  const selfCheckComplete = !result ? publicationState === "ready" : initiallyClean || (rechecked && openMust === 0 && openOther === 0);
+  const pendingReasons = selfCheckComplete
+    ? []
+    : [
+        ...(openMust ? [`还有 ${openMust} 条必改未处理`] : []),
+        ...(openOther ? [`还有 ${openOther} 条建议 / 提示未处理（采用或忽略均可）`] : []),
+        ...(!rechecked ? ["尚未再次检测"] : []),
+      ];
+  const lockedReason = "采用修改建议并再次检测通过后，可保存自检记录";
+
+  useEffect(() => {
+    onCompletionChange?.({ complete: selfCheckComplete, reasons: pendingReasons });
+  }, [selfCheckComplete, pendingReasons.join("|")]);
+
+  useEffect(() => {
+    onProgressChange?.({ draft, issueStatus, imageHandled, latestResult, rechecked, acceptedMustIds, acceptedSuggestionIds });
+  }, [draft, issueStatus, imageHandled, latestResult, rechecked, acceptedMustIds, acceptedSuggestionIds]);
+
+
+  // One layout for both states of the 自检记录 card: label → title → one line → checklist.
+  const recordSteps: Array<{ done: boolean; text: string }> = result
+    ? [
+        { done: openMust === 0, text: openMust === 0 ? "必改项已全部采用修改建议" : `还有 ${openMust} 条必改未处理` },
+        { done: openOther === 0, text: openOther === 0 ? "建议 / 提示已全部处理" : `还有 ${openOther} 条建议 / 提示未处理（采用或忽略均可）` },
+        {
+          done: rechecked || initiallyClean,
+          text: initiallyClean ? "首次检测无必改项，无需再次检测" : rechecked ? "已再次检测，无必改项" : "尚未再次检测",
+        },
+        ...(ignoredRequiredCount > 0 ? [{ done: false, text: `有 ${ignoredRequiredCount} 处必改已忽略，必改需采用修改建议` }] : []),
+      ]
+    : pendingReasons.map((reason) => ({ done: false, text: reason }));
+
+  const renderSelfCheckRecord = (complete: boolean) => (
+    <motion.section
+      animate={{ opacity: 1, y: 0 }}
+      className={`creator-badge-area creator-record-area ${complete ? "is-complete" : "is-locked"}`}
+      initial={{ opacity: 0, y: 10 }}
+      key={complete ? "badge" : "locked"}
+    >
+      <div className="creator-record-column">
+        <article aria-disabled={!complete} className={`creator-record-card ${complete ? "is-complete" : "is-locked"}`}>
+          <header className="creator-record-card-head">
+            <img alt="TruLens" height={44} src="/trulens-selfcheck-logo.png" width={84} />
+            <div>
+              <span className="creator-record-label">SELF-CHECK RECORD · 自检记录（非认证）{result ? "" : " · 示例数据"}</span>
+              <strong className="creator-record-title">{complete ? "已完成发布前自检" : "尚未完成发布前自检"}</strong>
+              <p className="creator-record-note">{complete ? `检测日期 ${checkDate}` : lockedReason}</p>
+            </div>
+          </header>
+          {complete && (
+            <div className="creator-record-compare">
+              <span><i>S</i><small>文案真实性</small><b>{Math.round(baseCopyScore)}</b><em>→</em><strong>{Math.round(copyScore)}</strong></span>
+              {hasImages && imageScore != null && (
+                <span className="is-image"><i>R</i><small>图像原生性</small><b>{Math.round(baseImageScore ?? imageScore)}</b><em>→</em><strong>{Math.round(imageAfterScore ?? imageScore)}</strong></span>
+              )}
+            </div>
+          )}
+          <ul aria-label={complete ? "已完成的步骤" : "还差这几步"} className="creator-record-steps">
+            {recordSteps.map((step) => (
+              <li className={step.done ? "done" : "pending"} key={step.text}>
+                <i aria-hidden="true">{step.done ? "✓" : ""}</i>
+                <span>{step.text}</span>
+              </li>
+            ))}
+          </ul>
+          {complete && <p className="creator-record-tally">已处理 {handledMustCount} 处必改 · 采纳 {acceptedSuggestions} 条建议</p>}
+        </article>
+        <small className="creator-record-disclaimer">仅代表自检时点的结果，不代表平台审核或背书。</small>
+      </div>
+      <div className="creator-badge-actions">
+        {complete ? (
+          <button onClick={saveBadgeAsPng} type="button">保存为图片</button>
+        ) : (
+          <span className="creator-locked-action" title={lockedReason}>
+            <button aria-describedby="creator-locked-reason" disabled type="button">保存为图片</button>
+          </span>
+        )}
+        <button onClick={onContinueOther} type="button">继续检查其他内容 <Arrow size={15} /></button>
+        {!complete && <small className="sr-only" id="creator-locked-reason">{lockedReason}</small>}
+      </div>
+    </motion.section>
+  );
 
   return (
     <div className="creator-report-page">
       <article className="creator-report-sheet">
         <header className="creator-report-hero">
           <div>
-            <span>发布前自检</span>
+            <span>发布前自检{appeals.length > 0 && <b className="creator-appeal-flag">已提交申诉 {appeals.length} 条</b>}</span>
             <h1 className={`state-${publicationState}`}>{publicationTitle}</h1>
             <p><strong>{requiredCount}</strong> 处必改 · <strong>{suggestionCount}</strong> 处建议 · <strong>{tipCount}</strong> 项提示{ignoredCount > 0 && <> · <strong>{ignoredCount}</strong> 项已忽略</>}</p>
           </div>
@@ -7790,31 +7988,8 @@ function CreatorSelfCheckReport({
               <span><i className="expert-s">S</i><b>文案检查官</b><small>正在重新扫描当前文案</small></span>
               {hasImages && <span><i className="expert-r">R</i><b>视觉取证师</b><small>正在复核图片与披露</small></span>}
             </motion.section>
-          ) : publicationState === "ready" ? (
-            <motion.section animate={{ opacity: 1, y: 0 }} className="creator-badge-area" initial={{ opacity: 0, y: 10 }} key="badge">
-              <div>
-                <article className="creator-selfcheck-badge">
-                  <img alt="TruLens" height={54} src="/trulens-selfcheck-logo.png" width={104} />
-                  <div className="creator-record-heading"><span>SELF-CHECK RECORD · {result ? "真实分析" : "示例数据"}</span><strong>已完成发布前自检</strong><small>无必改项 · {checkDate}</small></div>
-                  <div className="creator-record-scores">
-                    <span><i>S</i><small>文案真实性</small><b>{Math.round(baseCopyScore)}</b><em>→</em><strong>{Math.round(copyScore)}</strong></span>
-                    {hasImages && imageScore != null && <span><i>R</i><small>图像原生性</small><b>{Math.round(imageScore)}</b><em>→</em><strong>{Math.round(imageHandled ? Math.min(96, imageScore + 8) : imageScore)}</strong></span>}
-                  </div>
-                  <p className="creator-record-stats">已处理 {acceptedRequired} 处必改 · 采纳 {acceptedSuggestions} 条建议</p>
-                </article>
-                <small>仅代表自检时点的结果，不代表平台审核或背书。</small>
-              </div>
-              <div className="creator-badge-actions">
-                <button onClick={saveBadgeAsPng}>保存为图片</button>
-                <button onClick={onContinueOther}>继续检查其他内容 <Arrow size={15} /></button>
-              </div>
-            </motion.section>
           ) : (
-            <motion.p animate={{ opacity: 1 }} className="creator-badge-hint" initial={{ opacity: 0 }} key="hint">
-              {ignoredRequiredCount > 0
-                ? <>有 <strong>{ignoredRequiredCount}</strong> 处必改已忽略，重新确认或处理后可获得自检记录</>
-                : <>还有 <strong>{requiredCount}</strong> 处必改，处理后可获得自检记录</>}
-            </motion.p>
+            renderSelfCheckRecord(selfCheckComplete)
           )}
         </AnimatePresence>
 
@@ -7847,13 +8022,25 @@ function CreatorSelfCheckReport({
                     onMouseEnter={() => setHoveredIssue(issue.id)}
                     onMouseLeave={() => setHoveredIssue(null)}
                   >
-                    <header><span>{status === "accepted" ? "✓ 已处理" : creatorSeverityLabels[issue.severity]}</span><em>{issue.type}</em></header>
+                    <header>
+                      <span>{status === "accepted" ? "✓ 已处理" : creatorSeverityLabels[issue.severity]}</span><em>{issue.type}</em>
+                      {appeals.some((appeal) => appeal.issueId === issue.id) && <b className="creator-appeal-flag">已提交申诉</b>}
+                    </header>
                     <p>{issue.reason}</p>
                     <div className="creator-rewrite">
                       {issue.original && <span><small>原句</small><del>{issue.original}</del></span>}
                       <span><small>建议</small><strong>{issue.suggestion.split(/(【[^】]+】)/g).map((part) => /^【/.test(part) ? <mark key={part}>{part}</mark> : part)}</strong></span>
                     </div>
                     {!status && <footer><button onClick={() => acceptIssue(issue)}>采用建议</button><button onClick={() => setIssueStatus((current) => ({ ...current, [issue.id]: "ignored" }))}>忽略</button></footer>}
+                    {onDispute && (
+                      <button
+                        className="creator-dispute-link"
+                        onClick={() => onDispute({ code: "S", issueId: issue.id, text: `对「${issue.type}」有异议：${issue.reason}` })}
+                        type="button"
+                      >
+                        我有异议
+                      </button>
+                    )}
                   </article>
                 );
               })}
@@ -7931,9 +8118,15 @@ function CreatorSelfCheckReport({
           <small>自检建议用于发布前优化，不构成平台审核结论。</small>
           <div>
             <button onClick={() => onReturnModify(draft)}>返回修改</button>
-            <button disabled={isRechecking} onClick={runRecheck}>{isRechecking ? "重新评估中…" : "重新自检"} <Arrow size={16} /></button>
+            <button aria-busy={isRechecking} disabled={isRechecking} onClick={runRecheck}>{isRechecking ? "再次检测中…" : "再次检测"} <Arrow size={16} /></button>
           </div>
         </footer>
+        {recheckError && (
+          <p className="live-error creator-recheck-error" role="alert">
+            再次检测未完成：{recheckError}
+            <button className="live-resume-button" disabled={isRechecking} onClick={runRecheck} type="button">重试</button>
+          </p>
+        )}
       </article>
     </div>
   );
@@ -8081,6 +8274,8 @@ export type TeamRelatedGroup = {
     title: string;
     author: string;
     time: string;
+    /** Full ISO timestamp, when the data source provides one. */
+    createdAt?: string;
   }>;
 };
 
@@ -8115,6 +8310,204 @@ const teamRelatedGroups = [
   },
 ];
 
+const teamDimensionShortName: Record<DimensionCode, string> = { T: "账号", R: "图像", U: "评论", S: "文案" };
+
+/** Assessment scope next to a score, built from the dimensions the report actually assessed. */
+function teamAssessedScope(dimensions: DimensionCode[]): string | null {
+  const assessed = allDimensions.filter((code) => dimensions.includes(code));
+  if (assessed.length === allDimensions.length) return null;
+  if (assessed.length === 0) return "未评估任何维度";
+  if (assessed.length === 1) return `仅评估${teamDimensionShortName[assessed[0]]}`;
+  return `已评估 ${assessed.length}/${allDimensions.length} 维`;
+}
+
+type TeamGroupMember = TeamRelatedGroup["members"][number];
+
+/** One-line basis for a related group, derived only from fields the queue already has. */
+function teamGroupBasis(group: TeamRelatedGroup): string {
+  const parts: string[] = [];
+  const signals = group.signals.join(" ");
+  const authors = [...new Set(group.members.map((member) => member.author))];
+  if (signals.includes("同一账号")) parts.push(`同一账号（${authors[0] ?? "未知账号"}）`);
+  if (signals.includes("SHA-256")) parts.push("使用完全相同的图片");
+  if (group.members.length > 1 && new Set(group.members.map((member) => member.title)).size === 1) parts.push("标题摘要完全相同");
+  const times = group.members.map((member) => (member.createdAt ? Date.parse(member.createdAt) : NaN)).filter((time) => !Number.isNaN(time));
+  if (times.length === group.members.length && times.length > 1) {
+    const minutes = Math.round((Math.max(...times) - Math.min(...times)) / 60000);
+    const span = minutes < 60 ? `${Math.max(1, minutes)} 分钟` : minutes < 1440 ? `${Math.round(minutes / 60)} 小时` : `${Math.round(minutes / 1440)} 天`;
+    parts.push(minutes <= 60 ? `发布时间集中（${span}内）` : `发布时间跨度 ${span}`);
+  }
+  return parts.length ? `关联依据：${parts.join(" · ")}` : `关联依据：${group.signals.join(" · ")}`;
+}
+
+/** Collapse members that share account + title into one row ("×N"); keeps first-seen order. */
+function teamGroupRows(members: TeamGroupMember[]) {
+  const rows: Array<{ key: string; members: TeamGroupMember[] }> = [];
+  members.forEach((member) => {
+    const key = `${member.author}\u0000${member.title}`;
+    const row = rows.find((item) => item.key === key);
+    if (row) row.members.push(member);
+    else rows.push({ key, members: [member] });
+  });
+  return rows;
+}
+
+function teamEarliestMemberId(members: TeamGroupMember[]) {
+  const dated = members.filter((member) => member.createdAt);
+  if (dated.length !== members.length || !dated.length) return members[0]?.id;
+  return dated.reduce((earliest, member) => (Date.parse(member.createdAt!) < Date.parse(earliest.createdAt!) ? member : earliest)).id;
+}
+
+/** "未提供账号" is a placeholder from the backend, not an account — never treat it as a match. */
+function teamKnownAuthor(author: string | undefined) {
+  return Boolean(author && author.trim() && author !== "未提供账号");
+}
+
+type TeamGraphLink = "account" | "image" | "title" | "time";
+
+const teamGraphLinkLabel: Record<TeamGraphLink, string> = {
+  account: "同一账号",
+  image: "图片完全相同",
+  title: "标题摘要相同",
+  time: "60 分钟内发布",
+};
+
+const TEAM_GRAPH_MAX_NODES = 12;
+
+/** Relationship graph for one related group. Every edge is derived from existing fields only. */
+function TeamGroupGraph({ group, items }: { group: TeamRelatedGroup; items: TeamQueueItem[] }) {
+  const [hovered, setHovered] = useState<string | null>(null);
+  const centerId = teamEarliestMemberId(group.members);
+  const center = group.members.find((member) => member.id === centerId) ?? group.members[0];
+  if (!center) return null;
+  const others = group.members.filter((member) => member !== center);
+  const shown = others.slice(0, others.length > TEAM_GRAPH_MAX_NODES ? TEAM_GRAPH_MAX_NODES - 1 : TEAM_GRAPH_MAX_NODES);
+  const hiddenCount = others.length - shown.length;
+  const sameImage = group.signals.some((signal) => signal.includes("SHA-256"));
+  const riskOf = (member: TeamGroupMember) => items.find((item) => item.taskId === member.taskId)?.risk;
+  const tone = (member: TeamGroupMember) => {
+    const risk = riskOf(member);
+    return risk === "高风险" ? "high" : risk === "中风险" ? "medium" : risk === "高可信" ? "trusted" : "unknown";
+  };
+  const linksTo = (member: TeamGroupMember): TeamGraphLink[] => {
+    const links: TeamGraphLink[] = [];
+    if (teamKnownAuthor(member.author) && member.author === center.author) links.push("account");
+    if (sameImage) links.push("image");
+    if (member.title === center.title) links.push("title");
+    if (member.createdAt && center.createdAt && Math.abs(Date.parse(member.createdAt) - Date.parse(center.createdAt)) <= 3600000) links.push("time");
+    return links;
+  };
+  const width = 360;
+  const height = 210;
+  const cx = width / 2;
+  const cy = height / 2;
+  const slots = shown.length + (hiddenCount > 0 ? 1 : 0);
+  const position = (index: number) => {
+    const angle = -Math.PI / 2 + (index / Math.max(1, slots)) * Math.PI * 2;
+    return { x: cx + Math.cos(angle) * 140, y: cy + Math.sin(angle) * 78 };
+  };
+  const usedLinks = new Set<TeamGraphLink>();
+  shown.forEach((member) => linksTo(member).forEach((link) => usedLinks.add(link)));
+  const describe = (member: TeamGroupMember) =>
+    `${member.title} · ${riskOf(member) ?? "风险档位未知"} · ${member.createdAt ? new Date(member.createdAt).toLocaleString("zh-CN", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" }) : member.time}`;
+  const hoveredMember = group.members.find((member) => member.id === hovered);
+
+  return (
+    <figure className="team-group-graph">
+      <svg aria-label={`关系图：中心为最早出现的一篇，周围 ${others.length} 篇`} role="img" viewBox={`0 0 ${width} ${height}`}>
+        {shown.map((member, index) => {
+          const { x, y } = position(index);
+          const links = linksTo(member);
+          const length = Math.hypot(x - cx, y - cy) || 1;
+          const nx = -(y - cy) / length;
+          const ny = (x - cx) / length;
+          return links.map((link, linkIndex) => {
+            const offset = (linkIndex - (links.length - 1) / 2) * 3.2;
+            return <line className={`graph-link link-${link}`} key={`${member.id}-${link}`} x1={cx + nx * offset} x2={x + nx * offset} y1={cy + ny * offset} y2={y + ny * offset} />;
+          });
+        })}
+        {shown.map((member, index) => {
+          const { x, y } = position(index);
+          return (
+            <g
+              aria-label={describe(member)}
+              className={`graph-node tone-${tone(member)} ${hovered === member.id ? "active" : ""}`}
+              key={member.id}
+              onBlur={() => setHovered(null)}
+              onFocus={() => setHovered(member.id)}
+              onMouseEnter={() => setHovered(member.id)}
+              onMouseLeave={() => setHovered(null)}
+              tabIndex={0}
+            >
+              <circle cx={x} cy={y} r={9} />
+              <text textAnchor="middle" x={x} y={y + 3.5}>{index + 2}</text>
+            </g>
+          );
+        })}
+        {hiddenCount > 0 && (() => {
+          const { x, y } = position(shown.length);
+          return (
+            <g className="graph-node tone-more">
+              <circle cx={x} cy={y} r={12} />
+              <text textAnchor="middle" x={x} y={y + 3.5}>+{hiddenCount}</text>
+            </g>
+          );
+        })()}
+        <g
+          aria-label={`中心：${describe(center)}`}
+          className={`graph-node graph-center tone-${tone(center)} ${hovered === center.id ? "active" : ""}`}
+          onBlur={() => setHovered(null)}
+          onFocus={() => setHovered(center.id)}
+          onMouseEnter={() => setHovered(center.id)}
+          onMouseLeave={() => setHovered(null)}
+          tabIndex={0}
+        >
+          <circle cx={cx} cy={cy} r={15} />
+          <text textAnchor="middle" x={cx} y={cy + 4}>1</text>
+        </g>
+      </svg>
+      <p aria-live="polite" className="team-group-graph-tip">
+        {hoveredMember ? describe(hoveredMember) : "悬停节点查看笔记摘要与风险档位 · 1 号为最早出现的一篇"}
+      </p>
+      <figcaption>
+        {[...usedLinks].map((link) => <span className={`legend-link link-${link}`} key={link}><i />{teamGraphLinkLabel[link]}</span>)}
+        <span className="legend-risk"><i className="tone-high" />高风险<i className="tone-medium" />中风险<i className="tone-trusted" />高可信</span>
+      </figcaption>
+    </figure>
+  );
+}
+
+/** Count items per distinct suggested-action wording for one role (the backend's own phrases). */
+function teamActionDistribution(items: TeamQueueItem[], role: TeamRole, buckets: Array<{ label: string; match: (action: string) => boolean }>) {
+  return buckets.map((bucket) => ({ label: bucket.label, count: items.filter((item) => bucket.match(item.actions[role] ?? "")).length }));
+}
+
+/** Frontend-only CSV of queue rows (UTF-8 BOM so Excel opens Chinese text correctly). */
+function downloadTeamCsv(rows: TeamQueueItem[], role: TeamRole) {
+  const roleName = role === "platform" ? "平台运营" : "品牌方";
+  const header = ["笔记摘要", "账号", "总分(百分制)", "风险档位", "置信度", "主要矛盾", `建议动作(${roleName})`, "处理状态"];
+  const cell = (value: string | number) => {
+    const text = String(value ?? "");
+    return /[",\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+  };
+  const lines = [header, ...rows.map((item) => [item.title, item.author, item.dimensions.length ? Math.round(item.score) : "暂不评分", item.risk, item.confidence, item.contradiction, item.actions[role] ?? "", item.status])]
+    .map((line) => line.map(cell).join(","));
+  const now = new Date();
+  const date = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+  const blob = new Blob(["\ufeff" + lines.join("\r\n")], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `TruLens复核报告_${roleName}_${date}.csv`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+const teamStatusRank: Record<TeamStatus, number> = { 待复核: 0, 观察中: 1, 已处理: 2 };
+const teamRiskRank: Record<TeamRisk, number> = { 高风险: 0, 中风险: 1, 高可信: 2 };
+
 function TeamWorkspace({
   error,
   groups: remoteGroups,
@@ -8143,10 +8536,13 @@ function TeamWorkspace({
   const [confidenceFilter, setConfidenceFilter] = useState<"全部" | "低">("全部");
   const [issueFilter, setIssueFilter] = useState("全部");
   const [statusFilter, setStatusFilter] = useState("全部");
-  const [scoreAscending, setScoreAscending] = useState(true);
+  // null = priority order (待复核 → 观察中 → 已处理, then 高 → 中 → 低 risk); otherwise sort by score.
+  const [scoreSort, setScoreSort] = useState<"asc" | "desc" | null>(null);
   const [selectedIds, setSelectedIds] = useState<Array<string | number>>([]);
   const [activeItem, setActiveItem] = useState<TeamQueueItem | null>(null);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [expandedGroupRows, setExpandedGroupRows] = useState<string[]>([]);
+  const [drawerNotice, setDrawerNotice] = useState<string | null>(null);
   const relatedGroups = remoteGroups ?? teamRelatedGroups;
 
   useEffect(() => {
@@ -8158,7 +8554,11 @@ function TeamWorkspace({
     .filter((item) => confidenceFilter === "全部" || item.confidence === confidenceFilter)
     .filter((item) => issueFilter === "全部" || item.issueType === issueFilter)
     .filter((item) => statusFilter === "全部" || item.status === statusFilter)
-    .sort((a, b) => scoreAscending ? a.score - b.score : b.score - a.score);
+    .sort((a, b) => {
+      if (scoreSort) return scoreSort === "asc" ? a.score - b.score : b.score - a.score;
+      return teamStatusRank[a.status] - teamStatusRank[b.status] || teamRiskRank[a.risk] - teamRiskRank[b.risk] || a.score - b.score;
+    });
+  const pendingCount = items.filter((item) => item.status === "待复核").length;
   const summary = remoteSummary ?? {
     total: items.length,
     highRisk: items.filter((item) => item.risk === "高风险").length,
@@ -8170,6 +8570,33 @@ function TeamWorkspace({
     confidenceLow: items.filter((item) => item.confidence === "低").length,
   };
   const riskTotal = Math.max(1, summary.total);
+  const hasQueue = items.length > 0;
+  const metric = (value: number) => (hasQueue ? value : "—");
+  const contactableAccounts = new Set(
+    items.filter((item) => item.risk !== "高可信" && teamKnownAuthor(item.author)).map((item) => item.author),
+  ).size;
+  const roleCards = role === "platform"
+    ? [
+        { label: "待复核", value: metric(items.filter((item) => item.status === "待复核").length), note: "需要人工判断" },
+        { label: "高风险", value: metric(items.filter((item) => item.risk === "高风险").length), note: "风险档位为高" },
+        { label: "疑似同源 / 灌水分组", value: hasQueue ? relatedGroups.length : "—", note: "见「关联分组」" },
+      ]
+    : [
+        { label: "绝对化功效等违规话术", value: metric(items.filter((item) => item.issueType === "绝对化功效").length), note: "问题类型为绝对化功效" },
+        { label: "文案与图像矛盾", value: "—", note: "队列暂无区分矛盾维度的字段" },
+        { label: "可联系整改的账号", value: metric(contactableAccounts), note: "中高风险内容涉及的账号" },
+      ];
+  const roleDistribution = role === "platform"
+    ? teamActionDistribution(items, "platform", [
+        { label: "人工复核 · 限流观察", match: (action) => action.includes("人工复核") },
+        { label: "加标注 · 继续观察", match: (action) => !action.includes("人工复核") && action.includes("观察") },
+        { label: "放行", match: (action) => action.includes("放行") },
+      ])
+    : teamActionDistribution(items, "brand", [
+        { label: "暂缓合作并核实", match: (action) => action.includes("暂缓合作") },
+        { label: "索取材料复核", match: (action) => action.includes("索取材料") },
+        { label: "可作合作参考", match: (action) => action.includes("合作参考") },
+      ]);
   const confidenceTotal = Math.max(1, summary.confidenceHigh + summary.confidenceMedium + summary.confidenceLow);
   const isMobileLayout = window.matchMedia("(max-width: 720px)").matches;
 
@@ -8183,6 +8610,25 @@ function TeamWorkspace({
         status,
       );
     }
+  };
+
+  const exportRows = selectedIds.length ? filteredItems.filter((item) => selectedIds.includes(item.id)) : filteredItems;
+
+  const openItem = (item: TeamQueueItem | null) => {
+    setDrawerNotice(null);
+    setActiveItem(item);
+  };
+
+  // Mark the open item as handled (same updateStatus path as the existing button), then
+  // move to the next 待复核 item in the current list order.
+  const markAndNext = async () => {
+    if (!activeItem) return;
+    const order = filteredItems.filter((item) => item.id !== activeItem.id && item.status === "待复核");
+    const currentIndex = filteredItems.findIndex((item) => item.id === activeItem.id);
+    const next = order.find((item) => filteredItems.indexOf(item) > currentIndex) ?? order[0] ?? null;
+    await updateStatus([activeItem.id], "已处理");
+    if (next) openItem(next);
+    else setDrawerNotice("队列已处理完");
   };
 
   const filterGroups = [
@@ -8215,9 +8661,17 @@ function TeamWorkspace({
         {view === "queue" ? (
         <>
           <section className="team-summary">
-          <div><span>核验总量</span><strong>{summary.total}</strong></div>
-          <div><span>高风险</span><strong>{summary.highRisk}</strong></div>
-          <div><span>待复核</span><strong>{summary.pending}</strong></div>
+          {roleCards.map((card) => (
+            <div className="team-role-card" key={card.label}><span>{card.label}</span><strong>{card.value}</strong><small>{card.note}</small></div>
+          ))}
+          <div className="team-role-card team-action-distribution">
+            <span>{role === "platform" ? "建议处置分布" : "建议动作分布"}</span>
+            <ul>
+              {roleDistribution.map((bucket) => (
+                <li key={bucket.label}><b>{hasQueue ? bucket.count : "—"}</b><em>{bucket.label}</em></li>
+              ))}
+            </ul>
+          </div>
           <div className="team-risk-distribution">
             <header><span>风险分布</span><small>共 {summary.total} 条</small></header>
             <div className="team-distribution-bar team-risk-bar"><i className="trusted" style={{ width: `${summary.trusted / riskTotal * 100}%` }} title={`高可信 ${summary.trusted} 条`} /><i className="medium" style={{ width: `${summary.mediumRisk / riskTotal * 100}%` }} title={`中风险 ${summary.mediumRisk} 条`} /><i className="high" style={{ width: `${summary.highRisk / riskTotal * 100}%` }} title={`高风险 ${summary.highRisk} 条`} /></div>
@@ -8250,6 +8704,23 @@ function TeamWorkspace({
             {confidenceFilter === "低" && <button className="team-confidence-filter-chip" onClick={() => setConfidenceFilter("全部")}>低置信度 ×</button>}
           </section>
 
+          <div className="team-priority-row">
+            <button
+              aria-pressed={statusFilter === "待复核"}
+              className={`team-priority-hint ${statusFilter === "待复核" ? "active" : ""}`}
+              disabled={!pendingCount}
+              onClick={() => setStatusFilter((current) => (current === "待复核" ? "全部" : "待复核"))}
+              type="button"
+            >
+              建议优先处理：待复核 <strong>{pendingCount}</strong> 条{statusFilter === "待复核" ? " · 已筛选" : ""}
+            </button>
+            <span>{scoreSort ? `按总分${scoreSort === "asc" ? "从低到高" : "从高到低"}` : "按优先级：待复核在前，风险从高到低"}</span>
+            {scoreSort && <button className="team-sort-reset" onClick={() => setScoreSort(null)} type="button">按优先级</button>}
+            <button className="team-export-button" disabled={!exportRows.length} onClick={() => downloadTeamCsv(exportRows, role)} type="button">
+              导出复核报告 <small>{selectedIds.length ? `已勾选 ${exportRows.length} 条` : `当前筛选 ${exportRows.length} 条`}</small>
+            </button>
+          </div>
+
           <section className="team-queue">
           {loading && <div className="team-empty">正在读取真实核验队列…</div>}
           {error && <div className="team-empty">{error}</div>}
@@ -8257,13 +8728,13 @@ function TeamWorkspace({
             <div className="team-batch-bar"><strong>已选 {selectedIds.length} 项</strong><span /><button onClick={() => updateStatus(selectedIds, "观察中")}>加入观察</button><button onClick={() => updateStatus(selectedIds, "已处理")}>标记已处理</button></div>
           )}
           <table>
-            <thead><tr><th><input aria-label="选择当前列表全部内容" checked={filteredItems.length > 0 && filteredItems.every((item) => selectedIds.includes(item.id))} onChange={(event) => setSelectedIds(event.target.checked ? filteredItems.map((item) => item.id) : [])} type="checkbox" /></th><th>笔记内容</th><th><button onClick={() => setScoreAscending((value) => !value)}>总分 {scoreAscending ? "↑" : "↓"}</button></th><th>T / R / U / S</th><th>主要矛盾</th><th>建议动作</th><th>处理状态</th></tr></thead>
+            <thead><tr><th><input aria-label="选择当前列表全部内容" checked={filteredItems.length > 0 && filteredItems.every((item) => selectedIds.includes(item.id))} onChange={(event) => setSelectedIds(event.target.checked ? filteredItems.map((item) => item.id) : [])} type="checkbox" /></th><th>笔记内容</th><th><button onClick={() => setScoreSort((value) => (value === "asc" ? "desc" : "asc"))}>总分 {scoreSort === "asc" ? "↑" : scoreSort === "desc" ? "↓" : "↕"}</button></th><th>T / R / U / S</th><th>主要矛盾</th><th>建议动作 · {role === "platform" ? "平台运营" : "品牌方"}</th><th>处理状态</th></tr></thead>
             <tbody>
               {filteredItems.map((item) => (
-                <tr key={item.id} onClick={() => setActiveItem(item)} onKeyDown={(event) => event.key === "Enter" && setActiveItem(item)} tabIndex={0}>
+                <tr key={item.id} onClick={() => openItem(item)} onKeyDown={(event) => event.key === "Enter" && openItem(item)} tabIndex={0}>
                   <td className="team-select-cell"><input aria-label={`选择${item.title}`} checked={selectedIds.includes(item.id)} onChange={(event) => setSelectedIds((current) => event.target.checked ? [...current, item.id] : current.filter((id) => id !== item.id))} onClick={(event) => event.stopPropagation()} type="checkbox" /></td>
                   <td className="team-title-cell"><strong>{item.title}</strong><small>{item.author}</small></td>
-                  <td className="team-score-cell"><div><strong>{item.score}</strong><span className={`team-risk-pill risk-${item.risk === "高风险" ? "high" : item.risk === "中风险" ? "medium" : "trusted"}`}>{item.risk}</span><small>置信度 {item.confidence}</small></div></td>
+                  <td className="team-score-cell"><div><strong>{item.dimensions.length ? Math.round(item.score) : <small>暂不评分</small>}</strong>{teamAssessedScope(item.dimensions) && <em className="team-score-scope" title={`已评估：${item.dimensions.join(" / ") || "无"}`}>{teamAssessedScope(item.dimensions)}</em>}<span className={`team-risk-pill risk-${item.risk === "高风险" ? "high" : item.risk === "中风险" ? "medium" : "trusted"}`}>{item.risk}</span><small>置信度 {item.confidence}</small></div></td>
                   <td className="team-dimensions-cell"><div>{allDimensions.map((code) => <i className={`${item.dimensions.includes(code) ? "active" : ""} dot-${code.toLowerCase()}`} key={code}>{code}</i>)}</div></td>
                   <td className="team-contradiction-cell">{item.contradiction}</td>
                   <td className="team-action-cell"><span>{item.actions[role]}</span></td>
@@ -8285,17 +8756,50 @@ function TeamWorkspace({
                 return (
                 <article className="team-related-card" key={groupKey}>
                   <header><div><small>RELATED GROUP {String(groupIndex + 1).padStart(2, "0")}</small><h2>疑似同源内容组 · {group.members.length} 篇</h2></div><span>{remoteGroups ? "实时数据" : "示例数据"}</span></header>
+                  <p className="team-related-basis">{teamGroupBasis(group)}</p>
+                  <TeamGroupGraph group={group} items={items} />
                   <div className="team-related-signals">{group.signals.map((signal) => <span key={signal}>{signal}</span>)}</div>
                   <div className="team-related-members">
-                    {group.members.map((member, index) => (
-                      <button key={member.id} onClick={() => onOpenReport(member.taskId)}>
-                        <span>{String(index + 1).padStart(2, "0")}</span>
-                        <div><strong>{member.title}</strong><small>{member.author}</small></div>
-                        <time>{member.time}</time>
-                        {index === 0 && <em>最早出现</em>}
-                        <b>查看报告</b>
-                      </button>
-                    ))}
+                    {teamGroupRows(group.members).map((row, rowIndex) => {
+                      const earliestId = teamEarliestMemberId(group.members);
+                      const first = row.members[0];
+                      const rowKey = `${groupKey}-${rowIndex}`;
+                      const expanded = expandedGroupRows.includes(rowKey);
+                      const containsEarliest = row.members.some((member) => member.id === earliestId);
+                      if (row.members.length === 1) {
+                        return (
+                          <button key={first.id} onClick={() => onOpenReport(first.taskId)}>
+                            <span>{String(rowIndex + 1).padStart(2, "0")}</span>
+                            <div><strong>{first.title}</strong><small>{first.author}</small></div>
+                            <time>{first.time}</time>
+                            {containsEarliest && <em>最早出现</em>}
+                            <b>查看报告</b>
+                          </button>
+                        );
+                      }
+                      return (
+                        <div className={`team-related-merged ${expanded ? "open" : ""}`} key={rowKey}>
+                          <button aria-expanded={expanded} onClick={() => setExpandedGroupRows((current) => (expanded ? current.filter((key) => key !== rowKey) : [...current, rowKey]))}>
+                            <span>{String(rowIndex + 1).padStart(2, "0")}</span>
+                            <div><strong>{first.title}</strong><small>{first.author} · 账号与标题相同</small></div>
+                            <time className="team-related-count">×{row.members.length}</time>
+                            {containsEarliest && <em>含最早出现</em>}
+                            <b>{expanded ? "收起" : "展开明细"}</b>
+                          </button>
+                          {expanded && (
+                            <ol>
+                              {row.members.map((member) => (
+                                <li key={member.id}>
+                                  <time>{member.createdAt ? new Date(member.createdAt).toLocaleString("zh-CN", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" }) : member.time}</time>
+                                  {member.id === earliestId && <em>最早出现</em>}
+                                  <button onClick={() => onOpenReport(member.taskId)}>查看报告</button>
+                                </li>
+                              ))}
+                            </ol>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                   <footer>
                     <button onClick={() => setActiveItem(items.find((item) => item.taskId === memberTaskIds[0]) ?? null)}>逐篇查看</button>
@@ -8322,10 +8826,12 @@ function TeamWorkspace({
             >
               <header><span>QUEUE DETAIL · 实时数据</span><button aria-label="关闭详情" onClick={() => setActiveItem(null)}>×</button></header>
               <h2>{activeItem.title}</h2><p>{activeItem.author}</p>
-              <div className="team-drawer-score"><strong>{activeItem.score}</strong><span className={`team-risk-pill risk-${activeItem.risk === "高风险" ? "high" : activeItem.risk === "中风险" ? "medium" : "trusted"}`}>{activeItem.risk}</span><small>置信度 {activeItem.confidence}</small></div>
+              <div className="team-drawer-score"><strong>{activeItem.dimensions.length ? Math.round(activeItem.score) : <small>暂不评分</small>}</strong>{teamAssessedScope(activeItem.dimensions) && <em className="team-score-scope">{teamAssessedScope(activeItem.dimensions)}</em>}<span className={`team-risk-pill risk-${activeItem.risk === "高风险" ? "high" : activeItem.risk === "中风险" ? "medium" : "trusted"}`}>{activeItem.risk}</span><small>置信度 {activeItem.confidence}</small></div>
               <section><span>关键交叉验证</span>{activeItem.checks.map(([claim, evidence]) => <div key={claim}><strong>{claim}</strong><i>×</i><p>{evidence}</p></div>)}</section>
               <section className="team-drawer-action"><span>建议动作 · {role === "platform" ? "平台运营" : "品牌方"}</span><strong>{activeItem.actions[role]}</strong></section>
+              {drawerNotice && <p aria-live="polite" className="team-drawer-notice">{drawerNotice}</p>}
               <footer><button onClick={() => onOpenReport(activeItem.taskId)}>打开完整报告</button><button disabled={activeItem.status === "已处理"} onClick={() => void updateStatus([activeItem.id], "已处理")}>{activeItem.status === "已处理" ? "已处理" : "标记已处理"}</button></footer>
+              <button className="team-drawer-next" disabled={activeItem.status === "已处理" && !!drawerNotice} onClick={() => void markAndNext()} type="button">标记并看下一条 →</button>
             </motion.aside>
           </>
         )}

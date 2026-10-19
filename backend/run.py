@@ -15,6 +15,10 @@ def main() -> None:
         port=settings.port,
         reload=settings.debug,
         log_level="debug" if settings.debug else "info",
+        # Without this the watcher also sees .venv and storage: installing a
+        # package or writing an upload restarts the server (and floods the log
+        # with thousands of change notifications).
+        reload_excludes=[".venv*", "storage*", "*.db", "__pycache__*"],
     )
 
 

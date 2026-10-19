@@ -179,7 +179,11 @@ class XhsService:
             enabled=settings.xhs_enabled,
             timeout_seconds=settings.xhs_timeout_seconds,
             max_comments=settings.xhs_max_comments,
-            user_data_path=str(settings.xhs_user_data_path) if settings.xhs_user_data_path else None,
+            user_data_path=(
+                str(settings.xhs_user_data_path_absolute)
+                if settings.xhs_user_data_path_absolute
+                else None
+            ),
             headless=settings.xhs_headless,
             local_port=settings.xhs_local_port,
         )

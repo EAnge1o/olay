@@ -11,6 +11,19 @@
   --line: rgba(39, 34, 57, 0.11);
   --serif: "Playfair Display", "Songti SC", serif;
   --mono: "DM Mono", monospace;
+
+  /* Type scale.
+   * The landing page carried ~230 hard-coded sizes from 5px to 58px, with 6-7px
+   * (over 100 elements) far below a comfortable floor and no shared reference
+   * between neighbouring labels. These steps give every small size one name so
+   * the hierarchy stays coherent; see the normalisation rules near the end of
+   * this file, which remap legacy values onto them. */
+  --fs-3xs: 10px;   /* axis ticks, decorative marks only */
+  --fs-2xs: 11px;   /* the smallest label still safe to read */
+  --fs-xs: 12px;    /* annotations, captions, table cells */
+  --fs-sm: 13px;    /* secondary body copy */
+  --fs-md: 15px;    /* body */
+  --fs-lg: 17px;    /* lead paragraph */
   --hero-bg: #f7f5fc;
   --hero-ink: #1f1b33;
   --hero-purple: #7b6bb0;
@@ -232,6 +245,12 @@ button:focus-visible, textarea:focus-visible { outline: 2px solid #8c7cf6; outli
 .trust-card:focus-visible{outline:2px solid #7869a7;outline-offset:4px;transform:translateY(-5px)}
 .trust-card > span { font:500 76px/.9 var(--serif);color:#2f2938}
 .trust-card-expert{position:absolute;right:20px;top:17px;width:150px;height:155px;object-fit:contain;object-position:center bottom;pointer-events:none}
+/* Advisor cards: copy in the left column, the expert portrait in the right column. */
+.trust-card{display:grid;grid-template-columns:minmax(0,1fr) 150px;grid-template-rows:auto auto 1fr;column-gap:16px}
+.trust-card>span{grid-column:1;grid-row:1}
+.trust-card>h3{grid-column:1;grid-row:2}
+.trust-card>div{grid-column:1;grid-row:3;align-self:end}
+.trust-card>.trust-card-expert{position:relative;inset:auto;grid-column:2;grid-row:1/4;align-self:center;width:150px;height:min(220px,100%)}
 .trust-card h3{margin:16px 0 0;font:500 25px/1.2 "Noto Sans SC",sans-serif;letter-spacing:-.03em;color:#37313f}
 .trust-card>div{margin-top:auto}
 .trust-card strong{font:500 25px/1.2 var(--serif);color:#393240}
@@ -316,12 +335,9 @@ button:focus-visible, textarea:focus-visible { outline: 2px solid #8c7cf6; outli
 .composer-account-method-actions button:hover{border-color:#756792}
 .composer-account-error{margin:0 10px 7px;color:#9a4b57;font-size:10px;line-height:1.5}
 .new-analysis-composer{padding:0;overflow:hidden}
-.analysis-mode-switch{display:grid;grid-template-columns:repeat(3,1fr);background:#f1eff3;border-bottom:1px solid rgba(53,46,75,.09)}
-.analysis-mode-switch button{min-height:54px;padding:8px 12px;border:0;border-right:1px solid rgba(53,46,75,.08);background:transparent;color:#817b88;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:2px;text-align:left;font-size:11px}
-.analysis-mode-switch button:last-child{border-right:0}
-.analysis-mode-switch button small{font-size:8px;color:#a39da8}
-.analysis-mode-switch button.active{background:#fff;color:#332d3d;box-shadow:inset 0 -2px #6d5d96}
-.analysis-mode-switch button.active small{color:#746987}
+.analysis-mode-switch{display:grid;grid-template-columns:1fr 1fr;background:transparent;border-bottom:1px solid rgba(53,46,75,.09)}
+.analysis-mode-switch button{min-height:46px;padding:8px 12px;border:0;background:transparent;color:#8a8490;display:flex;align-items:center;justify-content:center;text-align:center;font-size:12px}
+.analysis-mode-switch button.active{color:#332d3d;font-weight:600;box-shadow:inset 0 -2px #6d5d96}
 .new-analysis-link-fields{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:14px 14px 9px}
 .new-analysis-field{display:flex;flex-direction:column;gap:7px;padding:10px;border:1px solid rgba(53,46,75,.1);background:#faf9fb;text-align:left}
 .new-analysis-field>span{display:flex;align-items:center;gap:6px;color:#5b5563;font-size:10px}
@@ -731,6 +747,9 @@ button:focus-visible, textarea:focus-visible { outline: 2px solid #8c7cf6; outli
   .trust-card h3{margin-top:12px;font-size:21px}
   .trust-card strong{font-size:21px}
   .trust-card p{font-size:9px}
+  .trust-card{grid-template-columns:minmax(0,1fr) 104px;column-gap:10px;grid-template-rows:auto auto 1fr}
+  .trust-card>div{grid-column:1/3}
+  .trust-card>.trust-card-expert{grid-row:1/3;width:104px;height:120px;align-self:start}
   .one-agent-section{height:auto;overflow:hidden}
   .one-agent-sticky{position:relative;height:auto;min-height:0;overflow:visible;padding:86px 18px 80px;display:block}
   .one-agent-heading h2{font-size:42px;margin-top:18px}
@@ -867,11 +886,21 @@ button:focus-visible, textarea:focus-visible { outline: 2px solid #8c7cf6; outli
 }
 
 /* Unified How narrative stage */
-.how-narrative{position:relative;height:640vh;background:radial-gradient(circle at 24% 32%,rgba(244,207,220,.36),transparent 30%),radial-gradient(circle at 78% 44%,rgba(204,217,255,.48),transparent 32%),linear-gradient(155deg,#f8f6fd,#f5f3fa 58%,#faf6f7)}
+/* 420vh = 100vh of sticky stage + ~80vh of scroll per scene across the four
+ * scenes. It was 640vh, which meant scrolling ~5.4 screens to walk through
+ * four panels and read as "stuck" rather than "narrated". The stage stays
+ * pinned at 100vh throughout, so only the travel distance changes. */
+.how-narrative{position:relative;height:420vh;background:radial-gradient(circle at 24% 32%,rgba(244,207,220,.36),transparent 30%),radial-gradient(circle at 78% 44%,rgba(204,217,255,.48),transparent 32%),linear-gradient(155deg,#f8f6fd,#f5f3fa 58%,#faf6f7)}
 .how-stage{position:sticky;top:0;height:100vh;min-height:650px;overflow:hidden}
-.how-scene{position:absolute;inset:0;will-change:opacity,transform,filter;transform-origin:center;overflow:hidden;backface-visibility:hidden}
+.how-scene{position:absolute;inset:0;will-change:opacity,transform;transform-origin:center;overflow:hidden;backface-visibility:hidden}
 .how-scene-canvas{width:100%;height:100%;transform:scale(var(--how-scene-scale,1));transform-origin:center}
 .how-scene .trust-section,.how-scene .one-agent-section,.how-scene .architecture-section,.how-scene .report-showcase-section{height:100%;min-height:0;background:transparent}
+/* The report card carries more content than the other three scenes (radar +
+   cross-check + decision panel), so at height:100% it overflowed the sticky
+   stage and `overflow:hidden` on .how-scene clipped the bottom — the
+   「体验 TruLens Agent」 button lost its lower half. Let this one grow with its
+   content and centre itself in the stage instead. */
+.how-scene .report-showcase-section{height:auto;min-height:100%;display:flex;flex-direction:column;justify-content:center;overflow:visible}
 .how-scene .trust-section{padding:44px 0 28px;display:flex;flex-direction:column;justify-content:center}
 .how-scene .trust-heading{flex:none}
 .how-scene .trust-grid{padding-left:96px}
@@ -889,7 +918,7 @@ button:focus-visible, textarea:focus-visible { outline: 2px solid #8c7cf6; outli
 .how-scene .architecture-section{padding:0;overflow:hidden}
 .how-scene .architecture-sticky{position:relative;top:auto;height:100%;min-height:0;padding:32px 5vw;overflow:hidden}
 .how-scene .architecture-section .one-agent-flow{margin-top:19px}
-.how-scene .report-showcase-section{padding:clamp(78px,9vh,96px) 5vw 18px;overflow:hidden}
+.how-scene .report-showcase-section{padding:clamp(78px,9vh,96px) 5vw 18px;overflow:visible}
 .how-scene .report-showcase-heading h2{margin:12px 0 7px;font-size:46px}
 .how-scene .report-showcase-stage{margin-top:10px;padding-top:43px}
 .how-scene .trust-report-card{padding:17px 19px;border-radius:23px}
@@ -1854,7 +1883,13 @@ button:focus-visible, textarea:focus-visible { outline: 2px solid #8c7cf6; outli
   overflow: hidden;
   padding: 132px clamp(24px, 6vw, 88px) 112px;
   color: var(--trust-ink);
-  background:
+  /* The preceding #how-report section is transparent by design (its background is
+   painted by .how-narrative) and the page shell under it is #faf9fc, so fading
+   from #f7f5fc used to leave a visible horizontal seam right where the two
+   sections meet. Start from the shell colour instead and ramp into the tinted
+   panel over the top padding. */
+background:
+    linear-gradient(180deg, #faf9fc 0, #f7f5fc 132px),
     radial-gradient(circle at 12% 22%, rgba(201, 139, 147, .14), transparent 25%),
     radial-gradient(circle at 88% 36%, rgba(123, 107, 176, .16), transparent 29%),
     #f7f5fc;
@@ -1938,7 +1973,16 @@ button:focus-visible, textarea:focus-visible { outline: 2px solid #8c7cf6; outli
 .why-trust-back { margin: 42px auto 0; padding: 8px 3px; border: 0; border-bottom: 1px solid rgba(123, 107, 176, .32); background: transparent; display: block; color: var(--trust-purple); font-size: 11px; }
 
 @media (max-width: 899px) {
-  .why-trust-section { padding: 92px 18px 82px; }
+  .why-trust-section {
+    padding: 92px 18px 82px;
+    /* Keep the ramp matched to the reduced padding, otherwise the heading lands
+       before the tint has fully arrived. */
+    background:
+      linear-gradient(180deg, #faf9fc 0, #f7f5fc 92px),
+      radial-gradient(circle at 12% 22%, rgba(201, 139, 147, .14), transparent 25%),
+      radial-gradient(circle at 88% 36%, rgba(123, 107, 176, .16), transparent 29%),
+      #f7f5fc;
+  }
   .why-trust-heading h2 { font-size: 43px; }
   .why-trust-heading p { max-width: 320px; margin: auto; line-height: 1.7; }
   .promise-card-grid { margin-top: 46px; grid-template-columns: 1fr; }
@@ -1965,38 +2009,32 @@ button:focus-visible, textarea:focus-visible { outline: 2px solid #8c7cf6; outli
   position: relative;
   min-height: 100vh;
   overflow: hidden;
-  padding: 110px 0 0 clamp(26px, 6vw, 92px);
+  padding: 110px clamp(26px, 6vw, 92px) 0;
   color: var(--learn-ink);
   background:
     radial-gradient(circle at 9% 28%, rgba(201, 139, 147, .14), transparent 25%),
     radial-gradient(circle at 82% 42%, rgba(123, 107, 176, .16), transparent 32%),
     #f7f5fc;
 }
-.learn-layout { width: 100%; display: grid; grid-template-columns: minmax(270px, 35%) minmax(0, 65%); gap: clamp(34px, 5vw, 76px); align-items: start; }
-.learn-intro { position: sticky; top: 90px; max-width: 390px; padding: 36px 0 80px; }
+.learn-layout { width: 100%; max-width: 1240px; margin: 0 auto; display: flex; flex-direction: column; }
+.learn-intro { position: relative; max-width: 760px; margin: 0 auto; padding: 0 0 48px; text-align: center; }
 .learn-intro>span,
 .learn-section-label { color: var(--learn-purple); font: 500 9px var(--mono); letter-spacing: .12em; }
 .learn-intro>span { display: inline-flex; padding: 8px 12px; border: 1px solid rgba(123, 107, 176, .16); border-radius: 999px; background: rgba(255, 255, 255, .64); }
 .learn-intro h2 { margin: 24px 0 16px; font: 500 clamp(45px, 4.8vw, 68px)/1.04 var(--serif); letter-spacing: -.05em; }
 .learn-intro h2 em { display: block; color: var(--learn-purple); font-weight: 500; }
-.learn-intro>p { max-width: 340px; margin: 0; color: #716b7d; font-size: 13px; line-height: 1.9; }
-.learn-intro nav { position: relative; margin-top: 54px; display: flex; flex-direction: column; gap: 22px; }
-.learn-intro nav::before { content: ""; position: absolute; left: 5px; top: 7px; bottom: 7px; width: 1px; background: rgba(123, 107, 176, .18); }
+.learn-intro>p { max-width: 480px; margin: 0 auto; color: #716b7d; font-size: 13px; line-height: 1.9; }
+.learn-intro nav { position: relative; margin-top: 34px; display: flex; flex-wrap: wrap; justify-content: center; gap: 14px 30px; }
+.learn-intro nav::before { content: none; }
 .learn-intro nav button { position: relative; padding: 0; border: 0; background: transparent; display: flex; align-items: center; gap: 13px; color: #aaa3b0; text-align: left; font-size: 10px; }
 .learn-intro nav button i { z-index: 1; width: 11px; height: 11px; border: 2px solid #d8d2df; border-radius: 50%; background: #f7f5fc; transition: border-color .25s, background .25s, box-shadow .25s; }
 .learn-intro nav button.active { color: #4a4254; }
 .learn-intro nav button.active i { border-color: var(--learn-purple); background: var(--learn-purple); box-shadow: 0 0 0 5px rgba(123, 107, 176, .1); }
 .learn-intro nav button.complete i { border-color: var(--learn-green); background: var(--learn-green); }
-.learn-card-wrap { position: relative; height: calc(100vh - 110px); min-height: 690px; }
+.learn-card-wrap { position: relative; }
 .learn-scroll-card {
-  height: 100%;
-  overflow-y: auto;
-  overscroll-behavior: auto;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(123, 107, 176, .35) transparent;
   border: 1px solid rgba(123, 107, 176, .14);
-  border-right: 0;
-  border-radius: 360px 0 0 360px;
+  border-radius: 32px;
   background: rgba(255, 255, 255, .68);
   box-shadow: -28px 28px 90px rgba(65, 52, 92, .1);
   backdrop-filter: blur(24px);
@@ -2005,13 +2043,14 @@ button:focus-visible, textarea:focus-visible { outline: 2px solid #8c7cf6; outli
 .learn-scroll-card:focus-visible { box-shadow: inset 0 0 0 2px rgba(123, 107, 176, .32), -28px 28px 90px rgba(65, 52, 92, .1); }
 .learn-scroll-card::-webkit-scrollbar { width: 5px; }
 .learn-scroll-card::-webkit-scrollbar-thumb { border-radius: 99px; background: rgba(123, 107, 176, .3); }
-.learn-card-content { width: min(760px, calc(100% - 80px)); margin: 0 auto; padding: 150px 18px 130px; }
-.learn-fade { position: absolute; z-index: 4; left: 1px; right: 0; height: 70px; pointer-events: none; }
+.learn-card-content { width: 100%; margin: 0 auto; padding: clamp(40px, 5vw, 64px) clamp(20px, 3vw, 44px) clamp(56px, 6vw, 80px); }
+.learn-fade { display: none; }
 .learn-fade-top { top: 1px; background: linear-gradient(rgba(249, 248, 252, .96), transparent); border-radius: 360px 0 0; }
 .learn-fade-bottom { bottom: 0; background: linear-gradient(transparent, rgba(249, 248, 252, .96)); }
-.learn-section-intro { margin: 17px 0 48px; color: #5f5967; font-size: 14px; line-height: 1.8; }
-.learn-clue-list { display: flex; flex-direction: column; gap: 48px; }
-.learn-clue-card { padding: 28px; border: 1px solid rgba(123, 107, 176, .14); border-radius: 24px; background: rgba(255, 255, 255, .7); box-shadow: 0 16px 48px rgba(65, 52, 92, .06); }
+.learn-section-intro { margin: 17px 0 36px; color: #5f5967; font-size: 14px; line-height: 1.8; }
+/* Row 1: the four clues side by side; row 2 (below) is the quiz. */
+.learn-clue-list { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; align-items: stretch; }
+.learn-clue-card { min-width: 0; padding: 22px; border: 1px solid rgba(123, 107, 176, .14); border-radius: 24px; background: rgba(255, 255, 255, .7); box-shadow: 0 16px 48px rgba(65, 52, 92, .06); }
 .learn-clue-card>header { display: flex; align-items: center; gap: 12px; }
 .learn-clue-card>header>span { width: 38px; height: 38px; border-radius: 11px; display: grid; place-items: center; background: #ded4f3; color: #4d455b; font: 500 14px var(--mono); }
 .learn-clue-card.clue-r>header>span { background: #f1d9df; }
@@ -2049,7 +2088,7 @@ button:focus-visible, textarea:focus-visible { outline: 2px solid #8c7cf6; outli
 .learn-copy-example mark { padding: 2px 3px; background: linear-gradient(transparent 15%, rgba(197, 174, 237, .55) 15% 90%, transparent 90%); color: inherit; }
 .learn-copy-example small { align-self: flex-end; margin-top: 8px; color: #725f8b; font: 6px var(--mono); }
 .learn-clue-closing { margin: 50px 0 0; padding: 23px 0; border-top: 1px solid rgba(123, 107, 176, .12); border-bottom: 1px solid rgba(123, 107, 176, .12); color: #5f5867; font: 500 18px var(--serif); text-align: center; }
-.learn-quiz { padding-top: 120px; }
+.learn-quiz { max-width: 760px; margin: 0 auto; padding-top: 96px; }
 .learn-quiz>h2 { margin: 20px 0 12px; font: 500 clamp(34px, 4vw, 50px)/1.1 var(--serif); text-align: center; }
 .learn-quiz>p { margin: 0 auto 52px; max-width: 500px; color: #756e7b; font-size: 11px; line-height: 1.8; text-align: center; }
 .learn-round-list { display: flex; flex-direction: column; gap: 58px; }
@@ -2098,7 +2137,7 @@ button:focus-visible, textarea:focus-visible { outline: 2px solid #8c7cf6; outli
 .learn-quiz-round>footer button:focus-visible { border-color: var(--learn-purple); color: #55436d; outline: none; }
 .learn-quiz-round>footer .round-reveal,
 .learn-quiz-round>footer .round-next { border-color: #302a40; background: #302a40; color: #fff; }
-.learn-result { margin-top: 110px; padding: 55px 44px; border: 1px solid rgba(123,107,176,.15); border-radius: 28px; background: linear-gradient(145deg, rgba(255,255,255,.84), rgba(238,233,248,.76)); text-align: center; }
+.learn-result { max-width: 760px; margin: 110px auto 0; padding: 55px 44px; border: 1px solid rgba(123,107,176,.15); border-radius: 28px; background: linear-gradient(145deg, rgba(255,255,255,.84), rgba(238,233,248,.76)); text-align: center; }
 .learn-result>span { color: var(--learn-purple); font: 500 8px var(--mono); letter-spacing: .1em; }
 .learn-result>strong { display: block; margin-top: 22px; font: 500 clamp(34px,4vw,52px)/1.1 var(--serif); }
 .learn-result h3 { margin: 16px 0 28px; color: #5e5666; font-size: 13px; font-weight: 400; }
@@ -2109,9 +2148,13 @@ button:focus-visible, textarea:focus-visible { outline: 2px solid #8c7cf6; outli
 .learn-result>button { display: block; margin-left: auto; margin-right: auto; }
 .learn-result-primary { min-height: 45px; padding: 0 21px; border: 0; border-radius: 999px; background: #302a40; color: #fff; font-size: 9px; box-shadow: 0 12px 30px rgba(47,42,64,.18); }
 .learn-result-reset { margin-top: 12px; padding: 6px; border: 0; border-bottom: 1px solid rgba(123,107,176,.24); background: transparent; color: var(--learn-purple); font-size: 8px; }
-.learn-footer { margin-left: calc(-1 * clamp(26px, 6vw, 92px)); padding: 30px 20px; color: #8f8895; font-size: 8px; text-align: center; }
+.learn-footer { margin: 0 calc(-1 * clamp(26px, 6vw, 92px)); padding: 30px 20px; color: #8f8895; font-size: 8px; text-align: center; }
 
 @keyframes learn-path-draw { from { stroke-dashoffset: 40; opacity: 0; } to { stroke-dashoffset: 0; opacity: 1; } }
+
+@media (max-width: 1180px) {
+  .learn-clue-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
 
 @media (max-width: 899px) {
   .learn-section { padding: 88px 16px 0; }
@@ -2124,7 +2167,7 @@ button:focus-visible, textarea:focus-visible { outline: 2px solid #8c7cf6; outli
   .learn-scroll-card { height: auto; overflow: visible; border-right: 1px solid rgba(123,107,176,.14); border-radius: 28px; box-shadow: 0 22px 65px rgba(65,52,92,.09); }
   .learn-card-content { width: 100%; padding: 56px 16px 70px; }
   .learn-fade { display: none; }
-  .learn-clue-list { gap: 28px; }
+  .learn-clue-list { gap: 20px; }
   .learn-clue-card,
   .learn-quiz-round { padding: 20px; }
   .learn-account-example { grid-template-columns: repeat(3, 1fr); }
@@ -2134,6 +2177,10 @@ button:focus-visible, textarea:focus-visible { outline: 2px solid #8c7cf6; outli
   .quiz-image-sample>button>span { left: auto; right: calc(100% + 7px); width: 112px; }
   .learn-result { margin-top: 80px; padding: 42px 20px; }
   .learn-footer { margin-left: -16px; margin-right: -16px; }
+}
+
+@media (max-width: 640px) {
+  .learn-clue-list { grid-template-columns: minmax(0, 1fr); }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -2771,4 +2818,524 @@ button:focus-visible, textarea:focus-visible { outline: 2px solid #8c7cf6; outli
   .account-profile-summary{grid-template-columns:1fr;gap:7px}
   .account-profile-summary>span{justify-self:start}
   .new-analysis-supplement-grid{grid-template-columns:1fr}
+}
+
+/* ---------------------------------------------------------------------------
+   New-analysis dialog · link / copy-image tabs (reference card style).
+   Scoped by mode class so the creator form and the homepage composer keep theirs.
+   --------------------------------------------------------------------------- */
+.new-analysis-composer.mode-link,
+.new-analysis-composer.mode-manual{border-radius:36px;border-color:rgba(53,46,75,.07);background:#fff;box-shadow:0 18px 60px rgba(52,43,76,.06)}
+.new-analysis-composer.mode-link:focus-within,
+.new-analysis-composer.mode-manual:focus-within{border-color:rgba(53,46,75,.1);box-shadow:0 22px 66px rgba(52,43,76,.08);transform:none}
+.new-analysis-composer.mode-link .analysis-mode-switch,
+.new-analysis-composer.mode-manual .analysis-mode-switch{margin:0 32px;border-bottom-color:rgba(53,46,75,.08)}
+.new-analysis-composer.mode-link .analysis-mode-switch button,
+.new-analysis-composer.mode-manual .analysis-mode-switch button{min-height:58px;font-size:13px;color:#9a95a0}
+.new-analysis-composer.mode-link .analysis-mode-switch button.active,
+.new-analysis-composer.mode-manual .analysis-mode-switch button.active{color:#2f2a38;font-weight:600}
+.new-analysis-composer.mode-link .analysis-mode-switch::before,
+.new-analysis-composer.mode-manual .analysis-mode-switch::before{box-shadow:inset 0 -3px #6d5d96}
+
+/* Fields: label above, the input itself is the rounded box. */
+.new-analysis-composer.mode-link .new-analysis-link-fields{gap:20px;padding:26px 32px 24px}
+.new-analysis-composer.mode-manual .new-analysis-manual{gap:20px;padding:26px 32px 18px}
+.new-analysis-composer.mode-link .new-analysis-field,
+.new-analysis-composer.mode-manual .new-analysis-field,
+.new-analysis-composer.mode-link .new-analysis-field:hover,
+.new-analysis-composer.mode-manual .new-analysis-field:hover,
+.new-analysis-composer.mode-link .new-analysis-field:focus-within,
+.new-analysis-composer.mode-manual .new-analysis-field:focus-within{gap:10px;padding:0;border:0;background:transparent;box-shadow:none;transform:none}
+.new-analysis-composer.mode-link .new-analysis-field>span,
+.new-analysis-composer.mode-manual .new-analysis-field>span{gap:8px;color:#2f2a38;font-size:12px;font-weight:600}
+.new-analysis-composer.mode-link .new-analysis-field>span small,
+.new-analysis-composer.mode-manual .new-analysis-field>span small,
+.new-analysis-composer.mode-manual .new-analysis-field>span em{margin:0;padding:0;border:0;color:#a7a1ad;font-family:inherit;font-size:11px;font-style:normal;font-weight:400}
+.new-analysis-composer.mode-link .new-analysis-field input,
+.new-analysis-composer.mode-manual .new-analysis-field input,
+.new-analysis-composer.mode-manual .new-analysis-field textarea{padding:15px 20px;border:1px solid rgba(53,46,75,.12);border-radius:24px;background:#fbfafc;color:#34303f;font-size:13px;transition:border-color .24s,background-color .24s,box-shadow .3s}
+.new-analysis-composer.mode-link .new-analysis-field input:hover,
+.new-analysis-composer.mode-manual .new-analysis-field input:hover,
+.new-analysis-composer.mode-manual .new-analysis-field textarea:hover{border-color:rgba(53,46,75,.2)}
+.new-analysis-composer.mode-link .new-analysis-field input:focus,
+.new-analysis-composer.mode-manual .new-analysis-field input:focus,
+.new-analysis-composer.mode-manual .new-analysis-field textarea:focus{border-color:rgba(109,93,150,.42);background:#fff;box-shadow:0 0 0 4px rgba(109,93,150,.07)}
+.new-analysis-composer.mode-manual .new-analysis-upload{border-radius:24px;border-color:rgba(53,46,75,.14);background:#fbfafc}
+.new-analysis-composer.mode-manual .new-analysis-file img{border-radius:14px}
+.new-analysis-composer.mode-manual .new-analysis-file>button{border-radius:50%}
+.new-analysis-composer.mode-manual .new-analysis-supplements{margin:0 32px 18px;border-radius:24px;border-color:rgba(53,46,75,.14);background:#fbfafc;overflow:hidden}
+.new-analysis-composer.mode-manual .new-analysis-supplement-toggle{min-height:46px;padding:0 20px;font-size:11px}
+.new-analysis-composer.mode-manual .new-analysis-supplement-grid{gap:16px;padding:4px 20px 18px}
+.new-analysis-composer.mode-manual .new-analysis-supplement-grid .new-analysis-field textarea{background:#fff}
+.new-analysis-composer.mode-manual .new-analysis-dimension-preview{padding:12px 20px}
+
+/* Bottom row: hint on the left, "载入示例" + submit on the right. */
+.new-analysis-composer.mode-link .new-analysis-actions,
+.new-analysis-composer.mode-manual .new-analysis-actions{gap:18px;margin:0 32px;padding:18px 0 26px;border-top-color:rgba(53,46,75,.08)}
+.new-analysis-composer.mode-link .new-analysis-actions>span,
+.new-analysis-composer.mode-manual .new-analysis-actions>span{margin-right:auto;color:#a39da8;font-size:11px}
+.new-analysis-example{padding:6px 2px;border:0;background:transparent;color:#5c5664;font-size:12px;white-space:nowrap}
+.new-analysis-example:hover,.new-analysis-example:focus-visible{color:#2f2a38;text-decoration:underline;text-underline-offset:4px;outline:none}
+.new-analysis-composer.mode-link .new-analysis-submit,
+.new-analysis-composer.mode-manual .new-analysis-submit{min-height:44px;padding:0 22px;gap:8px;border-radius:999px;background:#ebe7f1;color:#3a3443;font-size:12px;font-weight:500}
+.new-analysis-composer.mode-link .new-analysis-submit>span,
+.new-analysis-composer.mode-manual .new-analysis-submit>span{width:auto;height:auto;background:transparent;color:inherit}
+.new-analysis-composer.mode-link .new-analysis-submit:not(:disabled):hover,
+.new-analysis-composer.mode-manual .new-analysis-submit:not(:disabled):hover{background:#e2dcec;box-shadow:0 10px 24px rgba(48,40,64,.1)}
+.new-analysis-composer.mode-link .new-analysis-submit:disabled,
+.new-analysis-composer.mode-manual .new-analysis-submit:disabled{opacity:.55}
+.new-analysis-composer.mode-link .new-analysis-error,
+.new-analysis-composer.mode-manual .new-analysis-error{margin:0 32px 12px;font-size:11px}
+
+@media (max-width:720px){
+  .new-analysis-composer.mode-link,
+  .new-analysis-composer.mode-manual{border-radius:28px}
+  .new-analysis-composer.mode-link .analysis-mode-switch,
+  .new-analysis-composer.mode-manual .analysis-mode-switch,
+  .new-analysis-composer.mode-link .new-analysis-actions,
+  .new-analysis-composer.mode-manual .new-analysis-actions,
+  .new-analysis-composer.mode-manual .new-analysis-supplements{margin-left:18px;margin-right:18px}
+  .new-analysis-composer.mode-link .new-analysis-link-fields,
+  .new-analysis-composer.mode-manual .new-analysis-manual{padding:20px 18px 18px}
+  .new-analysis-composer.mode-link .new-analysis-actions,
+  .new-analysis-composer.mode-manual .new-analysis-actions{flex-direction:row;flex-wrap:wrap;align-items:center}
+  .new-analysis-composer.mode-link .new-analysis-actions>span,
+  .new-analysis-composer.mode-manual .new-analysis-actions>span{flex-basis:100%}
+}
+
+/* ---------------------------------------------------------------------------
+   03 / 合 · 语义一致性校验 — cross-check arcs, notes and outputs
+   (ported from the teammate build, kkk/src/index.css).
+   --------------------------------------------------------------------------- */
+.merge-results{position:relative}
+.merge-results>small,.merge-results>.merge-result{position:relative;z-index:2}
+.merge-cross-links{position:absolute;z-index:1;left:0;top:18px;width:300px;height:220px;overflow:visible;pointer-events:none}
+.merge-cross-links path{fill:none;stroke-width:1.6;stroke-linecap:round;stroke-dasharray:1;transition:stroke-dashoffset .1s linear}
+.merge-cross-links .cross-link-conflict{stroke:#c4838d;opacity:.85}
+.merge-cross-links .cross-link-doubtful{stroke:#c59a54;stroke-width:1.4;stroke-dasharray:.05 .05}
+/* Endpoints read as "these two rows disagree" instead of a bare arc. */
+.merge-cross-links .cross-link-dot{fill:#fff;stroke-width:1.4}
+.merge-cross-links .cross-link-dot-conflict{stroke:#c4838d}
+.merge-cross-links .cross-link-dot-doubtful{stroke:#c59a54}
+.aperture-column{position:relative}
+.merge-cross-checks{position:absolute;z-index:6;left:50%;top:286px;width:410px;transform:translateX(-50%);display:flex;flex-direction:column;gap:6px;pointer-events:none}
+.flow-outputs .merge-output>*{opacity:var(--output-progress)}
+.score-output>em{background:#e2f0e8;color:#4d765f}
+.flow-outputs .detail-output{min-height:55px;padding:9px 12px;border-radius:13px;place-items:initial;align-content:center;gap:4px}
+.detail-output>span{color:#77707d;font-size:6px}
+.detail-output>strong{color:#4b4452;font-size:7px;font-weight:500;white-space:nowrap}
+
+@media (max-width:899px){
+  /* Stacked layout: the arcs only line up with the side-by-side cards. */
+  .merge-cross-links{display:none}
+  .architecture-section .connector-in{display:none}
+  .merge-cross-checks{position:relative;left:auto;top:auto;width:min(410px,100%);margin:18px auto 0;transform:none}
+  .merge-cross-checks>small{position:static;align-self:flex-end;order:-1}
+}
+
+/* ---------------------------------------------------------------------------
+   04 / 报 — cross-check banner + decision panel (ported from kkk/src/index.css).
+   Progress vars default to 1 (fully shown). Inside the scroll narrative they are
+   derived from --how-scene-progress, which HowNarrative writes on .how-narrative.
+   --------------------------------------------------------------------------- */
+.report-showcase-section{--report-cross-progress:1;--report-advice-progress:1;--report-final-progress:1;--report-scroll-offset:0px}
+.trust-report-card[data-focus="cross"] .part-cross{opacity:1;filter:none}
+.report-cross-check{margin-top:14px;padding:10px 12px;border:1px solid rgba(122,96,161,.12);border-radius:12px;background:linear-gradient(90deg,#f1edf7,#faf7f8);display:flex;align-items:center;gap:9px;opacity:var(--report-cross-progress);transform:translateY(calc((1 - var(--report-cross-progress)) * 10px))}
+.report-cross-check>span{width:27px;height:27px;border-radius:8px;background:#fff;color:#75628f;display:grid;place-items:center;box-shadow:0 4px 12px rgba(63,47,83,.07)}
+.report-cross-check>strong{color:#5c5266;font-size:8px;font-weight:500}
+.report-decision-panel{position:relative;margin-top:10px;padding:12px 12px 27px;border:1px solid rgba(62,50,78,.09);border-radius:15px;background:rgba(250,248,251,.92);display:grid;grid-template-columns:132px minmax(0,1fr);gap:13px;opacity:var(--report-advice-progress);transform:translateY(calc((1 - var(--report-advice-progress)) * 12px))}
+.report-decision-levels{padding-right:12px;border-right:1px solid rgba(67,54,82,.08);display:flex;flex-direction:column}
+.report-decision-levels>span{position:relative;min-height:34px;padding-left:18px;color:#8a838e;font-size:6px;display:flex;align-items:center}
+.report-decision-levels>span::before{content:"";position:absolute;left:5px;top:21px;bottom:-13px;width:1px;background:#ddd7df}
+.report-decision-levels>span:last-child::before{display:none}
+.report-decision-levels i{position:absolute;z-index:1;left:0;width:11px;height:11px;border:3px solid #fff;border-radius:50%;background:#82a28e;box-shadow:0 0 0 1px rgba(72,62,79,.08)}
+.report-decision-levels>span:nth-child(2) i{background:#d4ae66}
+.report-decision-levels>span:nth-child(3) i{background:#b47780}
+.report-decision-levels>span.active{margin-top:1px;padding:7px 7px 7px 18px;border-radius:8px;background:#f5e8e9;color:#825961;font-weight:600}
+.report-role-advice>div{display:flex;flex-wrap:wrap;gap:4px}
+.report-role-advice button{height:23px;padding:0 8px;border:1px solid rgba(63,52,78,.08);border-radius:99px;background:#fff;color:#8a838f;font-size:6px;transition:background .2s ease,color .2s ease,border-color .2s ease}
+.report-role-advice button.active{border-color:#443a52;background:#443a52;color:#fff}
+.report-role-advice p{min-height:48px;margin:9px 0 0;padding:9px 10px;border-radius:9px;background:#fff;color:#5f5864;font-size:8px;line-height:1.65;animation:report-state-swap .25s ease both}
+.report-decision-panel>small{position:absolute;left:157px;right:12px;bottom:9px;color:#a19aa4;font-size:5.5px}
+
+.how-narrative:not(.linear) .how-scene .report-showcase-section{
+  --report-phase-two:clamp(0, calc((var(--how-scene-progress, 0) - .42) / .58), 1);
+  --report-cross-progress:clamp(0, calc(var(--report-phase-two) / .28), 1);
+  --report-advice-progress:clamp(0, calc((var(--report-phase-two) - .22) / .36), 1);
+  --report-final-progress:clamp(0, calc((var(--report-phase-two) - .76) / .24), 1);
+  --report-scroll-offset:calc(var(--report-phase-two) * var(--report-scroll-distance, -200px));
+}
+.report-closing-line{position:relative;z-index:3;margin:8px auto 0;color:#5e5665;font:500 13px var(--serif);text-align:center;letter-spacing:.04em;opacity:var(--report-final-progress);transform:translateY(calc((1 - var(--report-final-progress)) * 8px))}
+.how-narrative:not(.linear) .how-scene .trust-report-card{height:500px;overflow:hidden}
+.how-narrative:not(.linear) .how-scene .trust-report-body{transform:translateY(var(--report-scroll-offset));will-change:transform}
+.how-narrative:not(.linear) .how-scene .report-callout.phase-two{opacity:var(--report-advice-progress);transform:translateY(calc((1 - var(--report-advice-progress)) * 7px));animation:none}
+.how-narrative:not(.linear) .how-scene .report-callout.phase-two>i{transform:scaleX(var(--report-advice-progress));animation:none}
+.how-narrative:not(.linear) .how-scene .report-callout.callout-6{opacity:var(--report-cross-progress)}
+.how-narrative:not(.linear) .how-scene .report-callout.callout-6>i{transform:scaleX(var(--report-cross-progress))}
+.how-narrative:not(.linear) .how-scene .callout-5{top:390px}
+.how-narrative:not(.linear) .how-scene .callout-6{top:247px}
+.how-narrative:not(.linear) .how-scene .callout-7{top:340px}
+.report-showcase-section.is-static .trust-report-body{transform:none}
+.report-showcase-section.is-static .trust-report-card{height:auto;overflow:visible}
+
+@media (max-width:899px){
+  .report-decision-panel{grid-template-columns:1fr}
+  .report-decision-levels{padding:0 0 10px;border-right:0;border-bottom:1px solid rgba(67,54,82,.08)}
+  .report-decision-panel>small{position:static;grid-column:1;margin-top:2px}
+  .report-closing-line{margin-top:28px}
+}
+
+/* Short desktop windows: a shorter report card (and a longer inner scroll) keeps
+   the closing line and the CTA inside the viewport. */
+@media (min-width:900px) and (max-height:820px){
+  .how-narrative:not(.linear) .how-scene .report-showcase-section{--report-scroll-distance:-290px}
+  .how-narrative:not(.linear) .how-scene .trust-report-card{height:410px}
+  .how-narrative:not(.linear) .how-scene .callout-5{top:300px}
+  .how-narrative:not(.linear) .how-scene .callout-6{top:157px}
+  .how-narrative:not(.linear) .how-scene .callout-7{top:250px}
+}
+
+/* Learn · 再试一试 — rounds swap in one stage instead of stacking down the page. */
+.learn-round-stage{position:relative;transition:min-height .32s ease}
+.learn-round-slide{width:100%}
+.learn-round-stage .learn-result{margin-top:0}
+.learn-quiz-round>header:focus,.learn-result>strong:focus{outline:none}
+@media (prefers-reduced-motion:reduce){
+  .learn-round-stage{transition:none}
+}
+
+/* Team queue · priority hint above the table */
+.team-priority-row{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;margin:14px 0 10px}
+.team-priority-hint{min-height:34px;padding:0 14px;border:1px solid rgba(160,90,100,.22);border-radius:99px;background:#fbf0f1;color:#7f4851;font-size:13px}
+.team-priority-hint strong{font-weight:700}
+.team-priority-hint.active{border-color:#7f4851;background:#7f4851;color:#fff}
+.team-priority-hint:disabled{opacity:.5;cursor:default}
+.team-priority-row>span{color:#8a838f;font-size:12px}
+.team-sort-reset{padding:4px 10px;border:1px solid rgba(63,52,78,.14);border-radius:99px;background:#fff;color:#5d5568;font-size:12px}
+.team-score-scope{display:inline-block;padding:2px 6px;border-radius:6px;background:#f1eef4;color:#6f6779;font-size:11px;font-style:normal;white-space:nowrap}
+
+/* Team queue · filter bar readable on a projector (≥13px, roomier options). */
+.team-filters{gap:16px 40px;padding:20px 0}
+.team-filters>div{gap:12px}
+.team-filters>div>span{color:#6f6876;font-size:13px;font-weight:500;white-space:nowrap}
+.team-filters>div>div{gap:8px}
+.team-filters button{flex:none;height:36px;padding:0 14px;border-radius:9px;font-size:14px;white-space:nowrap}
+.team-filters .team-confidence-filter-chip{font-size:13px}
+@media (max-width:720px){
+  .team-filters>div>div{flex-wrap:nowrap;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:2px}
+  .team-filters>div>div::-webkit-scrollbar{display:none}
+}
+
+/* Team top nav · size the logo by height so it never touches the bar edges. */
+.team-top-nav{overflow:visible}
+.team-brand{width:auto;height:44px;flex:none;display:flex;align-items:center}
+.team-brand img{width:auto;height:100%;max-width:none;object-fit:contain}
+@media (max-width:720px){
+  .team-brand{height:38px}
+}
+
+/* Team related groups · basis line and merged duplicate rows */
+.team-related-basis{margin:10px 0 2px;color:#4f4759;font-size:13px;line-height:1.6}
+.team-related-merged{border-radius:12px}
+.team-related-merged>button{width:100%}
+.team-related-count{font:600 14px var(--mono)!important;color:#7f4851!important}
+.team-related-merged>ol{margin:0 0 6px 46px;padding:0;list-style:none;display:flex;flex-direction:column;gap:4px}
+.team-related-merged>ol>li{display:flex;align-items:center;gap:10px;padding:6px 10px;border-radius:8px;background:#f7f5f9;color:#6b6472;font-size:12px}
+.team-related-merged>ol>li>em{padding:2px 6px;border-radius:6px;background:#efe8f6;color:#6c5a85;font-size:11px;font-style:normal}
+.team-related-merged>ol>li>button{margin-left:auto;padding:3px 9px;border:1px solid rgba(63,52,78,.14);border-radius:99px;background:#fff;color:#5d5568;font-size:12px}
+/* Merged rows reuse the member-row layout (the base rules only match direct-child buttons). */
+.team-related-merged>button{position:relative;width:100%;min-height:72px;padding:12px 4px;border:0;border-bottom:1px solid rgba(61,50,76,.07);background:transparent;display:grid;grid-template-columns:25px minmax(0,1fr) auto;gap:9px 11px;align-items:center;text-align:left;color:#4a424f;transition:background .2s ease,padding .2s ease}
+.team-related-merged>button:hover,.team-related-merged>button:focus-visible{padding-left:9px;padding-right:9px;background:#f5f1f8;outline:none}
+.team-related-merged>button>span{color:#a097a3;font:7px var(--mono)}
+.team-related-merged>button>div{min-width:0}
+.team-related-merged>button>b{opacity:1}
+.team-related-merged.open>button{border-bottom-color:transparent}
+.team-related-merged>ol{margin-top:2px;margin-bottom:10px}
+.team-related-merged>ol>li>time{grid-column:auto;font-size:12px}
+.team-related-merged>ol>li>em{grid-column:auto;justify-self:auto;margin-top:0}
+@media (max-width:720px){
+  .team-related-merged>button{grid-template-columns:21px minmax(0,1fr)}
+  .team-related-merged>ol{margin-left:30px}
+}
+
+/* Team related groups · relationship graph */
+.team-group-graph{margin:14px 0 4px;padding:12px 12px 10px;border:1px solid rgba(61,50,76,.08);border-radius:14px;background:#faf9fb}
+.team-group-graph svg{display:block;width:100%;max-width:520px;height:auto;margin:0 auto}
+.team-group-graph .graph-link{stroke-width:1.6;stroke-linecap:round}
+.team-group-graph .link-account{stroke:#7d6aa3}
+.team-group-graph .link-image{stroke:#b47780;stroke-dasharray:6 4}
+.team-group-graph .link-title{stroke:#c79a4f;stroke-dasharray:1.5 3.5}
+.team-group-graph .link-time{stroke:#a8a1ad;stroke-width:1}
+.team-group-graph .graph-node{cursor:default;outline:none}
+.team-group-graph .graph-node circle{stroke:#fff;stroke-width:2;transition:r .15s ease}
+.team-group-graph .graph-node text{fill:#fff;font:600 8px var(--mono);pointer-events:none}
+.team-group-graph .graph-node.active circle,.team-group-graph .graph-node:focus-visible circle{stroke:#3b3346}
+.team-group-graph .tone-high circle,.team-group-graph i.tone-high{fill:#b47780;background:#b47780}
+.team-group-graph .tone-medium circle,.team-group-graph i.tone-medium{fill:#d4ae66;background:#d4ae66}
+.team-group-graph .tone-trusted circle,.team-group-graph i.tone-trusted{fill:#82a28e;background:#82a28e}
+.team-group-graph .tone-unknown circle{fill:#b5afb9}
+.team-group-graph .tone-more circle{fill:#ece8f0;stroke:#d8d2de}
+.team-group-graph .tone-more text{fill:#5d5568}
+.team-group-graph .graph-center text{font-size:10px}
+.team-group-graph-tip{min-height:20px;margin:6px 0 0;color:#5f5866;font-size:12px;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.team-group-graph figcaption{margin-top:6px;display:flex;flex-wrap:wrap;justify-content:center;gap:4px 14px;color:#8a838f;font-size:11px}
+.team-group-graph figcaption span{display:inline-flex;align-items:center;gap:5px}
+.team-group-graph .legend-link i{width:18px;height:0;border-top:2px solid}
+.team-group-graph .legend-link.link-account i{border-color:#7d6aa3}
+.team-group-graph .legend-link.link-image i{border-top-style:dashed;border-color:#b47780}
+.team-group-graph .legend-link.link-title i{border-top-style:dotted;border-color:#c79a4f}
+.team-group-graph .legend-link.link-time i{border-top-width:1px;border-color:#a8a1ad}
+.team-group-graph .legend-risk i{width:8px;height:8px;margin-left:6px;border-radius:50%}
+
+/* Team summary · role-specific cards (3 metrics + action distribution + shared risk panel) */
+.team-summary{grid-template-columns:repeat(3,minmax(120px,150px)) minmax(190px,220px) 1fr}
+.team-summary>div>span{font-size:12px}
+.team-role-card>small{color:#a19aa5;font-size:11px;line-height:1.4}
+.team-action-distribution ul{margin:4px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:5px}
+.team-action-distribution li{display:flex;align-items:baseline;gap:8px;color:#5f5866;font-size:12px}
+.team-action-distribution li b{min-width:26px;font:500 18px/1 var(--serif);color:#2f2a38}
+.team-action-distribution li em{font-style:normal}
+@media (max-width:1100px){
+  .team-summary{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .team-summary>.team-risk-distribution{grid-column:1/-1}
+}
+
+/* Team queue · export + review flow */
+.team-export-button{margin-left:auto;min-height:36px;padding:0 14px;border:1px solid #3b3346;border-radius:10px;background:#3b3346;color:#fff;font-size:13px;display:inline-flex;align-items:center;gap:8px}
+.team-export-button small{color:rgba(255,255,255,.72);font-size:11px}
+.team-export-button:disabled{opacity:.4;cursor:default}
+.team-drawer-next{width:100%;min-height:44px;margin-top:10px;border:0;border-radius:12px;background:#7f4851;color:#fff;font-size:13px}
+.team-drawer-next:disabled{opacity:.45;cursor:default}
+.team-drawer-notice{margin:12px 0 0;padding:10px 12px;border-radius:10px;background:#e4efe8;color:#4d765f;font-size:13px;text-align:center}
+@media (max-width:720px){.team-export-button{margin-left:0}}
+
+/* Team · 关联分组: the container is far taller than the viewport, so the global
+   scroll-reveal (8% visible) never fired until the user scrolled. Show it at once. */
+.tl-ui-ready .team-workspace .team-related-groups.tl-reveal.tl-reveal:not(.tl-in-view),
+.tl-ui-ready .team-workspace .team-related-groups.tl-reveal.tl-reveal{opacity:1;translate:none;scale:none;transition:none}
+
+/* Sidebar · 最近任务 scrolls on its own; the account area stays pinned at the bottom. */
+.sidebar{min-height:0;overflow:hidden}
+.sidebar>.history{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding-right:2px;scrollbar-width:thin;scrollbar-color:rgba(61,54,85,.18) transparent}
+.sidebar>.history::-webkit-scrollbar{width:6px}
+.sidebar>.history::-webkit-scrollbar-thumb{border-radius:99px;background:rgba(61,54,85,.16)}
+.sidebar>.side-bottom{flex:none}
+
+/* Analysis three-step progress: dots + connectors on one row, copy underneath,
+   so a connector never runs through a title. */
+.analysis-process-progress>div:first-child{gap:18px}
+.analysis-process-progress>div:first-child>div{display:flex;flex-direction:column;align-items:flex-start;gap:9px;color:#6f6878}
+.analysis-process-progress>div:first-child>div>span{position:relative;z-index:2;width:26px;height:26px;font-size:11px}
+.analysis-process-progress>div:first-child>div>div{position:relative;z-index:2;gap:4px}
+.analysis-process-progress>div:first-child>div>i{z-index:0;left:34px;right:-10px;top:12px;height:2px}
+.analysis-process-progress>div:first-child>div strong{font-size:13px;line-height:1.35;font-weight:500;color:#625b6a}
+.analysis-process-progress>div:first-child>div small{font-size:11px;line-height:1.45;color:#8a8392}
+.analysis-process-progress>div:first-child>div.active strong,.analysis-process-progress>div:first-child>div.completed strong{color:#2f2a38}
+.analysis-process-progress>div:first-child>div.active small,.analysis-process-progress>div:first-child>div.completed small{color:#6c6574}
+@media (max-width:640px){
+  .analysis-process-progress>div:first-child{gap:10px}
+  .analysis-process-progress>div:first-child>div{display:flex;gap:7px}
+  .analysis-process-progress>div:first-child>div>span{width:22px;height:22px;font-size:10px}
+  .analysis-process-progress>div:first-child>div>i{left:28px;right:-6px;top:10px}
+  .analysis-process-progress>div:first-child>div strong{font-size:12px}
+  .analysis-process-progress>div:first-child>div small{font-size:10px;line-height:1.4}
+}
+
+/* Recognition step / link error / result entry — ported from kkk/src/index.css */
+.verification-workspace{overflow-y:auto}.verification-workspace::before{position:fixed}.verification-workspace-center{width:min(850px,calc(100% - 40px));padding:34px 0 78px}.verification-input,.verification-recognition-panel,.verification-feedback-panel{padding:20px;border:1px solid rgba(54,45,69,.11);border-radius:21px;background:rgba(255,255,255,.82);box-shadow:0 18px 58px rgba(54,43,74,.09);backdrop-filter:blur(22px);text-align:left}.verification-entry-tabs{display:flex;border-bottom:1px solid var(--line)}.verification-entry-tabs button{position:relative;min-width:150px;height:42px;padding:0 17px;border:0;background:transparent;color:#918a96;font-size:10px}.verification-entry-tabs button::after{content:"";position:absolute;left:17px;right:17px;bottom:-1px;height:2px;background:#7964a0;transform:scaleX(0);transition:transform .2s ease}.verification-entry-tabs button.active{background:#fff;color:#3d3545;font-weight:600}.verification-entry-tabs button.active::after{transform:scaleX(1)}
+.verification-feedback-panel{max-width:620px;margin:0 auto;padding:34px;text-align:center}.verification-panel-icon{width:44px;height:44px;margin:0 auto 12px;border-radius:14px;background:#eee8f5;color:#705e88;display:grid;place-items:center;font:500 15px var(--serif)}.verification-feedback-panel>small,.verification-recognition-panel>header>small{color:#8c8194;font:6px var(--mono);letter-spacing:.1em}.verification-feedback-panel h3,.verification-recognition-panel h3{margin:9px 0 7px;font:500 24px/1.25 var(--serif);color:#342d3c}.verification-feedback-panel>p,.verification-recognition-panel>header>p{margin:0;color:#817a86;font-size:9px;line-height:1.7}.verification-feedback-panel>button,.verification-feedback-panel>div button{height:38px;margin-top:19px;padding:0 13px;border:0;border-radius:9px;background:#302a40;color:#fff;display:inline-flex;align-items:center;gap:7px;font-size:8px}.verification-feedback-panel>div{display:flex;justify-content:center;gap:8px}.verification-feedback-panel>div button:first-child{border:1px solid rgba(58,49,73,.11);background:#fff;color:#706875}
+.verification-recognition-panel{max-width:790px;margin:0 auto}.verification-recognition-panel>header{text-align:center}.recognition-layout{margin-top:20px;padding:18px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);display:grid;grid-template-columns:1fr 1fr;gap:25px}.recognition-layout>section>span{display:block;margin-bottom:10px;color:#8c8491;font:7px var(--mono);letter-spacing:.06em}.recognition-layout>section:first-child{padding-right:24px;border-right:1px solid var(--line)}.recognition-layout>section:first-child>div{min-height:36px;border-bottom:1px solid rgba(58,49,73,.06);display:grid;grid-template-columns:auto 1fr auto auto;gap:7px;align-items:center}.recognition-layout>section:first-child i{width:19px;height:19px;border-radius:6px;background:#e2eee7;color:#547461;display:grid;place-items:center;font-size:7px;font-style:normal}.recognition-layout>section:first-child .missing{opacity:.48}.recognition-layout>section:first-child .missing i{background:#eeecef;color:#8c858f}.recognition-layout>section:first-child strong{font-size:8px;font-weight:500}.recognition-layout>section:first-child small{color:#817789;font:6px var(--mono)}.recognition-layout>section:first-child button{padding:4px 6px;border:0;border-radius:6px;background:#eee8f5;color:#6d5a84;font-size:6px}.recognition-layout>section:last-child{display:grid;grid-template-columns:1fr 1fr;gap:7px;align-content:start}.recognition-layout>section:last-child>span{grid-column:1/3}.recognition-layout>section:last-child>div{min-height:58px;padding:9px;border:1px solid rgba(59,48,73,.08);border-radius:10px;background:#faf9fb;display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:center}.recognition-layout>section:last-child>div.disabled{opacity:.38;filter:grayscale(.7)}.recognition-layout .report-dimension-badge{width:30px;height:30px;border-radius:9px}.recognition-layout>section:last-child>div>div{display:flex;flex-direction:column;gap:3px}.recognition-layout>section:last-child strong{font-size:8px;font-weight:500}.recognition-layout>section:last-child small{color:#8f8794;font-size:6px;line-height:1.4}.recognition-scope-note{margin:14px 0 0;padding:10px 11px;border-radius:9px;background:#f3eff7;color:#6f6479;display:flex;align-items:center;gap:7px;font-size:7px}.verification-recognition-panel>footer{margin-top:15px;display:flex;justify-content:flex-end;gap:8px}.verification-recognition-panel>footer button{height:38px;padding:0 13px;border:1px solid rgba(58,49,73,.11);border-radius:9px;background:#fff;color:#716976;font-size:8px}.verification-recognition-panel>footer button:last-child{border-color:#302a40;background:#302a40;color:#fff;display:flex;align-items:center;gap:7px}
+@media (max-width:640px){.verification-workspace-center{width:calc(100% - 24px);padding-top:25px}.verification-input,.verification-recognition-panel,.verification-feedback-panel{padding:14px;border-radius:17px}.verification-entry-tabs button{min-width:0;flex:1;padding:0 7px}.link-verification-form,.content-verification-grid,.recognition-layout{grid-template-columns:1fr}.link-verification-form{gap:14px}.recognition-layout>section:first-child{padding:0 0 17px;border-right:0;border-bottom:1px solid var(--line)}.recognition-layout>section:last-child{grid-template-columns:1fr}.recognition-layout>section:last-child>span{grid-column:1}.supplemental-materials>div{grid-template-columns:1fr}.verification-submit-row{grid-template-columns:1fr auto}.verification-submit-row>small{grid-column:1}.verification-start-button{grid-column:1/3;justify-content:center}.verification-feedback-panel>div{align-items:stretch;flex-direction:column}.verification-feedback-panel>div button{width:100%;justify-content:center}.verification-recognition-panel>footer{display:grid;grid-template-columns:1fr 1fr}.verification-recognition-panel>footer button:last-child{justify-content:center}}
+.analysis-result-entry{margin-top:17px;padding:19px;border:1px solid rgba(92,72,137,.15);border-radius:16px;background:linear-gradient(125deg,#f2edfb,#faf6f8);display:flex;flex-direction:column;align-items:center;gap:9px;text-align:center;box-shadow:0 12px 34px rgba(70,52,103,.07)}.analysis-result-entry>small{color:#817887;font-size:8px}.analysis-result-entry>button{min-width:210px;height:43px;padding:0 21px;border:0;border-radius:12px;background:#302a40;color:#fff;font-size:10px;font-weight:500;box-shadow:0 9px 24px rgba(48,42,64,.2);animation:result-entry-breathe 2.4s ease-in-out infinite;transition:transform .2s ease,box-shadow .2s ease}.analysis-result-entry>button:hover,.analysis-result-entry>button:focus-visible{transform:translateY(-2px);box-shadow:0 13px 30px rgba(71,55,98,.27);outline:2px solid rgba(126,103,174,.25);outline-offset:3px}
+@keyframes result-entry-breathe{0%,100%{box-shadow:0 9px 24px rgba(48,42,64,.2),0 0 0 0 rgba(126,103,174,0)}50%{box-shadow:0 12px 29px rgba(48,42,64,.25),0 0 0 7px rgba(126,103,174,.08)}}
+.verification-recognition-panel,.verification-feedback-panel{width:100%}
+.verification-recognition-panel h3,.verification-feedback-panel h3{font-size:26px}
+.verification-recognition-panel>header>p,.verification-feedback-panel>p{font-size:13px}
+.recognition-layout>section>span{font-size:11px}
+.recognition-layout>section:first-child strong,.recognition-layout>section:last-child strong{font-size:13px}
+.recognition-layout>section:first-child small,.recognition-layout>section:last-child small{font-size:11px}
+.recognition-layout>section:first-child i{width:22px;height:22px;font-size:11px}
+.recognition-layout>section:first-child .expected i{background:#efe9f7;color:#6c5a85}
+.recognition-layout>section:first-child button{font-size:11px;padding:4px 9px}
+.recognition-thumb{width:34px;height:34px;border-radius:7px;object-fit:cover}
+.recognition-scope-note{display:flex;align-items:center;justify-content:center;gap:6px;margin:14px 0 0;color:#7d7684;font-size:12px}
+.verification-recognition-panel>footer{margin-top:16px;display:flex;justify-content:flex-end;gap:10px}
+.verification-recognition-panel>footer button{height:42px;padding:0 18px;border:1px solid rgba(58,49,73,.12);border-radius:11px;background:#fff;color:#5d5568;font-size:13px;display:inline-flex;align-items:center;gap:7px}
+.verification-recognition-panel>footer button:last-child{border-color:#302a40;background:#302a40;color:#fff}
+.verification-feedback-panel>div button{font-size:13px;height:42px;padding:0 16px}
+.link-error-tips{max-width:460px;margin:14px auto 0;padding:12px 16px 12px 30px;border-radius:12px;background:#fbf0f1;color:#7f4851;font-size:13px;line-height:1.8;text-align:left}
+.verification-panel-icon{background:#f3e0e3;color:#92535c}
+.analysis-result-entry>small{font-size:12px}
+.analysis-result-entry>button{font-size:14px}
+.live-error .live-resume-button{margin-left:8px}
+
+/* Workspace: scroll vertically whenever its content (e.g. the 识别结果 page) is taller
+   than the screen, so 「确认并开始」 is always reachable. Horizontal stays clipped for the orbs. */
+.workspace{overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.workspace:focus{outline:none}
+
+/* Creator self-check · experts with no pre-publish data are shown greyed out (未启用). */
+.council-role-disabled .council-role{opacity:.55;filter:grayscale(.85);cursor:default;pointer-events:none}
+.council-role-disabled .council-role p{color:#8a8392}
+.council-role-disabled .role-judgement small{color:#9a94a0}
+
+/* Creator self-check · record locked until the self-check is complete */
+.creator-selfcheck-locked{filter:grayscale(1);opacity:.78;background:#f4f3f6!important;border-style:dashed!important}
+.creator-selfcheck-locked .creator-record-heading strong{color:#6f6a76}
+.creator-selfcheck-locked .creator-record-heading small{color:#7d7884;font-size:12px;line-height:1.6}
+.creator-pending-steps{margin:12px 0 0;padding:0 0 0 18px;color:#6d6874;font-size:12px;line-height:1.8}
+.creator-locked-action{display:inline-flex}
+.creator-locked-action>button:disabled{opacity:.45;cursor:not-allowed;pointer-events:none}
+.creator-badge-actions button:disabled{opacity:.45;cursor:not-allowed}
+.creator-recheck-error{margin:12px 0 0}
+
+/* Creator self-check · 自检记录 card (shared by 尚未完成 / 已完成). New class names on purpose:
+   the legacy .creator-selfcheck-badge rules target children by position. */
+.creator-record-area{grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:20px;padding:20px}
+.creator-record-column{min-width:0;display:flex;flex-direction:column;gap:10px}
+.creator-record-card{padding:28px;border:1px solid #cdbfe3;border-radius:18px;background:#faf8fd;display:flex;flex-direction:column;gap:18px;box-shadow:0 10px 28px rgba(71,53,98,.06)}
+.creator-record-card.is-locked{border-style:dashed;border-color:#cfc9d6;background:#f6f5f8;box-shadow:none}
+.creator-record-card-head{display:flex;align-items:center;gap:18px}
+.creator-record-card-head>img{flex:none;width:84px;height:auto}
+.creator-record-card.is-locked .creator-record-card-head>img{filter:grayscale(1);opacity:.55}
+.creator-record-card-head>div{min-width:0;display:flex;flex-direction:column;gap:6px}
+.creator-record-label{color:#857d8d;font:500 11px/1.4 var(--mono);letter-spacing:.06em}
+.creator-record-title{color:#2f2a38;font:600 20px/1.3 "Noto Sans SC","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif}
+.creator-record-card.is-locked .creator-record-title{color:#4f4957}
+.creator-record-note{margin:0;color:#635d6b;font-size:13px;line-height:1.6}
+.creator-record-compare{display:flex;flex-wrap:wrap;gap:12px}
+.creator-record-compare>span{flex:1 1 200px;padding:12px 14px;border-radius:12px;background:#fff;border:1px solid rgba(75,61,92,.08);display:grid;grid-template-columns:auto 1fr auto auto auto;gap:6px 8px;align-items:center;color:#6e6775}
+.creator-record-compare i{width:26px;height:26px;border-radius:8px;background:#e8f3ed;color:#557c68;display:grid;place-items:center;font:600 12px var(--mono);font-style:normal}
+.creator-record-compare .is-image i{background:#e6f0ff;color:#577890}
+.creator-record-compare small{font-size:13px}
+.creator-record-compare b{color:#9a929d;font:500 18px var(--serif)}
+.creator-record-compare em{color:#a89daf;font:13px var(--mono);font-style:normal}
+.creator-record-compare strong{color:#3f6a55;font:600 24px var(--serif)}
+.creator-record-steps{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:9px}
+.creator-record-steps li{display:flex;align-items:flex-start;gap:10px;color:#4f4957;font-size:13px;line-height:1.6;word-break:normal;overflow-wrap:anywhere}
+.creator-record-steps li>i{flex:none;width:18px;height:18px;margin-top:2px;border:1.5px solid #a9a2b1;border-radius:50%;display:grid;place-items:center;font-size:11px;font-style:normal}
+.creator-record-steps li.done{color:#3f6a55}
+.creator-record-steps li.done>i{border-color:#5f8e74;background:#5f8e74;color:#fff}
+.creator-record-steps li>span{flex:1 1 auto;min-width:0}
+.creator-record-tally{margin:0;padding-top:14px;border-top:1px solid rgba(75,61,92,.08);color:#4f4957;font-size:13px}
+.creator-badge-area.creator-record-area>.creator-record-column>small.creator-record-disclaimer{display:block;margin-top:0;color:#7d7684;font-size:11px;line-height:1.6}
+.creator-record-area .creator-badge-actions{padding-top:4px}
+.creator-record-area .creator-badge-actions button{font-size:13px;height:40px}
+@media (max-width:720px){
+  .creator-record-area{grid-template-columns:1fr;padding:14px}
+  .creator-record-card{padding:22px}
+  .creator-record-card-head{align-items:flex-start}
+  .creator-record-card-head>img{width:64px}
+  .creator-record-title{font-size:18px}
+  .creator-record-area .creator-badge-actions{display:grid;grid-template-columns:1fr 1fr}
+}
+@media print{
+  /* 导出 PDF: keep the record and its disclaimer, drop on-screen actions. */
+  .creator-record-area .creator-badge-actions,.creator-report-actions>div,.creator-recheck-error{display:none!important}
+  .creator-record-area{grid-template-columns:1fr}
+  .creator-record-card{box-shadow:none;break-inside:avoid}
+}
+
+/* Creator self-check · appeal entry and status */
+.creator-dispute-link{align-self:flex-start;margin-top:8px;padding:2px 0;border:0;background:transparent;color:#6c5a85;font-size:12px;text-decoration:underline;text-underline-offset:3px}
+.creator-dispute-link:hover,.creator-dispute-link:focus-visible{color:#3f3150;outline:none}
+.creator-appeal-flag{display:inline-flex;align-items:center;margin-left:8px;padding:2px 8px;border-radius:99px;background:#efe8f6;color:#6c5a85;font-size:11px;font-weight:500;letter-spacing:0}
+
+/* Reports opened from the sidebar: fictional-example label, loading line, unrecoverable record */
+.demo-report-notice{width:min(980px,calc(100% - 40px));margin:14px auto 0;padding:9px 14px;border:1px dashed rgba(112,89,153,.28);border-radius:12px;background:#f7f3fc;color:#6c5a85;font-size:13px;text-align:center}
+.recent-report-loading{width:min(980px,calc(100% - 40px));margin:24px auto;color:#7d7684;font-size:13px;text-align:center}
+.recent-report-error{width:min(980px,calc(100% - 40px));margin:14px auto 0}
+.recent-report-missing{display:grid;place-items:center;padding:40px 20px}
+.recent-report-missing>div{max-width:440px;padding:32px;border:1px solid rgba(160,90,100,.2);border-radius:18px;background:#fdf3f4;text-align:center}
+.recent-report-missing strong{display:block;color:#7f4851;font-size:18px}
+.recent-report-missing p{margin:10px 0 18px;color:#7d6a6f;font-size:13px;line-height:1.7}
+.recent-report-missing>div>div{display:flex;justify-content:center;gap:10px}
+.recent-report-missing button{height:40px;padding:0 18px;border:1px solid rgba(58,49,73,.14);border-radius:11px;background:#fff;color:#4f4757;font-size:13px}
+.recent-report-missing button:first-child{border-color:#302a40;background:#302a40;color:#fff}
+
+/* 文案 / 图片核验 · 评论区截图 (front-end only) and the plain 账号历史 form */
+.comment-shot-upload{min-height:0;margin-top:10px;padding:10px;display:flex;flex-direction:column;align-items:stretch;gap:8px}
+.comment-shot-upload .new-analysis-upload-button{height:auto;padding:10px 0;flex-direction:row;gap:8px;font-size:12px}
+.comment-shot-upload .new-analysis-upload-button small{font-size:11px}
+.comment-shot-grid{grid-template-columns:repeat(4,1fr)}
+.comment-shot-note{color:#8a8392;font-size:11px;line-height:1.5}
+.account-history-form{gap:8px}
+.account-history-form input,.account-history-form textarea{width:100%}
+.account-history-hint{color:#8a8392;font-size:11px;line-height:1.5}
+.account-history-hint.warn{color:#9a6a3c}
+
+/* Sidebar 最近任务 · identity tag in front of the time line */
+.recent-role-tag{display:inline-block;margin-right:5px;padding:0 5px;border-radius:5px;font-size:10px;font-style:normal;font-weight:500;line-height:16px;vertical-align:1px}
+.recent-role-tag.role-creator{background:#f6e3e6;color:#8d4f5a}
+.recent-role-tag.role-consumer{background:#ebe5f6;color:#5f4f80}
+.recent-role-tag.role-demo{background:#ecebee;color:#6f6a76}
+
+/* ---------------------------------------------------------------------------
+ * Type-size floor for legible copy
+ * ---------------------------------------------------------------------------
+ * Measured on the landing page: 249 elements rendered below 10px (smallest 5px).
+ * Many carried Chinese sentences -- 关注者, 历史笔记, 身份信息一致, 他看什么 --
+ * at 7-8px, and neighbouring labels stepped 5/6/7px with no shared reference,
+ * so the page read as mis-rendered rather than deliberately terse.
+ *
+ * Why these are per-selector declarations and not one blanket rule. Two blanket
+ * attempts were made first and both broke the page:
+ *   1. `font-size: 11px !important` on `.home span` -- an unconditional
+ *      override. It crushed the 48px hero headlines to 11px, so the headline
+ *      lines piled on top of each other.
+ *   2. `min-font-size: 11px !important` -- a floor by definition, but an
+ *      explicit `font-size: 7px` in the original rule outranks it, so it did
+ *      nothing at all.
+ * CSS cannot express "at least N but keep the current value" in font-size:
+ * `max()` needs a second length and `1em` refers to the *parent*, not the
+ * element. So the declarations themselves are the only correct place to fix it,
+ * which is what these are. Every selector below was measured, not guessed.
+ *
+ * SVG <text> is excluded throughout: inside a viewBox the rendered size is the
+ * CSS size times the viewBox ratio, so a px floor lands scaled and the hero
+ * radar markers burst out of the diagram when they were floored. Decorative mono
+ * micro-typography (eyebrows, axis ticks) is left alone -- it is legible by
+ * being short and letter-spaced.
+ * --------------------------------------------------------------------------- */
+@media (min-width: 900px) {
+  /* 12px -- evidence lines, captions, mock-UI rows. */
+  .promise-demo :is(p, span, small, strong, b, em),
+  .trust-card :is(p, span, small, strong),
+  .cross-check-preview :is(p, span, small, strong),
+  .promise-card :is(p, span, small, strong),
+  .agent-scene-copy :is(p, span, small, strong),
+  .merge-output :is(p, span, small, strong),
+  .merge-result :is(p, span, small, strong),
+  .comment-evidence-list :is(p, span, small, strong),
+  .learn-account-example :is(p, span, small, strong),
+  .learn-comment-example :is(p, span, small, strong),
+  .learn-image-example :is(p, span, small, strong),
+  .report-role-advice :is(p, span, small, strong),
+  .report-dimension-row :is(span, small, strong),
+  .report-state-swap :is(p, span, small),
+  .copy-risk-labels :is(p, span, small),
+  .quiz-select-list :is(p, span, small),
+  .agent-dimension-score :is(span, small) {
+    font-size: 12px !important;
+  }
+
+  /* 11px -- the shopfront bar and the small status labels around the scenes. */
+  .commerce-bar :is(p, span, small, strong),
+  .report-callout :is(span, small, strong),
+  .agent-segmented :is(span, small, strong),
+  .aperture-petal :is(span, small),
+  .hero-promises :is(span, small) {
+    font-size: 11px !important;
+  }
+
+  /* FAQ headings were 9px -- smaller than the body copy they introduce. */
+  .faq-group h3 {
+    font-size: 16px !important;
+  }
+
+  /* Footer attribution sentence. */
+  .learn-footer,
+  .learn-footer :is(p, span, small) {
+    font-size: 12px !important;
+  }
 }

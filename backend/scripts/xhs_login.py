@@ -35,7 +35,7 @@ LOGIN_URL = "https://www.xiaohongshu.com/login"
 
 def main() -> int:
     settings = get_settings()
-    profile = settings.xhs_user_data_path
+    profile = settings.xhs_user_data_path_absolute
     if not profile:
         print("XHS_USER_DATA_PATH 未设置 —— 先在 backend/.env 里指定一个持久目录，例如：")
         print("  XHS_USER_DATA_PATH=./storage/chrome-profile")

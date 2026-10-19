@@ -361,10 +361,10 @@ button:disabled {
 
 .analysis-mode-switch::before {
   top: var(--tl-segment-y, 0);
-  height: var(--tl-segment-height, 54px);
+  height: var(--tl-segment-height, 46px);
   border-radius: 0;
-  background: rgba(255, 255, 255, .98);
-  box-shadow: inset 0 -2px #6d5d96, 0 9px 24px rgba(59, 48, 81, .055);
+  background: transparent;
+  box-shadow: inset 0 -2px #6d5d96;
 }
 
 .analysis-mode-switch > button.active,
@@ -378,11 +378,7 @@ button:disabled {
 }
 
 .analysis-mode-switch > button {
-  transition: color 240ms var(--tl-ease), padding-left 360ms var(--tl-ease);
-}
-
-.analysis-mode-switch > button.active {
-  padding-left: 16px;
+  transition: color 240ms var(--tl-ease);
 }
 
 div.workspace-mode-switch {
@@ -1598,10 +1594,6 @@ div.workspace-mode-switch {
   .team-related-card:hover {
     transform: translateY(-2px);
   }
-
-  .analysis-mode-switch > button.active {
-    padding-left: 12px;
-  }
 }
 
 @media (max-width: 640px) {
@@ -1625,12 +1617,8 @@ div.workspace-mode-switch {
   }
 
   .analysis-mode-switch > button {
-    min-height: 58px;
+    min-height: 44px;
     padding: 8px 9px;
-  }
-
-  .analysis-mode-switch > button.active {
-    padding-left: 10px;
   }
 
   .analysis-mode-switch button small {
@@ -1708,6 +1696,30 @@ div.workspace-mode-switch {
   .cinematic-hero .hero-product-mock > small {
     translate: none;
   }
+}
+
+/* --- Scroll performance -----------------------------------------------------
+ * The landing page carries several large `backdrop-filter: blur(24px)` panels
+ * (report cards, dimension panels, hero mocks). Each one forces the compositor
+ * to re-sample and re-blur its backdrop on *every* scroll frame, which showed up
+ * as ~1s stalls. While the page is actually scrolling those panels are moving
+ * anyway, so the blur is invisible — drop it for the duration of the scroll and
+ * restore it as soon as the user stops.
+ *
+ * `.tl-scrolling` is toggled by InteractionLayer with a trailing debounce. */
+.tl-scrolling .tl-scroll-progress,
+.tl-scrolling .trust-report-card,
+.tl-scrolling .agent-dimension-panel,
+.tl-scrolling .hero-product-mock,
+.tl-scrolling .hero-composer,
+.tl-scrolling .home-nav.cinematic-nav {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Keep the fixed nav legible without paying for a live blur. */
+.tl-scrolling .home-nav.cinematic-nav {
+  background-color: rgba(252, 251, 254, .92);
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -2,6 +2,12 @@
 node_modules/
 package-lock.json.bak
 
+# Python virtualenvs
+.venv/
+.venv-mac/
+venv/
+__MACOSX/
+
 # Build output
 dist/
 build/

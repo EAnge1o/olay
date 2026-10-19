@@ -707,8 +707,15 @@ def _build_browser_options():
 
     profile = os.environ.get("XHS_USER_DATA_PATH")
     if profile:
-        pathlib.Path(profile).mkdir(parents=True, exist_ok=True)
-        options.set_user_data_path(profile)
+        # `main()` chdirs into a temp dir before building the options, so a
+        # relative profile path would resolve against that throwaway directory
+        # and hand Chrome an empty profile — losing the logged-in session. Anchor
+        # it to the backend root instead.
+        profile_path = pathlib.Path(profile).expanduser()
+        if not profile_path.is_absolute():
+            profile_path = BACKEND_ROOT / profile_path
+        profile_path.mkdir(parents=True, exist_ok=True)
+        options.set_user_data_path(str(profile_path))
 
     if os.environ.get("XHS_HEADLESS", "").lower() in {"1", "true", "yes"}:
         options.headless(True)

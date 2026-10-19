@@ -1,13 +1,14 @@
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 
-import LiveAnalysis from "./LiveAnalysis";
 import { LiveReportView } from "./LiveReport";
 import {
   AccountProfileEvidence,
   AnalysisProcessProgress,
   CreatorSelfCheckReport,
   CrossCheckSection,
+  MERGE_CROSS_LINKS,
+  MERGE_LINK_ANCHOR_X,
   DecisionSupport,
   MaterialTraceEvidence,
   MethodBadge,
@@ -17,7 +18,7 @@ import {
   reportConfidenceProfiles,
   technicalConfig,
 } from "./TeammateUI";
-import type { CreatorReportInput } from "./TeammateUI";
+import type { CreatorReportInput, CreatorSelfCheckProgress } from "./TeammateUI";
 import type { TeamQueueItem, TeamRelatedGroup, TeamSummary } from "./TeammateUI";
 import {
   checkCreator,
@@ -35,7 +36,7 @@ import {
 } from "./api";
 import { DEMO_INPUT, useLiveAnalysis, type LiveRun } from "./useLiveAnalysis";
 
-type Screen = "home" | "workspace" | "chat" | "result" | "live" | "team";
+type Screen = "home" | "workspace" | "chat" | "result" | "team";
 type RecentTask = "makeup" | "serum" | "whitening";
 type DimensionCode = "T" | "R" | "U" | "S";
 
@@ -49,6 +50,18 @@ interface RecentRunRecord {
   activeDimensions: DimensionCode[];
   report: ReportRead;
   sample: SampleRead | null;
+  /** "creator" = 发布前自检 (restored into CreatorSelfCheckReport); absent = 核验记录. */
+  kind?: "verify" | "creator";
+  /** Who produced the report: 创作者发布前自检 or 核验别人的笔记. Old records are inferred. */
+  role?: "creator" | "consumer";
+  /** What a creator record needs to reopen its report (image files cannot be stored). */
+  creator?: {
+    draft: string;
+    category: string;
+    isCollaboration: boolean;
+    imageNames: string[];
+    result: CreatorCheckRead;
+  };
 }
 
 const allDimensions: DimensionCode[] = ["T", "R", "U", "S"];
@@ -68,6 +81,11 @@ function loadRecentRuns(): RecentRunRecord[] {
   } catch {
     return [];
   }
+}
+
+/** Identity tag of a record; old localStorage records without `role` are inferred from `kind`. */
+function recentRunRole(run: RecentRunRecord): "creator" | "consumer" {
+  return run.role ?? (run.kind === "creator" ? "creator" : "consumer");
 }
 
 function deriveRecentTitle(prompt: string, filename: string): string {
@@ -364,7 +382,7 @@ async function exportTrustLongImage() {
     ["T", "账号可信度", "82", "#eee9fb", "账号运营稳定，历史内容与商业合作节奏自然。"],
     ["R", "图像原生性", "88", "#e8f1fa", "发现两处生成式皮肤细化，但产品主体保持真实。"],
     ["U", "评论自然度", "74", "#f8eae7", "12% 短评存在相似句式，整体互动结构仍较自然。"],
-    ["S", "文本真实性", "91", "#e7f2ec", "未使用绝对化功效承诺，合作标识与体验边界清晰。"],
+    ["S", "文案真实性", "91", "#e7f2ec", "未使用绝对化功效承诺，合作标识与体验边界清晰。"],
   ];
   exportDimensions.forEach(([code, title, score, color, copy], index) => {
     const x = 90 + (index % 2) * 640;
@@ -1148,23 +1166,23 @@ const agentScenes: Array<{
     input: "账号主页",
     question: "这个账号长期可靠吗？",
     description: "分析发布节奏、带货占比和历史内容的一致性。",
-    score: 6,
+    score: 55,
   },
   {
     code: "R",
-    label: "图片真实性",
+    label: "图像原生性",
     input: "图片",
     question: "这张图是真的吗？",
     description: "检查光影一致性、拼接痕迹和色彩过渡。",
-    score: 3,
+    score: 30,
   },
   {
     code: "U",
-    label: "评论区真实性",
+    label: "评论自然度",
     input: "评论",
     question: "评论是真人说的吗？",
     description: "检查句式相似度、发布时间与账号特征。",
-    score: 4,
+    score: 40,
   },
   {
     code: "S",
@@ -1172,7 +1190,7 @@ const agentScenes: Array<{
     input: "文案",
     question: "这段话是体验，还是写好的脚本？",
     description: "识别模板化话术、绝对化用语和缺少依据的功效宣称。",
-    score: 5,
+    score: 50,
   },
 ];
 
@@ -1193,8 +1211,8 @@ function AgentSceneVisual({ code, instance }: { code: DimensionCode; instance: s
       <div className={`agent-account-card ${ratioHovered ? "ratio-highlight" : ""}`}>
         <div className="account-placeholder-head">
           <span className="account-placeholder-avatar"><Sparkle size={17} /></span>
-          <div><strong>账号名占位</strong><small>@beauty_profile</small></div>
-          <em>疑似营销号</em>
+          <div><strong>晚风护肤札记</strong><small>@beauty_profile</small></div>
+          <em>营销特征较多</em>
         </div>
         <div className="account-placeholder-data">
           <div className="posting-rhythm">
@@ -1412,11 +1430,9 @@ function DimensionImageForensics({ instance }: { instance: string }) {
 function FlowConnector({
   direction,
   lineProgress,
-  ruleProgress = 0,
 }: {
   direction: "in" | "out";
   lineProgress: number[];
-  ruleProgress?: number;
 }) {
   const inputPaths = ["M0 24 L120 120", "M0 72 L120 120", "M0 168 L120 120", "M0 216 L120 120"];
   const outputPaths = ["M0 120 L145 48", "M0 120 L145 120", "M0 120 L145 192"];
@@ -1433,12 +1449,6 @@ function FlowConnector({
           />
         ))}
       </svg>
-      {direction === "out" && (
-        <div className="rule-score-node" style={{ "--rule-progress": ruleProgress } as React.CSSProperties}>
-          <strong>规则评分</strong>
-          <small>分数由公开规则计算，<br />不由 AI 一句话拍板</small>
-        </div>
-      )}
     </div>
   );
 }
@@ -1489,15 +1499,14 @@ function CheckSection({ active, replayKey, staticMode }: { active: boolean; repl
     >
       {mobile && <h3 className="mobile-dimension-title"><span>{scene.code}</span>{scene.label}</h3>}
       <div className="agent-scene-copy">
-        <span>{scene.code} · {scene.code === "R" ? "图片原生性" : scene.code === "U" ? "评论区自然度" : scene.label}</span>
+        <span>{scene.code} · {scene.label}</span>
         <h3>{scene.question}</h3>
         <p>{scene.description}</p>
         <small>TruLens 的四个维度之一</small>
         <div className="agent-dimension-score">
           <span>该维度评分</span>
-          <strong>{scene.score.toFixed(1)}</strong>
-          <div><i style={{ width: `${scene.score * 10}%` }} /></div>
-          <small>/ 10</small>
+          <strong>{scene.score}</strong>
+          <div><i style={{ width: `${scene.score}%` }} /></div>
         </div>
       </div>
       <div className={`agent-scene-visual scene-${scene.code.toLowerCase()}`}>
@@ -1513,7 +1522,7 @@ function CheckSection({ active, replayKey, staticMode }: { active: boolean; repl
       >
         <div className="one-agent-sticky">
           <div className="one-agent-heading">
-            <span className="section-tag">02 / 查</span>
+            <span className="section-tag">02 / 查 · 多模态鉴伪</span>
             <h2>四个维度，各自取证</h2>
             <p>证据，不是结论。每一个判断，都能指给你看它从哪里来。</p>
           </div>
@@ -1527,7 +1536,7 @@ function CheckSection({ active, replayKey, staticMode }: { active: boolean; repl
                 onClick={() => selectScene(scene.code)}
                 role="tab"
               >
-                <span>{scene.code}</span>{scene.code === "R" ? "图像原生性" : scene.code === "U" ? "评论自然度" : scene.code === "S" ? "文本真实性" : scene.label}
+                <span>{scene.code}</span>{scene.label}
                 {activeCode === scene.code && active && !autoStopped && !staticMode && <i className="agent-tab-timer" key={`${replayKey}-${scene.code}`} />}
               </button>
             ))}
@@ -1543,6 +1552,15 @@ function CheckSection({ active, replayKey, staticMode }: { active: boolean; repl
       </section>
   );
 }
+
+// Cross-check arcs are defined once in TeammateUI (this scene is duplicated in
+// both files) and imported here so the two copies cannot drift apart.
+
+const MERGE_CROSS_CHECKS = [
+  ["矛盾", "文案“直出实拍，无滤镜”", "图像：肤色过渡出现断层", "conflict"],
+  ["矛盾", "文案“纯自费分享”", "账号：近 30 篇中 24 篇带商品链接", "conflict"],
+  ["存疑", "评论“好用，已回购”集中", "文案：未提使用周期", "doubtful"],
+] as const;
 
 function MergeSection({ active, replayKey, staticMode }: { active: boolean; replayKey: number; staticMode: boolean }) {
   const animationFrameRef = useRef(0);
@@ -1568,42 +1586,73 @@ function MergeSection({ active, replayKey, staticMode }: { active: boolean; repl
     return () => window.cancelAnimationFrame(animationFrameRef.current);
   }, [active, replayKey, staticMode]);
 
+  // Everything settles by 4.6s and then stays on screen: results → cross-check links
+  // and notes → convergence → the three outputs.
   const timedProgress = (start: number, duration: number) => Math.min(1, Math.max(0, (elapsed - start) / duration));
-  const resultProgress = agentScenes.map((_, index) => timedProgress(0.3 + index * 0.6, 0.7));
-  const convergenceProgress = timedProgress(2.8, 0.5);
-  const outputProgress = [timedProgress(3.4, 0.9), timedProgress(3.7, 0.5), timedProgress(4, 0.5)];
-  const verdictProgress = timedProgress(4.3, 0.2);
+  const resultProgress = agentScenes.map((_, index) => timedProgress(0.25 + index * 0.35, 0.6));
+  const crossLinkProgress = [timedProgress(1.3, 0.6), timedProgress(1.7, 0.6), timedProgress(2.1, 0.6)];
+  const crossLabelProgress = [timedProgress(1.7, 0.5), timedProgress(2.1, 0.5), timedProgress(2.5, 0.5)];
+  const convergenceProgress = timedProgress(2.6, 0.5);
+  const outputProgress = [timedProgress(3, 0.5), timedProgress(3.35, 0.5), timedProgress(3.7, 0.5)];
+  const verdictProgress = timedProgress(3.6, 0.35);
 
   return (
       <section className={`architecture-section ${active || staticMode ? "merge-visible" : ""}`} id="how-merge">
         <div className="architecture-sticky">
           <div className="architecture-heading">
-            <span className="section-tag">03 / 合</span>
-            <h2>四个结果，汇成一个分数</h2>
-            <p>不是四个工具拼在一起，而是同一个 Agent 的四种视角。</p>
+            <span className="section-tag">03 / 合 · 语义一致性校验</span>
+            <h2>四个结果，先对质，再汇成一个分数</h2>
+            <p>单看一个维度，谎话可以很圆。放在一起，矛盾就藏不住了。</p>
           </div>
 
           <div className="one-agent-flow">
             <div className="flow-inputs merge-results">
               <small>四个维度的结果</small>
+              <svg aria-hidden="true" className="merge-cross-links" viewBox="0 0 300 220">
+                {MERGE_CROSS_LINKS.map((link, index) => (
+                  <g key={link.id}>
+                    <path
+                      className={`cross-link-${link.tone}`}
+                      d={link.d}
+                      pathLength="1"
+                      style={{ strokeDashoffset: 1 - crossLinkProgress[index] }}
+                    />
+                    <circle
+                      className={`cross-link-dot cross-link-dot-${link.tone}`}
+                      cx={MERGE_LINK_ANCHOR_X}
+                      cy={link.from}
+                      r="2.4"
+                      style={{ opacity: crossLinkProgress[index] }}
+                    />
+                    <circle
+                      className={`cross-link-dot cross-link-dot-${link.tone}`}
+                      cx={MERGE_LINK_ANCHOR_X}
+                      cy={link.to}
+                      r="2.4"
+                      style={{ opacity: crossLinkProgress[index] }}
+                    />
+                  </g>
+                ))}
+              </svg>
               {agentScenes.map((scene, index) => (
                 <div
-                  aria-label={`${scene.code} ${scene.label}，评分 ${scene.score.toFixed(1)}`}
+                  aria-label={`${scene.code} ${scene.label}，评分 ${scene.score}`}
                   className={`merge-result result-${scene.code.toLowerCase()}`}
                   key={scene.code}
                   style={{ "--result-progress": resultProgress[index] } as React.CSSProperties}
                 >
                   <span>{scene.code}</span>
                   <div>
-                    <strong>{scene.code === "R" ? "图片原生性" : scene.code === "U" ? "评论区自然性" : scene.label}</strong>
-                    <i><b style={{ width: `${scene.score * 10 * resultProgress[index]}%` }} /></i>
+                    <strong>{scene.label}</strong>
+                    <i><b style={{ width: `${scene.score * resultProgress[index]}%` }} /></i>
                   </div>
-                  <em>{resultProgress[index] > 0 ? (scene.score * resultProgress[index]).toFixed(1) : ""}</em>
+                  <em>{resultProgress[index] > 0 ? Math.round(scene.score * resultProgress[index]) : ""}</em>
                 </div>
               ))}
             </div>
 
-            <FlowConnector direction="in" lineProgress={resultProgress} />
+            {/* Grid spacer: the cross-check arcs above replace the old straight in-lines. */}
+            <div aria-hidden="true" className="agent-flow-connector connector-in" />
 
             <div className="aperture-column">
               <div className="aperture-orbits">
@@ -1611,10 +1660,10 @@ function MergeSection({ active, replayKey, staticMode }: { active: boolean; repl
             <i className="aperture-orbit orbit-outer" />
             <svg aria-label="TruLens 的四个核验维度" className="agent-aperture" viewBox="0 0 280 280">
               {[
-                { code: "T" as DimensionCode, path: "M138 18A122 122 0 0 0 18 138H92a48 48 0 0 1 46-46Z", x: 75, y: 80, label: "账号可信度" },
-                { code: "R" as DimensionCode, path: "M142 18a122 122 0 0 1 120 120h-74a48 48 0 0 0-46-46Z", x: 205, y: 80, label: "图片原生性" },
-                { code: "U" as DimensionCode, path: "M262 142a122 122 0 0 1-120 120v-74a48 48 0 0 0 46-46Z", x: 205, y: 205, label: "评论区自然度" },
-                { code: "S" as DimensionCode, path: "M138 262A122 122 0 0 1 18 142h74a48 48 0 0 0 46 46Z", x: 75, y: 205, label: "文案真实性" },
+                { code: "T" as DimensionCode, path: "M138 18A122 122 0 0 0 18 138H92a48 48 0 0 1 46-46Z", x: 64, y: 80, label: "账号可信度" },
+                { code: "R" as DimensionCode, path: "M142 18a122 122 0 0 1 120 120h-74a48 48 0 0 0-46-46Z", x: 216, y: 80, label: "图像原生性" },
+                { code: "U" as DimensionCode, path: "M262 142a122 122 0 0 1-120 120v-74a48 48 0 0 0 46-46Z", x: 216, y: 205, label: "评论自然度" },
+                { code: "S" as DimensionCode, path: "M138 262A122 122 0 0 1 18 142h74a48 48 0 0 0 46 46Z", x: 64, y: 205, label: "文案真实性" },
               ].map((petal, index) => (
                 <g
                   aria-label={`${petal.code} ${petal.label}`}
@@ -1628,10 +1677,11 @@ function MergeSection({ active, replayKey, staticMode }: { active: boolean; repl
                 </g>
               ))}
               <g className="merge-rays" style={{ "--merge-progress": convergenceProgress } as React.CSSProperties}>
-                <line pathLength="1" x1="75" x2="140" y1="80" y2="140" />
-                <line pathLength="1" x1="205" x2="140" y1="80" y2="140" />
-                <line pathLength="1" x1="205" x2="140" y1="205" y2="140" />
-                <line pathLength="1" x1="75" x2="140" y1="205" y2="140" />
+                {/* Rays start just inside the petal labels so they never run across the text. */}
+                <line pathLength="1" x1="86" x2="140" y1="86" y2="140" />
+                <line pathLength="1" x1="194" x2="140" y1="86" y2="140" />
+                <line pathLength="1" x1="194" x2="140" y1="194" y2="140" />
+                <line pathLength="1" x1="86" x2="140" y1="194" y2="140" />
               </g>
               <g className="aperture-core">
                 <circle cx="140" cy="140" r="45" />
@@ -1640,23 +1690,31 @@ function MergeSection({ active, replayKey, staticMode }: { active: boolean; repl
               </g>
             </svg>
               </div>
+              <div className="merge-cross-checks">
+                {MERGE_CROSS_CHECKS.map(([state, left, right, tone], index) => (
+                  <div className={`cross-check-preview preview-${tone}`} key={left} style={{ "--preview-progress": crossLabelProgress[index] } as React.CSSProperties}>
+                    <em>{state}</em><span>{left}</span><i>×</i><span>{right}</span>
+                  </div>
+                ))}
+                <small>示例数据</small>
+              </div>
             </div>
 
-            <FlowConnector direction="out" lineProgress={outputProgress} ruleProgress={convergenceProgress} />
+            <FlowConnector direction="out" lineProgress={outputProgress} />
 
             <div className="flow-outputs">
               <small>统一输出</small>
               <div
-                aria-label={`Trust Score ${Math.round(43 * outputProgress[0])} / 100，存疑，谨慎参考`}
+                aria-label={`Trust Score ${Math.round(43 * outputProgress[0])} / 100，置信度高`}
                 className="merge-output score-output"
                 style={{ "--output-progress": outputProgress[0], "--verdict-progress": verdictProgress } as React.CSSProperties}
               >
-                <span>Trust Score</span>
+                <span>Trust Score 与置信度</span>
                 <strong>{Math.round(43 * outputProgress[0])}<small>/ 100</small></strong>
-                <em>存疑 · 谨慎参考</em>
+                <em>置信度 高</em>
               </div>
-              <div className="merge-output" style={{ "--output-progress": outputProgress[1] } as React.CSSProperties}>证据与解释</div>
-              <div className="merge-output" style={{ "--output-progress": outputProgress[2] } as React.CSSProperties}>购买建议</div>
+              <div className="merge-output detail-output" style={{ "--output-progress": outputProgress[1] } as React.CSSProperties}><span>证据与交叉验证</span><strong>2 处矛盾 · 1 处存疑</strong></div>
+              <div className="merge-output detail-output" style={{ "--output-progress": outputProgress[2] } as React.CSSProperties}><span>处理建议</span><strong>四类角色，各有下一步</strong></div>
             </div>
           </div>
 
@@ -1677,13 +1735,13 @@ function OneAgentSection() {
   );
 }
 
-type ReportPart = "score" | "band" | "radar" | "evidence" | "missing" | "advice";
+type ReportPart = "score" | "band" | "radar" | "evidence" | "missing" | "cross" | "advice";
 
 const reportDimensions = [
-  { code: "T" as DimensionCode, name: "账号可信度", score: 6, evidence: "近 30 篇笔记中 24 篇带商品链接" },
-  { code: "R" as DimensionCode, name: "图片真实性", score: 3, evidence: "高光方向与背景光源不一致，肤色过渡出现断层" },
-  { code: "U" as DimensionCode, name: "评论区真实性", score: 4, evidence: "62 条评论中 41 条句式相似，集中在 2 小时内发布" },
-  { code: "S" as DimensionCode, name: "文案真实性", score: 5, evidence: '文案模板化，并含绝对化用语“24 小时不脱妆”' },
+  { code: "T" as DimensionCode, name: "账号可信度", score: 55, evidence: "近 30 篇笔记中 24 篇带商品链接" },
+  { code: "R" as DimensionCode, name: "图像原生性", score: 30, evidence: "高光方向与背景光源不一致，肤色过渡出现断层" },
+  { code: "U" as DimensionCode, name: "评论自然度", score: 40, evidence: "62 条评论中 41 条句式相似，集中在 2 小时内发布" },
+  { code: "S" as DimensionCode, name: "文案真实性", score: 50, evidence: '文案模板化，并含绝对化用语“24 小时不脱妆”' },
 ];
 
 const reportCallouts: Array<{ number: string; text: string; part: ReportPart; side: "left" | "right" }> = [
@@ -1692,12 +1750,22 @@ const reportCallouts: Array<{ number: string; text: string; part: ReportPart; si
   { number: "03", text: "四维雷达图", part: "radar", side: "left" },
   { number: "04", text: "逐项证据，每个维度都附依据", part: "evidence", side: "right" },
   { number: "05", text: "购买建议，告诉你下一步", part: "advice", side: "right" },
+  { number: "06", text: "交叉验证", part: "cross", side: "left" },
+  { number: "07", text: "处理建议 · 按角色", part: "advice", side: "right" },
+];
+
+const reportRoleAdvice = [
+  { role: "消费者", advice: "不建议依据这篇下单，先去官方渠道核实功效数据。" },
+  { role: "创作者", advice: "如果内容属实，补充原图和凭证即可申诉。" },
+  { role: "平台运营", advice: "建议人工复核，复核前先限流观察。" },
+  { role: "品牌方", advice: "核实品牌名和功效数据是否被滥用，转合规评估。" },
 ];
 
 function ReportSection({ active, onStart, staticMode }: { active: boolean; onStart: () => void; staticMode: boolean }) {
   const missingComments = false;
   const [activePart, setActivePart] = useState<ReportPart | null>(null);
   const [activeDimension, setActiveDimension] = useState<DimensionCode | null>(null);
+  const [activeRole, setActiveRole] = useState(1);
 
   const focusCallout = (part: ReportPart | null) => {
     setActivePart(part);
@@ -1705,13 +1773,13 @@ function ReportSection({ active, onStart, staticMode }: { active: boolean; onSta
   };
 
   const radarPoints = missingComments
-    ? "M120 56 L147 110 M75 110 L120 56"
-    : "M120 56 L147 110 L120 146 L75 110 Z";
+    ? "M120 60.5 L147 110 M75 110 L120 60.5"
+    : "M120 60.5 L147 110 L120 146 L75 110 Z";
 
   return (
     <section className={`report-showcase-section ${active || staticMode ? "is-visible" : ""} ${staticMode ? "is-static" : ""}`} id="how-report">
       <div className="report-showcase-heading">
-        <span className="section-tag">04 / 报</span>
+        <span className="section-tag">04 / 报 · 决策与建议</span>
         <h2><span>一份报告，</span><span>读懂一条种草</span></h2>
         <p>不只告诉你真假，更告诉你为什么，以及下一步怎么做。</p>
       </div>
@@ -1733,6 +1801,9 @@ function ReportSection({ active, onStart, staticMode }: { active: boolean; onSta
             <span>示例数据</span>
           </header>
 
+          {/* In the narrative the card has a fixed height; this layer scrolls up with the
+              report scene so the cross-check and decision panels come into view. */}
+          <div className="trust-report-body">
           <section className="report-score-block report-highlight part-score">
             <div className="report-score-ring">
               <span>Trust Score</span>
@@ -1790,7 +1861,7 @@ function ReportSection({ active, onStart, staticMode }: { active: boolean; onSta
                 ))}
                 <path className="radar-data" d={radarPoints} />
                 {[
-                  ["T", 120, 56],
+                  ["T", 120, 60.5],
                   ["R", 147, 110],
                   ["U", 120, 146],
                   ["S", 75, 110],
@@ -1824,9 +1895,9 @@ function ReportSection({ active, onStart, staticMode }: { active: boolean; onSta
                     <span className={`report-dimension-badge badge-${dimension.code.toLowerCase()}`}>{dimension.code}</span>
                     <div>
                       <span className="report-state-swap" key={`${dimension.code}-${isMissing ? "missing" : "complete"}`}>
-                        <strong>{dimension.code === "R" ? "图片原生性" : dimension.code === "U" ? "评论区自然度" : dimension.code === "S" ? "文本真实性" : dimension.name}</strong><b>{isMissing ? "数据不足，未评分" : dimension.score.toFixed(1)}</b>
+                        <strong>{dimension.name}</strong><b>{isMissing ? "数据不足，未评分" : dimension.score}</b>
                       </span>
-                      <div className="dimension-meter"><i style={{ width: isMissing ? "100%" : `${dimension.score * 10}%` }} /></div>
+                      <div className="dimension-meter"><i style={{ width: isMissing ? "100%" : `${dimension.score}%` }} /></div>
                       <small>{isMissing ? "数据不足，未评分" : dimension.evidence}</small>
                     </div>
                   </div>
@@ -1835,25 +1906,48 @@ function ReportSection({ active, onStart, staticMode }: { active: boolean; onSta
             </div>
           </section>
 
-          <section className="report-advice report-highlight part-advice">
-            <h3>下单前先核实 3 件事</h3>
-            {[
-              ["T", "看这个账号的其他笔记，是不是几乎都在带货"],
-              ["U", "等 30 天后的追评，比首周的好评更有参考价值"],
-              ["R", "先拿小样或线下试用，再决定整瓶下单"],
-            ].map(([code, text]) => (
-              <div className={missingComments && code === "U" ? "advice-muted" : ""} key={code}>
-                <span className={`report-dimension-badge badge-${code.toLowerCase()}`}>{code}</span>
-                <p>{text}</p>
-              </div>
-            ))}
+          <section className="report-cross-check report-highlight part-cross">
+            <span>
+              <Icon size={15}>
+                <circle cx="8" cy="12" r="4.5" fill="none" stroke="currentColor" strokeWidth="1.4" />
+                <circle cx="16" cy="12" r="4.5" fill="none" stroke="currentColor" strokeWidth="1.4" />
+              </Icon>
+            </span>
+            <strong>交叉验证 · 2 处矛盾 · 1 处存疑</strong>
           </section>
+
+          <section className="report-decision-panel report-highlight part-advice">
+            <div className="report-decision-levels" aria-label="处置等级">
+              <span><i />放行·轻提示</span>
+              <span><i />提示·补充核验</span>
+              <span className="active"><i />人工复核·处置</span>
+            </div>
+            <div className="report-role-advice">
+              <div role="tablist" aria-label="查看不同角色的建议">
+                {reportRoleAdvice.map((item, index) => (
+                  <button
+                    aria-selected={activeRole === index}
+                    className={activeRole === index ? "active" : ""}
+                    key={item.role}
+                    onClick={() => setActiveRole(index)}
+                    role="tab"
+                    type="button"
+                  >
+                    {item.role}
+                  </button>
+                ))}
+              </div>
+              <p aria-live="polite" key={activeRole}>{reportRoleAdvice[activeRole].advice}</p>
+            </div>
+            <small>辅助决策，不构成购买建议或定性结论。</small>
+          </section>
+          </div>
         </article>
 
         <div className="report-callouts" aria-label="报告结构说明">
           {reportCallouts.map((callout, index) => (
             <button
-              className={`report-callout callout-${callout.side} callout-${index + 1} ${activePart === callout.part ? "active" : ""}`}
+              className={`report-callout callout-${callout.side} callout-${index + 1} ${index >= 5 ? "phase-two" : ""} ${activePart === callout.part ? "active" : ""}`}
               key={callout.number}
               onClick={() => focusCallout(activePart === callout.part ? null : callout.part)}
               onMouseEnter={() => focusCallout(callout.part)}
@@ -1867,6 +1961,7 @@ function ReportSection({ active, onStart, staticMode }: { active: boolean; onSta
         </div>
       </div>
 
+      <p className="report-closing-line">想好下一步，决定，留给你。</p>
       <div className="report-final-action">
         <button onClick={onStart}>
           体验 TruLens Agent
@@ -2078,17 +2173,40 @@ function AgentIntroSection() {
 }
 
 const HOW_SCENE_RANGES = [
-  { id: "trust", number: "01", label: "拆", start: 0, end: 0.18, status: "已收到" },
-  { id: "how-check", number: "02", label: "查", start: 0.18, end: 0.55, status: "取证中" },
-  { id: "how-merge", number: "03", label: "合", start: 0.55, end: 0.77, status: "评分中" },
-  { id: "how-report", number: "04", label: "报", start: 0.77, end: 1, status: "报告已生成" },
+  { id: "trust", number: "01", label: "拆", start: 0, end: 0.24, status: "已收到" },
+  { id: "how-check", number: "02", label: "查", start: 0.24, end: 0.48, status: "取证中" },
+  { id: "how-merge", number: "03", label: "合", start: 0.48, end: 0.76, status: "评分中" },
+  { id: "how-report", number: "04", label: "报", start: 0.76, end: 1, status: "报告已生成" },
 ];
 
-function HowChapterRail({ activeChapter, onSelect, progress }: { activeChapter: number; onSelect: (index: number) => void; progress: number }) {
+// Share of the narrative's scroll travel used to fade one scene out / the next one in.
+const HOW_FADE = 0.035;
+const HOW_SHIFT = 16;
+
+const smoothstep = (value: number) => {
+  const t = Math.min(1, Math.max(0, value));
+  return t * t * (3 - 2 * t);
+};
+
+function howSceneIndexAt(progress: number) {
+  const index = HOW_SCENE_RANGES.findIndex((range) => progress < range.end);
+  return index === -1 ? HOW_SCENE_RANGES.length - 1 : index;
+}
+
+function howScenePresentation(index: number, progress: number) {
+  const range = HOW_SCENE_RANGES[index];
+  const enter = index === 0 ? 1 : smoothstep((progress - range.start) / HOW_FADE);
+  const exit = index === HOW_SCENE_RANGES.length - 1 ? 1 : 1 - smoothstep((progress - (range.end - HOW_FADE)) / HOW_FADE);
+  const opacity = Math.min(enter, exit);
+  const translateY = enter < 1 ? HOW_SHIFT * (1 - enter) : exit < 1 ? -HOW_SHIFT * (1 - exit) : 0;
+  return { opacity, translateY };
+}
+
+function HowChapterRail({ activeChapter, onSelect }: { activeChapter: number; onSelect: (index: number) => void }) {
   return (
     <nav aria-label="How 章节导航" className="how-chapter-rail visible">
       <div>
-        <span className="how-rail-progress" style={{ height: `${progress * 100}%` }} />
+        <span className="how-rail-progress" style={{ height: "calc(var(--how-progress, 0) * 100%)" }} />
         {HOW_SCENE_RANGES.map((chapter, index) => (
           <button className={activeChapter === index ? "active" : ""} key={chapter.id} onClick={() => onSelect(index)}>
             <i /><span>{chapter.number}</span><strong>{chapter.label}</strong>
@@ -2211,7 +2329,7 @@ function TrustScene({ active }: { active: boolean }) {
   return (
     <section className={`trust-section ${active ? "is-entered" : ""}`} id="trust">
       <div className="trust-heading">
-        <span className="section-tag">01 / 拆</span>
+        <span className="section-tag">01 / 拆 · 多模态鉴伪</span>
         <h2><span>认识你的 AI</span><span>信任顾问团队</span></h2>
         <p>从四种信号，读懂一条种草笔记</p>
       </div>
@@ -2229,9 +2347,10 @@ function HowNarrative({ onStart }: { onStart: () => void }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const sceneRefs = useRef<Array<HTMLDivElement | null>>([]);
   const frameRef = useRef(0);
+  const targetProgressRef = useRef(0);
+  const displayProgressRef = useRef(0);
   const previousSceneRef = useRef(0);
   const previousStageVisibleRef = useRef(false);
-  const [progress, setProgress] = useState(0);
   const [activeScene, setActiveScene] = useState(0);
   const [stageVisible, setStageVisible] = useState(false);
   const [linearMode, setLinearMode] = useState(false);
@@ -2257,37 +2376,72 @@ function HowNarrative({ onStart }: { onStart: () => void }) {
 
   useEffect(() => {
     if (linearMode) return;
-    const update = () => {
-      const container = containerRef.current;
-      if (!container) return;
+    const container = containerRef.current;
+    if (!container) return;
+
+    // Scroll only sets a target; the rendered progress eases toward it each frame,
+    // so coarse wheel steps still cross-fade instead of jumping between scenes.
+    const render = (progress: number) => {
+      sceneRefs.current.forEach((scene, index) => {
+        if (!scene) return;
+        const { opacity, translateY } = howScenePresentation(index, progress);
+        scene.style.opacity = opacity.toFixed(3);
+        scene.style.transform = `translate3d(0,${translateY.toFixed(2)}px,0)`;
+        scene.style.visibility = opacity > 0.01 ? "visible" : "hidden";
+      });
+      const sceneIndex = howSceneIndexAt(progress);
+      const range = HOW_SCENE_RANGES[sceneIndex];
+      container.style.setProperty("--how-progress", progress.toFixed(4));
+      container.style.setProperty("--how-scene-progress", Math.min(1, Math.max(0, (progress - range.start) / (range.end - range.start))).toFixed(4));
+      if (sceneIndex !== previousSceneRef.current) {
+        previousSceneRef.current = sceneIndex;
+        setActiveScene(sceneIndex);
+        setReplayKeys((keys) => keys.map((key, index) => index === sceneIndex ? key + 1 : key));
+      }
+    };
+
+    const tick = () => {
+      frameRef.current = 0;
+      const target = targetProgressRef.current;
+      const current = displayProgressRef.current;
+      const next = Math.abs(target - current) < 0.0004 ? target : current + (target - current) * 0.16;
+      displayProgressRef.current = next;
+      render(next);
+      if (next !== target) frameRef.current = window.requestAnimationFrame(tick);
+    };
+
+    const measure = () => {
       const bounds = container.getBoundingClientRect();
-      const distance = container.offsetHeight - window.innerHeight;
-      const nextProgress = Math.min(1, Math.max(0, -bounds.top / distance));
-      const nextScene = HOW_SCENE_RANGES.findIndex((range, index) => nextProgress >= range.start && (index === 3 || nextProgress < range.end));
+      const distance = Math.max(1, container.offsetHeight - window.innerHeight);
+      targetProgressRef.current = Math.min(1, Math.max(0, -bounds.top / distance));
       const nextStageVisible = bounds.top < window.innerHeight * 0.65 && bounds.bottom > window.innerHeight * 0.35;
-      setProgress(nextProgress);
-      setActiveScene(nextScene);
       setStageVisible(nextStageVisible);
       if (nextStageVisible && !previousStageVisibleRef.current) {
-        setReplayKeys((keys) => keys.map((key, index) => index === nextScene ? key + 1 : key));
+        const sceneIndex = howSceneIndexAt(displayProgressRef.current);
+        setReplayKeys((keys) => keys.map((key, index) => index === sceneIndex ? key + 1 : key));
       }
       previousStageVisibleRef.current = nextStageVisible;
-      if (nextScene !== previousSceneRef.current) {
-        previousSceneRef.current = nextScene;
-        setReplayKeys((keys) => keys.map((key, index) => index === nextScene ? key + 1 : key));
-      }
+      if (!frameRef.current) frameRef.current = window.requestAnimationFrame(tick);
     };
-    const onScroll = () => {
-      window.cancelAnimationFrame(frameRef.current);
-      frameRef.current = window.requestAnimationFrame(update);
-    };
-    update();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
+
+    measure();
+    displayProgressRef.current = targetProgressRef.current;
+    render(displayProgressRef.current);
+    window.addEventListener("scroll", measure, { passive: true });
+    window.addEventListener("resize", measure);
     return () => {
       window.cancelAnimationFrame(frameRef.current);
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
+      frameRef.current = 0;
+      window.removeEventListener("scroll", measure);
+      window.removeEventListener("resize", measure);
+      container.style.removeProperty("--how-progress");
+      container.style.removeProperty("--how-scene-progress");
+      sceneRefs.current.forEach((scene) => {
+        if (!scene) return;
+        scene.style.removeProperty("opacity");
+        scene.style.removeProperty("transform");
+        scene.style.removeProperty("visibility");
+      });
     };
   }, [linearMode]);
 
@@ -2324,12 +2478,11 @@ function HowNarrative({ onStart }: { onStart: () => void }) {
     const top = window.scrollY + container.getBoundingClientRect().top;
     const distance = container.offsetHeight - window.innerHeight;
     const range = HOW_SCENE_RANGES[index];
-    const settleOffset = index === 0 ? 0.025 : Math.min(0.055, (range.end - range.start) * 0.18);
-    window.scrollTo({ top: top + (range.start + settleOffset) * distance, behavior: "smooth" });
+    const settle = index === 0 ? 0 : HOW_FADE + 0.01;
+    window.scrollTo({ top: top + (range.start + settle) * distance, behavior: "smooth" });
   };
 
   const activeRange = HOW_SCENE_RANGES[activeScene];
-  const activeSceneProgress = Math.min(1, Math.max(0, (progress - activeRange.start) / (activeRange.end - activeRange.start)));
   const narrativeStatus =
     activeScene === 0
       ? "顾问团队已就位"
@@ -2338,25 +2491,6 @@ function HowNarrative({ onStart }: { onStart: () => void }) {
         : activeScene === 2
           ? "证据正在汇合与校准"
           : "一条种草笔记已还原为完整报告";
-
-  const presentation = (index: number) => {
-    if (linearMode) return undefined;
-    const range = HOW_SCENE_RANGES[index];
-    const enter = index === 0 ? 1 : Math.min(1, Math.max(0, (progress - (range.start - 0.04)) / 0.055));
-    const exit = index === 3 ? 1 : 1 - Math.min(1, Math.max(0, (progress - (range.end - 0.038)) / 0.055));
-    const opacity = Math.min(enter, exit);
-    const local = Math.min(1, Math.max(0, (progress - range.start) / (range.end - range.start)));
-    const translateY = enter < 1 ? 54 * (1 - enter) : exit < 1 ? -38 * (1 - exit) : 18 * (local - 0.5);
-    const scale = 0.965 + opacity * 0.035 + (enter === 1 && exit === 1 ? 0.006 * Math.sin(local * Math.PI) : 0);
-    const blur = Math.max(0, (1 - opacity) * 7);
-    return {
-      "--scene-local": local,
-      opacity,
-      transform: `translate3d(0,${translateY}px,0) scale(${scale})`,
-      filter: blur > 0.2 ? `blur(${blur.toFixed(2)}px)` : "none",
-      visibility: opacity > 0.01 ? "visible" : "hidden",
-    } as React.CSSProperties;
-  };
 
   const scenes = [
     <TrustScene active={linearMode ? visibleScenes.has(0) : stageVisible && activeScene === 0} />,
@@ -2368,12 +2502,12 @@ function HowNarrative({ onStart }: { onStart: () => void }) {
   return (
     <div className={`how-narrative ${linearMode ? "linear" : ""}`} id="how-journey" ref={containerRef}>
       <div className="how-stage">
-        {!linearMode && <HowChapterRail activeChapter={activeScene} onSelect={scrollToScene} progress={progress} />}
+        {!linearMode && <HowChapterRail activeChapter={activeScene} onSelect={scrollToScene} />}
         {!linearMode && (
           <div aria-live="polite" className="how-story-status">
             <span>{activeRange.number}</span>
             <div><small>TRUST NARRATIVE · {activeRange.label}</small><strong>{narrativeStatus}</strong></div>
-            <i><b style={{ transform: `scaleX(${activeSceneProgress})` }} /></i>
+            <i><b style={{ transform: "scaleX(var(--how-scene-progress, 0))" }} /></i>
           </div>
         )}
         <div aria-live="polite" className="sr-only">当前：{HOW_SCENE_RANGES[activeScene].number} {HOW_SCENE_RANGES[activeScene].label}</div>
@@ -2387,7 +2521,6 @@ function HowNarrative({ onStart }: { onStart: () => void }) {
               inert={!linearMode && !interactive}
               key={HOW_SCENE_RANGES[index].id}
               ref={(element) => { sceneRefs.current[index] = element; }}
-              style={presentation(index)}
             >
               <div className="how-scene-canvas">{scene}</div>
             </div>
@@ -2439,7 +2572,7 @@ const heroScenes: readonly HeroSceneData[] = [
   {
     id: "reality",
     code: "R",
-    dimension: "R · 图片真实性",
+    dimension: "R · 图像原生性",
     chineseName: "视觉取证师",
     englishName: "Reality",
     action: "放大每寸皮肤",
@@ -3084,7 +3217,7 @@ function TruLensHero({
 
 const whyTrustContent = {
   eyebrow: "WHY TRUST US",
-  exampleLabel: "示例",
+  exampleLabel: "示例数据",
   title: "凭什么，",
   emphasis: "相信我们？",
   subtitle: "TruLens 判断别人是否可信，也用同样的标准要求自己。",
@@ -3459,7 +3592,7 @@ const learnContent = {
     reset: "再玩一次",
   },
   footer: "TruLens · 示例内容均为自造样本，不涉及真实账号与真人。",
-  exampleLabel: "示例",
+  exampleLabel: "示例数据",
 } as const;
 
 type LearnClue = (typeof learnContent.clues)[number];
@@ -3505,7 +3638,7 @@ function LearnClueCard({ clue, index }: { clue: LearnClue; index: number }) {
   return (
     <motion.article
       className={`learn-clue-card clue-${clue.code.toLowerCase()}`}
-      initial={reducedMotion ? false : { opacity: 0, y: 18 }}
+      initial={reducedMotion ? false : { opacity: 0, y: 14 }}
       transition={{ duration: reducedMotion ? 0 : 0.5, delay: reducedMotion ? 0 : index * 0.04 }}
       viewport={{ amount: 0.2, once: true }}
       whileInView={{ opacity: 1, y: 0 }}
@@ -3519,18 +3652,23 @@ function LearnClueCard({ clue, index }: { clue: LearnClue; index: number }) {
 }
 
 function QuizRound({
+  focusOnMount = false,
   index,
+  nextLabel = learnContent.quizSection.next,
   onComplete,
   onNext,
   resetKey,
   round,
 }: {
+  focusOnMount?: boolean;
   index: number;
+  nextLabel?: string;
   onComplete: (index: number, score: number | null) => void;
   onNext: () => void;
   resetKey: number;
   round: LearnRound;
 }) {
+  const headerRef = useRef<HTMLElement>(null);
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [revealed, setRevealed] = useState(false);
   const total = round.items.filter((item) => item.suspicious).length;
@@ -3540,6 +3678,10 @@ function QuizRound({
     setSelected(new Set());
     setRevealed(false);
   }, [resetKey]);
+
+  useEffect(() => {
+    if (focusOnMount) headerRef.current?.focus({ preventScroll: true });
+  }, []);
 
   const toggle = (itemIndex: number) => {
     if (revealed) return;
@@ -3564,7 +3706,7 @@ function QuizRound({
 
   return (
     <article className={`learn-quiz-round round-${round.kind}`}>
-      <header><span>{round.label}</span><small>{index + 1} / {learnContent.rounds.length}</small></header>
+      <header ref={headerRef} tabIndex={-1}><span>{round.label}</span><small>{index + 1} / {learnContent.rounds.length}</small></header>
       <div className="round-progress">{learnContent.rounds.map((item, dotIndex) => <i className={dotIndex <= index ? "active" : ""} key={item.id} />)}</div>
       {round.kind === "image" ? (
         <div className="quiz-image-sample">
@@ -3619,7 +3761,7 @@ function QuizRound({
         ) : (
           <>
             <button onClick={() => { setSelected(new Set()); setRevealed(false); onComplete(index, null); }}>{learnContent.quizSection.retry}</button>
-            <button className="round-next" onClick={onNext}>{learnContent.quizSection.next}</button>
+            <button className="round-next" onClick={onNext}>{nextLabel}</button>
           </>
         )}
       </footer>
@@ -3628,13 +3770,19 @@ function QuizRound({
 }
 
 function LearnResult({
+  focusOnMount = false,
   found,
   onReset,
 }: {
+  focusOnMount?: boolean;
   found: number;
   onReset: () => void;
 }) {
   const reducedMotion = Boolean(useReducedMotion());
+  const titleRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    if (focusOnMount) titleRef.current?.focus({ preventScroll: true });
+  }, []);
   const resultText = learnContent.result.bands.find((band) => found >= band.min)?.text ?? learnContent.result.bands[2].text;
   const scrollToComposer = () => {
     window.scrollTo({ top: 0, behavior: reducedMotion ? "auto" : "smooth" });
@@ -3648,7 +3796,7 @@ function LearnResult({
       transition={{ duration: reducedMotion ? 0 : 0.5 }}
     >
       <span>{learnContent.result.label}</span>
-      <strong>{learnContent.result.title.replace("{FOUND}", String(found))}</strong>
+      <strong ref={titleRef} tabIndex={-1}>{learnContent.result.title.replace("{FOUND}", String(found))}</strong>
       <h3>{resultText}</h3>
       <p>{learnContent.result.summary}</p>
       <small>{learnContent.result.source}</small>
@@ -3661,30 +3809,87 @@ function LearnResult({
 }
 
 function LearnSection() {
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const cluesRef = useRef<HTMLElement>(null);
   const quizRef = useRef<HTMLElement>(null);
-  const resultRef = useRef<HTMLDivElement>(null);
-  const roundRefs = useRef<Array<HTMLDivElement | null>>([]);
+  const stageRef = useRef<HTMLDivElement>(null);
+  const reducedMotion = Boolean(useReducedMotion());
   const [progress, setProgress] = useState(0);
+  // 0–2: the round on screen; RESULT_STEP: the summary. Rounds swap in place, one at a time.
+  const RESULT_STEP = learnContent.rounds.length;
+  const [currentRound, setCurrentRound] = useState(0);
+  const [interacted, setInteracted] = useState(false);
+  const [stageMinHeight, setStageMinHeight] = useState(0);
   const [scores, setScores] = useState<Array<number | null>>([null, null, null]);
   const [resetKey, setResetKey] = useState(0);
   const complete = scores.every((score) => score !== null);
   const found = scores.reduce<number>((sum, score) => sum + (score ?? 0), 0);
 
-  const scrollInsideCard = (element: HTMLElement | null) => {
-    const scroller = scrollRef.current;
-    if (!scroller || !element) return;
-    scroller.scrollTo({
+  // The clues and the quiz now sit in the normal page flow, so progress follows the page scroll.
+  useEffect(() => {
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      const line = window.innerHeight * 0.45;
+      const quizTop = quizRef.current?.getBoundingClientRect().top ?? Infinity;
+      setProgress(quizTop < line ? (currentRound === RESULT_STEP ? 2 : 1) : 0);
+    };
+    const onScroll = () => {
+      if (!frame) frame = window.requestAnimationFrame(update);
+    };
+    update();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
+  }, [currentRound]);
+
+  // The stage only grows (tallest round / answer seen so far), so swapping rounds never
+  // makes the card snap shorter. Re-measured from scratch when the width changes.
+  useEffect(() => {
+    const stage = stageRef.current;
+    if (!stage) return;
+    let width = stage.offsetWidth;
+    const observer = new ResizeObserver(() => {
+      const content = stage.firstElementChild as HTMLElement | null;
+      if (!content) return;
+      const widthChanged = stage.offsetWidth !== width;
+      width = stage.offsetWidth;
+      setStageMinHeight((current) => (widthChanged ? content.offsetHeight : Math.max(current, content.offsetHeight)));
+    });
+    const observeContent = () => {
+      observer.disconnect();
+      observer.observe(stage);
+      if (stage.firstElementChild) observer.observe(stage.firstElementChild);
+    };
+    observeContent();
+    const mutation = new MutationObserver(observeContent);
+    mutation.observe(stage, { childList: true });
+    return () => {
+      observer.disconnect();
+      mutation.disconnect();
+    };
+  }, []);
+
+  const goToStep = (step: number) => {
+    setInteracted(true);
+    setCurrentRound(step);
+  };
+
+  const scrollToBlock = (element: HTMLElement | null) => {
+    if (!element) return;
+    window.scrollTo({
       behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
-      top: element.offsetTop - 48,
+      top: element.getBoundingClientRect().top + window.scrollY - 96,
     });
   };
 
   const resetAll = () => {
     setScores([null, null, null]);
     setResetKey((key) => key + 1);
-    setProgress(0);
-    scrollInsideCard(scrollRef.current?.firstElementChild as HTMLElement | null);
+    goToStep(0);
   };
 
   return (
@@ -3697,9 +3902,12 @@ function LearnSection() {
           <nav aria-label="学习进度">
             {learnContent.progress.map((label, index) => (
               <button className={progress === index ? "active" : progress > index ? "complete" : ""} key={label} onClick={() => {
-                if (index === 0) scrollRef.current?.scrollTo({ top: 0, behavior: "smooth" });
-                if (index === 1) scrollInsideCard(quizRef.current);
-                if (index === 2 && complete) scrollInsideCard(resultRef.current);
+                if (index === 0) scrollToBlock(cluesRef.current);
+                if (index === 1) scrollToBlock(quizRef.current);
+                if (index === 2 && complete) {
+                  goToStep(RESULT_STEP);
+                  scrollToBlock(quizRef.current);
+                }
               }}>
                 <i /><span>{label}</span>
               </button>
@@ -3707,18 +3915,9 @@ function LearnSection() {
           </nav>
         </aside>
         <div className="learn-card-wrap">
-          <div
-            className="learn-scroll-card"
-            onScroll={(event) => {
-              const scroller = event.currentTarget;
-              const ratio = scroller.scrollTop / Math.max(1, scroller.scrollHeight - scroller.clientHeight);
-              setProgress(ratio < 0.55 ? 0 : ratio < 0.88 ? 1 : 2);
-            }}
-            ref={scrollRef}
-            tabIndex={0}
-          >
+          <div className="learn-scroll-card">
             <div className="learn-card-content">
-              <section className="learn-clues">
+              <section className="learn-clues" ref={cluesRef}>
                 <span className="learn-section-label">{learnContent.clueSection.label}</span>
                 <p className="learn-section-intro">{learnContent.clueSection.intro}</p>
                 <div className="learn-clue-list">
@@ -3730,26 +3929,40 @@ function LearnSection() {
                 <span className="learn-section-label">{learnContent.quizSection.label}</span>
                 <h2>{learnContent.quizSection.title}</h2>
                 <p>{learnContent.quizSection.description}</p>
-                <div className="learn-round-list">
-                  {learnContent.rounds.map((round, index) => (
-                    <div key={round.id} ref={(element) => { roundRefs.current[index] = element; }}>
-                      <QuizRound
-                        index={index}
-                        onComplete={(roundIndex, score) => setScores((current) => current.map((value, scoreIndex) => scoreIndex === roundIndex ? score : value))}
-                        onNext={() => {
-                          if (index < learnContent.rounds.length - 1) scrollInsideCard(roundRefs.current[index + 1]);
-                          else if (complete || scores.slice(0, -1).every((score) => score !== null)) window.setTimeout(() => scrollInsideCard(resultRef.current), 80);
-                        }}
-                        resetKey={resetKey}
-                        round={round}
-                      />
-                    </div>
-                  ))}
+                <div
+                  className="learn-round-stage"
+                  ref={stageRef}
+                  style={{ minHeight: stageMinHeight || undefined }}
+                >
+                  <AnimatePresence initial={false} mode="wait">
+                    <motion.div
+                      animate={{ opacity: 1, x: 0 }}
+                      className="learn-round-slide"
+                      exit={reducedMotion ? { opacity: 1 } : { opacity: 0, x: -16 }}
+                      initial={reducedMotion ? false : { opacity: 0, x: 16 }}
+                      key={currentRound === RESULT_STEP ? `result-${resetKey}` : `round-${currentRound}-${resetKey}`}
+                      transition={{ duration: reducedMotion ? 0 : 0.26, ease: [0.22, 0.7, 0.2, 1] }}
+                    >
+                      {currentRound === RESULT_STEP ? (
+                        <LearnResult focusOnMount={interacted} found={found} onReset={resetAll} />
+                      ) : (
+                        <QuizRound
+                          focusOnMount={interacted}
+                          index={currentRound}
+                          nextLabel={currentRound === learnContent.rounds.length - 1 ? "查看结果" : learnContent.quizSection.next}
+                          onComplete={(roundIndex, score) => setScores((current) => current.map((value, scoreIndex) => scoreIndex === roundIndex ? score : value))}
+                          onNext={() => {
+                            if (currentRound < learnContent.rounds.length - 1) goToStep(currentRound + 1);
+                            else if (complete) goToStep(RESULT_STEP);
+                          }}
+                          resetKey={resetKey}
+                          round={learnContent.rounds[currentRound]}
+                        />
+                      )}
+                    </motion.div>
+                  </AnimatePresence>
                 </div>
               </section>
-              <div ref={resultRef}>
-                {complete && <LearnResult found={found} onReset={resetAll} />}
-              </div>
             </div>
           </div>
           <i className="learn-fade learn-fade-top" /><i className="learn-fade learn-fade-bottom" />
@@ -3978,7 +4191,6 @@ function Sidebar({
   historyCleared,
   recentRuns,
   onNew,
-  onLive,
   onLogout,
   onRecent,
   onResetAgent,
@@ -3995,7 +4207,6 @@ function Sidebar({
   historyCleared: boolean;
   recentRuns: RecentRunRecord[];
   onNew: () => void;
-  onLive: () => void;
   onLogout: () => void;
   onRecent: (id: string) => void;
   onResetAgent: () => void;
@@ -4139,24 +4350,6 @@ function Sidebar({
         <small>{historyCleared ? 0 : recentRuns.length + searchableTasks.length}</small>
       </button>
       <button
-        className="sidebar-report-library"
-        onClick={() => {
-          setAccountMenuOpen(false);
-          setSearchOpen(false);
-          onLive();
-        }}
-        title="实时核验（调用真实后端）"
-      >
-        <span>
-          <Icon size={17}>
-            <path d="M12 3v4M12 17v4M3 12h4M17 12h4" stroke="currentColor" strokeLinecap="round" strokeWidth="1.5" />
-            <circle cx="12" cy="12" r="4.2" stroke="currentColor" strokeWidth="1.5" />
-          </Icon>
-          实时核验
-        </span>
-        <small>live</small>
-      </button>
-      <button
         className="sidebar-help-guide"
         onClick={() => openDialog("help")}
         title="帮助指引"
@@ -4181,36 +4374,36 @@ function Sidebar({
                 key={run.id}
                 onClick={() => onRecent(run.id)}
               >
-                <span className="history-thumb purple">{Math.round(run.trustScore)}</span>
+                <span className="history-thumb purple" title={run.activeDimensions.length ? undefined : "暂不评分"}>{run.activeDimensions.length ? Math.round(run.trustScore) : "—"}</span>
                 <span>
                   <strong>{run.title}</strong>
-                  <small>{recentDateLabel(run.createdAt)} · {run.trustLabel}</small>
+                  <small><i className={`recent-role-tag role-${recentRunRole(run)}`}>{recentRunRole(run) === "creator" ? "创作者" : "消费者"}</i>{recentDateLabel(run.createdAt)} · {run.kind === "creator" ? "发布前自检" : run.trustLabel}</small>
                 </span>
               </button>
             ))}
-            <button className={!activeRecentId && activeTask === "makeup" && (active === "chat" || active === "result") ? "active" : ""} onClick={() => onTask("makeup")}>
+            <button className={!activeRecentId && activeTask === "makeup" && (active === "chat" || active === "result") ? "active" : ""} onClick={() => onReport("makeup")}>
               <span className="history-thumb">
                 <img alt="" src={postImage} />
               </span>
               <span>
                 <strong>秋冬奶油肌底妆分享</strong>
-                <small>{archivedScore ? `今天 · 已归档 · ${archivedScore} 分` : "今天 · 高可信"}</small>
+                <small><i className="recent-role-tag role-demo">示例</i>{archivedScore ? `今天 · 已归档 · ${archivedScore} 分` : "今天 · 高可信"}</small>
               </span>
             </button>
-            <button className={!activeRecentId && activeTask === "serum" && (active === "chat" || active === "result") ? "active" : ""} onClick={() => onTask("serum")}>
+            <button className={!activeRecentId && activeTask === "serum" && (active === "chat" || active === "result") ? "active" : ""} onClick={() => onReport("serum")}>
               <span className="history-thumb purple">
                 <Sparkle size={15} />
               </span>
               <span>
                 <strong>热门精华测评合集</strong>
-                <small>昨天 · 存在风险</small>
+                <small><i className="recent-role-tag role-demo">示例</i>昨天 · 存在风险</small>
               </span>
             </button>
-            <button className={!activeRecentId && activeTask === "whitening" && (active === "chat" || active === "result") ? "active" : ""} onClick={() => onTask("whitening")}>
+            <button className={!activeRecentId && activeTask === "whitening" && (active === "chat" || active === "result") ? "active" : ""} onClick={() => onReport("whitening")}>
               <span className="history-thumb blue">S</span>
               <span>
                 <strong>七天美白挑战</strong>
-                <small>3 天前 · 疑似营销</small>
+                <small><i className="recent-role-tag role-demo">示例</i>3 天前 · 疑似营销</small>
               </span>
             </button>
           </>
@@ -4294,9 +4487,9 @@ function Sidebar({
                       </span>
                       <span>
                         <strong>{run.title}</strong>
-                        <small>{recentDateLabel(run.createdAt)} · {run.trustLabel}</small>
+                        <small><i className={`recent-role-tag role-${recentRunRole(run)}`}>{recentRunRole(run) === "creator" ? "创作者" : "消费者"}</i>{recentDateLabel(run.createdAt)} · {run.kind === "creator" ? "发布前自检" : run.trustLabel}</small>
                       </span>
-                      <b>{Math.round(run.trustScore)}<small>/100</small></b>
+                      <b>{run.activeDimensions.length ? <>{Math.round(run.trustScore)}<small>/100</small></> : <small>暂不评分</small>}</b>
                       <i>›</i>
                     </button>
                   ))}
@@ -4497,10 +4690,11 @@ function Composer({
     setValue(preset);
   }, [preset]);
 
-  const noteLink = looksLikeXhsLink(value) ? value : "";
   const accountValue = (accountUrl ?? "").trim();
   const validAccountUrl = /xiaohongshu\.com\/user\/profile\/|xhslink\.(com|cn)/i.test(accountValue);
-  const accountMissing = Boolean(!compact && noteLink && !validAccountUrl);
+  // The author homepage is optional: the backend discovers it from the note page,
+  // so only a *supplied* value has to parse as a profile link.
+  const accountMissing = Boolean(!compact && accountValue && !validAccountUrl);
   const noteUrl = value.match(/https?:\/\/[^\s，,、）)]+/)?.[0] ?? "";
 
   const pasteAccountUrl = async () => {
@@ -4520,7 +4714,7 @@ function Composer({
 
   const submit = () => {
     if (accountMissing) {
-      setAccountError("使用笔记链接进行四维核验时，请同时填写有效的账号主页链接。");
+      setAccountError("账号主页链接无法识别，请粘贴 xiaohongshu.com/user/profile/… 链接，或清空此项由系统自动获取。");
       return;
     }
     if (value.trim() || filename) {
@@ -4546,10 +4740,10 @@ function Composer({
       />
       {!compact && (
         <label className="composer-account-field">
-          <span>账号主页 · 使用笔记链接时必填</span>
+          <span>账号主页 · 可选，留空自动获取</span>
           <input
             aria-label="账号主页链接"
-            aria-required={Boolean(noteLink)}
+            aria-required={false}
             onChange={(event) => {
               setAccountError("");
               onAccountUrl?.(event.target.value);
@@ -4560,7 +4754,7 @@ function Composer({
           />
         </label>
       )}
-      {!compact && noteLink && (
+      {!compact && looksLikeXhsLink(value) && (
         <section className="composer-account-method" aria-label="获取账号主页链接的方法">
           <header>
             <strong>账号主页链接从哪里来？</strong>
@@ -4647,6 +4841,100 @@ function Composer({
   );
 }
 
+const NEW_ANALYSIS_EXAMPLE_TEXT = "最近换季皮肤有点干，连续使用这款精华 14 天后，我个人感觉保湿度有所提升。本文为自费购买，具体效果会因肤质和使用方式不同。";
+
+/**
+ * Frontend mirror of backend/app/services/xhs_service.py `normalize()` (format only,
+ * no network): /explore/<id>, /discovery/item/<id>, a bare 24-hex note id, or an
+ * xhslink short link (resolved by the backend at verification time).
+ */
+type XhsNoteCheck =
+  | { ok: true; value: string; kind: "note" | "short" }
+  | { ok: false; reason: "empty" | "profile" | "unrecognized" };
+
+const XHS_URL_IN_TEXT = /https?:\/\/[^\s，,、）)】」"'<>]+/i;
+
+function checkXhsNoteInput(raw: string): XhsNoteCheck {
+  const text = raw.trim();
+  if (!text) return { ok: false, reason: "empty" };
+  const explore = text.match(/https?:\/\/[^\s，,、）)]*xiaohongshu\.com\/(?:explore|discovery\/item)\/[0-9a-zA-Z]+(?:\?[^\s，,、）)]*)?/i);
+  if (explore) return { ok: true, value: explore[0], kind: "note" };
+  const short = text.match(/https?:\/\/[^\s，,、）)]*xhslink\.(?:com|cn)\/[^\s，,、）)]+/i);
+  if (short) return { ok: true, value: short[0], kind: "short" };
+  if (/xhslink\.(?:com|cn)\//i.test(text)) return { ok: true, value: text.match(XHS_URL_IN_TEXT)?.[0] ?? text, kind: "short" };
+  // A homepage link is not a note: the backend would misread the user id as a note id.
+  if (/\/user\/profile\//i.test(text)) return { ok: false, reason: "profile" };
+  const bareId = text.match(/\b[0-9a-f]{24}\b/);
+  if (bareId) return { ok: true, value: text.match(XHS_URL_IN_TEXT)?.[0] ?? bareId[0], kind: "note" };
+  return { ok: false, reason: "unrecognized" };
+}
+
+/** Same idea for the author homepage (backend `normalize_account()`). */
+function extractXhsProfileLink(raw: string): string | null {
+  const text = raw.trim();
+  if (!text) return null;
+  const profile = text.match(/https?:\/\/[^\s，,、）)]*xiaohongshu\.com\/user\/profile\/[0-9a-zA-Z]+(?:\?[^\s，,、）)]*)?/i);
+  if (profile) return profile[0];
+  const short = text.match(/https?:\/\/[^\s，,、）)]*xhslink\.(?:com|cn)\/[^\s，,、）)]+/i);
+  return short ? short[0] : null;
+}
+
+/**
+ * 账号历史 form ⇄ the JSON the backend already accepts (core/utils.normalize_account_history):
+ * {"handle": "...", "posts": [{"text": "...", "published_at": "2026-09-01T00:00:00Z"}]}.
+ * A post line is "日期 | 内容" (date optional); no date → no published_at key.
+ */
+type AccountPostDraft = { text: string; date?: string };
+
+function parseAccountPostLines(raw: string): AccountPostDraft[] {
+  return raw
+    .split(/\n+/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => {
+      const matched = line.match(/^(\d{4}-\d{2}-\d{2})\s*\|\s*(.+)$/);
+      return matched ? { date: matched[1], text: matched[2].trim() } : { text: line.replace(/^\|\s*/, "") };
+    })
+    .filter((post) => post.text);
+}
+
+function buildAccountHistoryJson(handle: string, posts: AccountPostDraft[]): string {
+  const payload: { handle?: string; posts: Array<{ text: string; published_at?: string }> } = {
+    ...(handle.trim() ? { handle: handle.trim() } : {}),
+    posts: posts.map((post) => (post.date ? { text: post.text, published_at: `${post.date}T00:00:00Z` } : { text: post.text })),
+  };
+  return JSON.stringify(payload);
+}
+
+/** Legacy JSON (e.g. pasted or restored) → form fields; null when it is not that shape. */
+function parseAccountHistoryJson(raw: string): { handle: string; lines: string } | null {
+  try {
+    const parsed = JSON.parse(raw);
+    const posts = Array.isArray(parsed) ? parsed : Array.isArray(parsed?.posts) ? parsed.posts : null;
+    if (!posts) return null;
+    const lines = posts
+      .map((post: unknown) => {
+        if (typeof post === "string") return post;
+        if (!post || typeof post !== "object") return "";
+        const item = post as { text?: unknown; published_at?: unknown; created_at?: unknown };
+        const text = typeof item.text === "string" ? item.text : "";
+        const when = typeof item.published_at === "string" ? item.published_at : typeof item.created_at === "string" ? item.created_at : "";
+        const date = when.match(/^\d{4}-\d{2}-\d{2}/)?.[0];
+        return text ? (date ? `${date} | ${text}` : text) : "";
+      })
+      .filter(Boolean)
+      .join("\n");
+    return { handle: typeof parsed?.handle === "string" ? parsed.handle : "", lines };
+  } catch {
+    return null;
+  }
+}
+
+/** Share text with the link removed — what is worth carrying over to 文案 / 图片核验. */
+function stripLinksFromShareText(raw: string) {
+  return raw.replace(/https?:\/\/[^\s，,、）)】」]+/gi, " ").replace(/复制后打开.*$/s, "").replace(/\s+/g, " ").trim();
+}
+
 function NewAnalysisForm({
   accountUrl,
   onAccountUrl,
@@ -4656,7 +4944,10 @@ function NewAnalysisForm({
   onSubmitCreator,
   onSubmitLink,
   onSubmitManual,
+  manualPreset = "",
+  notice = "",
   preset = "",
+  workspaceMode = "verify",
 }: {
   accountUrl: string;
   creatorPreset?: string;
@@ -4664,23 +4955,55 @@ function NewAnalysisForm({
   onAccountUrl: (value: string) => void;
   onFile: (name: string) => void;
   onSubmitCreator: (input: CreatorReportInput) => void;
-  onSubmitLink: (noteUrl: string, accountUrl: string) => void;
+  onSubmitLink: (noteUrl: string, accountUrl: string, rawInput?: string) => void;
   onSubmitManual: (input: { text: string; image: File | null; comments: string; accountHistory: string }) => void;
+  manualPreset?: string;
+  /** One short line shown when a verification bounced back here (e.g. the link could not be fetched). */
+  notice?: string;
   preset?: string;
+  workspaceMode?: "verify" | "creator";
 }) {
-  const [mode, setMode] = useState<"link" | "manual" | "creator">(initialMode);
+  const [verifyMode, setVerifyMode] = useState<"link" | "manual">(initialMode === "manual" ? "manual" : "link");
+  const mode: "link" | "manual" | "creator" = workspaceMode === "creator" ? "creator" : verifyMode;
   const [noteLink, setNoteLink] = useState(preset);
-  const [manualText, setManualText] = useState("");
+  const [manualText, setManualText] = useState(manualPreset);
+  // Recognition step: nothing is submitted until the user confirms on this screen.
+  const [review, setReview] = useState<null | "recognition" | "link-error">(null);
+  const [linkErrorReason, setLinkErrorReason] = useState<"profile" | "unrecognized">("unrecognized");
+  const noteInputRef = useRef<HTMLInputElement>(null);
   const [manualFile, setManualFile] = useState<File | null>(null);
   const [manualComments, setManualComments] = useState("");
-  const [manualAccountHistory, setManualAccountHistory] = useState("");
+  // 账号历史 as a plain form; turned into the backend's JSON only on submit.
+  const [accountHandle, setAccountHandle] = useState("");
+  const [accountPostsText, setAccountPostsText] = useState("");
+  // 评论区截图: kept and shown on the front end only — the backend has no field for them
+  // (sending them as `image` would make them count as R 配图).
+  const [commentShots, setCommentShots] = useState<Array<{ id: string; name: string; url: string }>>([]);
+  const commentShotInputRef = useRef<HTMLInputElement>(null);
+  const accountPosts = parseAccountPostLines(accountPostsText);
+  const accountHistoryReady = accountPosts.length >= 3;
+  const accountHistoryPartial = accountPosts.length > 0 && !accountHistoryReady;
+  // Only a history the backend can score is sent; fewer than 3 posts means 本次不评估账号.
+  const manualAccountHistory = accountHistoryReady ? buildAccountHistoryJson(accountHandle, accountPosts) : "";
+  const addCommentShots = (files: File[]) => {
+    const next = files
+      .filter((file) => file.type.startsWith("image/"))
+      .map((file) => ({ id: `${file.name}-${file.lastModified}-${Math.random()}`, name: file.name, url: URL.createObjectURL(file) }));
+    if (next.length) setCommentShots((current) => [...current, ...next]);
+  };
+  const removeCommentShot = (id: string) =>
+    setCommentShots((current) => {
+      const target = current.find((shot) => shot.id === id);
+      if (target) URL.revokeObjectURL(target.url);
+      return current.filter((shot) => shot.id !== id);
+    });
   const [supplementOpen, setSupplementOpen] = useState(false);
   const [creatorDraft, setCreatorDraft] = useState(creatorPreset);
   const [creatorImages, setCreatorImages] = useState<Array<{ id: string; name: string; url: string; file: File }>>([]);
   const [creatorCollaboration, setCreatorCollaboration] = useState(false);
   const [creatorCategory, setCreatorCategory] = useState("护肤");
   const [preview, setPreview] = useState("");
-  const [error, setError] = useState("");
+  const [error, setError] = useState(notice);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const creatorFileInputRef = useRef<HTMLInputElement>(null);
   const accountInputRef = useRef<HTMLInputElement>(null);
@@ -4690,39 +5013,31 @@ function NewAnalysisForm({
   }, [preset]);
 
   useEffect(() => {
+    if (!manualPreset) return;
+    setVerifyMode("manual");
+    setManualText(manualPreset);
+  }, [manualPreset]);
+
+  useEffect(() => {
     if (!creatorPreset) return;
-    setMode("creator");
     setCreatorDraft(creatorPreset);
   }, [creatorPreset]);
 
   useEffect(() => {
-    setMode(initialMode);
+    if (initialMode !== "creator") setVerifyMode(initialMode);
   }, [initialMode]);
 
   useEffect(() => () => {
     if (preview) URL.revokeObjectURL(preview);
   }, [preview]);
 
-  const noteReady = looksLikeXhsLink(noteLink);
-  const accountReady = /xiaohongshu\.com\/user\/profile\/|xhslink\.(com|cn)/i.test(accountUrl.trim());
-  const linkReady = noteReady && accountReady;
+  const noteCheck = checkXhsNoteInput(noteLink);
+  const accountLink = extractXhsProfileLink(accountUrl);
+  // The button only needs content; whether it is a usable note link is decided on click
+  // (an unusable one opens the 「链接无法识别」 screen instead of a disabled button).
+  const linkReady = Boolean(noteLink.trim());
   const manualReady = Boolean(manualText.trim() || manualFile);
   const creatorReady = Boolean(creatorDraft.trim() || creatorImages.length);
-  const noteUrl = noteLink.match(/https?:\/\/[^\s，,、）)]+/)?.[0] ?? "";
-
-  const pasteAccountUrl = async () => {
-    try {
-      const clipboard = await navigator.clipboard.readText();
-      const profileUrl = clipboard.match(
-        /https?:\/\/[^\s，,、）)]*xiaohongshu\.com\/user\/profile\/[0-9a-zA-Z]+(?:\?[^\s，,、）)]*)?/i,
-      )?.[0] ?? clipboard.trim();
-      onAccountUrl(profileUrl);
-      setError("");
-      accountInputRef.current?.focus();
-    } catch {
-      setError("无法读取剪贴板，请手动粘贴账号主页链接。");
-    }
-  };
 
   const selectFile = (file: File | null) => {
     if (preview) URL.revokeObjectURL(preview);
@@ -4756,18 +5071,47 @@ function NewAnalysisForm({
     });
   };
 
+  const loadExample = () => {
+    setVerifyMode("manual");
+    setManualText(NEW_ANALYSIS_EXAMPLE_TEXT);
+    setError("");
+  };
+
+  const confirmAndStart = () => {
+    setReview(null);
+    if (mode === "link") {
+      if (!noteCheck.ok) return;
+      onSubmitLink(noteCheck.value, accountLink ?? "", noteLink);
+      return;
+    }
+    onSubmitManual({
+      text: manualText.trim(),
+      image: manualFile,
+      comments: manualComments.trim(),
+      accountHistory: manualAccountHistory.trim(),
+    });
+  };
+
   const submit = () => {
     setError("");
     if (mode === "link") {
-      if (!noteReady) {
-        setError("请填写有效的小红书笔记链接。");
+      if (!noteCheck.ok) {
+        if (noteCheck.reason === "empty") {
+          setError("请填写小红书笔记链接。");
+          return;
+        }
+        setLinkErrorReason(noteCheck.reason);
+        setReview("link-error");
         return;
       }
-      if (!accountReady) {
-        setError("请填写有效的账号主页链接，两个链接缺一不可。");
+      if (accountUrl.trim() && !accountLink) {
+        // Optional: left blank it is discovered from the note. But when the user
+        // *does* supply one it has to be a profile link we can read.
+        setError("作者主页链接无法识别，请粘贴 xiaohongshu.com/user/profile/… 或 xhslink 链接，或留空由系统自动获取。");
+        accountInputRef.current?.focus();
         return;
       }
-      onSubmitLink(noteLink.trim(), accountUrl.trim());
+      setReview("recognition");
       return;
     }
 
@@ -4794,89 +5138,162 @@ function NewAnalysisForm({
       setError("请填写文案或上传图片。");
       return;
     }
-    onSubmitManual({
-      text: manualText.trim(),
-      image: manualFile,
-      comments: manualComments.trim(),
-      accountHistory: manualAccountHistory.trim(),
-    });
+    setReview("recognition");
   };
 
-  return (
-    <div className="composer new-analysis-composer">
-      <div className="analysis-mode-switch" role="group" aria-label="核验方式">
-        <button
-          aria-pressed={mode === "link"}
-          className={mode === "link" ? "active" : ""}
-          onClick={() => { setMode("link"); setError(""); }}
-          type="button"
-        >
-          链接核验
-          <small>笔记 + 主页</small>
-        </button>
-        <button
-          aria-pressed={mode === "manual"}
-          className={mode === "manual" ? "active" : ""}
-          onClick={() => { setMode("manual"); setError(""); }}
-          type="button"
-        >
-          文案 / 图片核验
-          <small>直接提交内容</small>
-        </button>
-        <button
-          aria-pressed={mode === "creator"}
-          className={mode === "creator" ? "active" : ""}
-          onClick={() => { setMode("creator"); setError(""); }}
-          type="button"
-        >
-          创作者自检
-          <small>发布前检查</small>
-        </button>
+  const backToInput = (openSupplements = false) => {
+    setReview(null);
+    if (openSupplements && mode === "manual") setSupplementOpen(true);
+  };
+
+  if (review === "link-error" && mode === "link") {
+    return (
+      <div className="verification-feedback-panel link-error-panel" role="alert">
+        <span className="verification-panel-icon">!</span>
+        <small>LINK UNRECOGNIZED</small>
+        <h3>链接无法识别</h3>
+        <p>
+          {linkErrorReason === "profile"
+            ? "这看起来是作者主页链接，而不是笔记链接。请把它填到「作者主页链接」，笔记链接一栏请粘贴笔记本身的链接。"
+            : "没有在输入内容里找到可用的小红书笔记链接。"}
+        </p>
+        <ul className="link-error-tips">
+          <li>请粘贴小红书笔记链接（xiaohongshu.com 或 xhslink.com 开头）。</li>
+          <li>如果是分享文案，请直接粘贴整段分享内容，系统会提取其中的链接。</li>
+          <li>也可以切换到「文案 / 图片核验」，手动输入文案和图片。</li>
+        </ul>
+        <div>
+          <button onClick={() => { setReview(null); window.setTimeout(() => noteInputRef.current?.focus(), 0); }} type="button">重新输入链接</button>
+          <button onClick={() => { setReview(null); setVerifyMode("manual"); setError(""); }} type="button">改用文案 / 图片核验 <Arrow size={16} /></button>
+        </div>
       </div>
+    );
+  }
+
+  if (review === "recognition" && mode !== "creator") {
+    const isLink = mode === "link";
+    const textLength = manualText.trim().replace(/\s/g, "").length;
+    const commentCount = manualComments.split(/\n+/).map((line) => line.trim()).filter(Boolean).length;
+    const materials: Array<{ key: string; label: string; ready: boolean; detail?: string; thumb?: string; expected?: boolean; canAdd?: boolean }> = isLink
+      ? [
+          { key: "copy", label: "帖子正文", ready: true, expected: true, detail: "预计获取" },
+          { key: "images", label: "配图", ready: true, expected: true, detail: "预计获取" },
+          { key: "comments", label: "评论", ready: true, expected: true, detail: "预计获取" },
+          { key: "reviews", label: "商品评价", ready: false, detail: "链接核验不包含" },
+          { key: "service", label: "客服凭证", ready: false, detail: "链接核验不包含" },
+        ]
+      : [
+          { key: "copy", label: "帖子正文", ready: textLength > 0, detail: textLength ? `${textLength} 字` : "", canAdd: true },
+          { key: "images", label: manualFile ? "配图 · 1 张" : "配图", ready: Boolean(manualFile), thumb: preview || undefined, canAdd: true },
+          { key: "comments", label: "评论", ready: commentCount > 0, detail: commentCount ? `${commentCount} 条` : "", canAdd: true },
+          ...(commentShots.length
+            ? [{ key: "comment-shots", label: `评论截图 · ${commentShots.length} 张（已添加，暂不参与评分）`, ready: true, thumb: commentShots[0].url }]
+            : []),
+          ...(accountPosts.length
+            ? [{ key: "account", label: `账号历史 · ${accountPosts.length} 篇`, ready: accountHistoryReady, detail: accountHistoryReady ? "" : "不足 3 篇，本次不评估账号", canAdd: true }]
+            : []),
+          { key: "reviews", label: "商品评价", ready: false },
+          { key: "service", label: "客服凭证", ready: false },
+        ];
+    const enabledDimensions: DimensionCode[] = isLink
+      ? ["T", "R", "U", "S"]
+      : (["T", "R", "U", "S"] as DimensionCode[]).filter((code) =>
+          code === "T" ? Boolean(manualAccountHistory.trim()) : code === "R" ? Boolean(manualFile) : code === "U" ? commentCount > 0 : textLength > 0,
+        );
+    const dimensionLabels: Record<DimensionCode, string> = { T: "账号可信度", R: "图像原生性", U: "评论自然度", S: "文案真实性" };
+    const missingReasons: Record<DimensionCode, string> = { T: accountHistoryPartial ? "账号历史不足 3 篇，本次不评估账号" : "未提供账号信息，不参与计分", R: "未提供图片，不参与计分", U: "未提供评论，不参与计分", S: "未提供文案，不参与计分" };
+    return (
+      <div className="verification-recognition-panel">
+        <header><small>MATERIAL RECOGNITION</small><h3>识别结果</h3><p>{isLink ? "请确认 Agent 即将使用的材料与核验范围。链接内容会在开始核验后抓取，以下为预计获取的材料。" : "请确认 Agent 即将使用的材料与核验范围。"}</p></header>
+        <div className="recognition-layout">
+          <section>
+            <span>材料清单</span>
+            {materials.map((material) => (
+              <div className={material.ready ? (material.expected ? "ready expected" : "ready") : "missing"} key={material.key}>
+                <i>{material.ready ? (material.expected ? "…" : "✓") : "✕"}</i>
+                <strong>{material.label}</strong>
+                {material.thumb ? <img alt="" className="recognition-thumb" src={material.thumb} /> : material.detail ? <small>{material.detail}</small> : <small />}
+                {!material.ready && material.canAdd ? <button onClick={() => backToInput(true)} type="button">补充</button> : <span />}
+              </div>
+            ))}
+          </section>
+          <section>
+            <span>本次启用维度</span>
+            {allDimensions.map((code) => {
+              const enabled = enabledDimensions.includes(code);
+              return (
+                <div className={enabled ? "enabled" : "disabled"} key={code}>
+                  <span className={`report-dimension-badge badge-${code.toLowerCase()}`}>{code}</span>
+                  <div><strong>{dimensionLabels[code]}</strong><small>{enabled ? (isLink && code !== "T" ? "预计核验" : "将核验") : missingReasons[code]}</small></div>
+                </div>
+              );
+            })}
+          </section>
+        </div>
+        <p className="recognition-scope-note"><Sparkle size={14} /> Agent 只会核验你提供的材料，缺失的部分不会被推测或补全。</p>
+        <footer>
+          <button onClick={() => backToInput(true)} type="button">补充材料</button>
+          <button onClick={confirmAndStart} type="button">确认并开始 <Arrow size={16} /></button>
+        </footer>
+      </div>
+    );
+  }
+
+  return (
+    <div className={`composer new-analysis-composer mode-${mode}`}>
+      {mode !== "creator" && (
+        <div className="analysis-mode-switch" role="group" aria-label="核验方式">
+          <button
+            aria-pressed={mode === "link"}
+            className={mode === "link" ? "active" : ""}
+            onClick={() => { setVerifyMode("link"); setError(""); }}
+            type="button"
+          >
+            链接核验
+          </button>
+          <button
+            aria-pressed={mode === "manual"}
+            className={mode === "manual" ? "active" : ""}
+            onClick={() => { setVerifyMode("manual"); setError(""); }}
+            type="button"
+          >
+            文案 / 图片核验
+          </button>
+        </div>
+      )}
 
       {mode === "link" ? (
         <>
           <div className="new-analysis-link-fields">
             <label className="new-analysis-field">
-              <span><b>01</b> 笔记链接 <em>必填</em></span>
+              <span>笔记链接</span>
               <input
                 aria-label="笔记链接"
+                ref={noteInputRef}
                 onChange={(event) => { setNoteLink(event.target.value); setError(""); }}
                 onKeyDown={(event) => { if (event.key === "Enter") submit(); }}
-                placeholder="粘贴小红书笔记链接或分享文案"
+                placeholder="粘贴公开可访问的笔记链接"
                 value={noteLink}
               />
             </label>
             <label className="new-analysis-field">
-              <span><b>02</b> 账号主页链接 <em>必填</em></span>
+              <span>作者主页链接 <small>可选，留空自动获取</small></span>
               <input
-                aria-label="账号主页链接"
+                aria-label="作者主页链接"
                 onChange={(event) => { onAccountUrl(event.target.value); setError(""); }}
                 onKeyDown={(event) => { if (event.key === "Enter") submit(); }}
-                placeholder="粘贴作者主页链接"
+                placeholder="留空则从笔记自动获取，用于账号可信度"
                 ref={accountInputRef}
                 value={accountUrl}
               />
             </label>
-          </div>
-          <div className="new-analysis-method">
-            <span>主页获取：打开笔记 → 点击作者头像 → 主页右上角「分享」→「复制链接」</span>
-            <div>
-              {noteUrl && (
-                <button onClick={() => window.open(noteUrl, "_blank", "noopener,noreferrer")} type="button">
-                  打开笔记
-                  <Icon size={12}><path d="M7 17 17 7M9 7h8v8" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.6" /></Icon>
-                </button>
-              )}
-              <button onClick={() => void pasteAccountUrl()} type="button">粘贴账号链接</button>
-            </div>
           </div>
         </>
       ) : mode === "manual" ? (
         <>
           <div className="new-analysis-manual">
             <label className="new-analysis-field">
-              <span><b>01</b> 文案 <em>可选</em></span>
+              <span>文案 <small>可选</small></span>
               <textarea
                 aria-label="待核验文案"
                 onChange={(event) => { setManualText(event.target.value); setError(""); }}
@@ -4896,7 +5313,7 @@ function NewAnalysisForm({
               {manualFile ? (
                 <span className="new-analysis-file">
                   {preview && <img alt="" src={preview} />}
-                  <span><strong>{manualFile.name}</strong><small>图片将进入 R 维图片真实性分析</small></span>
+                  <span><strong>{manualFile.name}</strong><small>图片将进入 R 维图像原生性分析</small></span>
                   <button aria-label="移除图片" onClick={() => selectFile(null)} type="button">×</button>
                 </span>
               ) : (
@@ -4929,17 +5346,63 @@ function NewAnalysisForm({
                     rows={4}
                     value={manualComments}
                   />
+                  <div className="new-analysis-upload comment-shot-upload">
+                    <input
+                      accept="image/jpeg,image/png,image/webp,image/gif,image/heic"
+                      aria-label="添加评论区截图"
+                      hidden
+                      multiple
+                      onChange={(event) => { addCommentShots(Array.from(event.target.files ?? [])); event.target.value = ""; }}
+                      ref={commentShotInputRef}
+                      type="file"
+                    />
+                    <button className="new-analysis-upload-button" onClick={() => commentShotInputRef.current?.click()} type="button">
+                      <Icon size={16}><path d="M12 4v16M4 12h16" stroke="currentColor" strokeLinecap="round" strokeWidth="1.6" /></Icon>
+                      添加评论区截图
+                      <small>可上传评论区截图（可选）</small>
+                    </button>
+                    {commentShots.length > 0 && (
+                      <div className="creator-preview-grid comment-shot-grid">
+                        {commentShots.map((shot) => (
+                          <figure key={shot.id}>
+                            <img alt={shot.name} src={shot.url} />
+                            <button aria-label={`删除${shot.name}`} onClick={() => removeCommentShot(shot.id)} type="button">×</button>
+                          </figure>
+                        ))}
+                      </div>
+                    )}
+                    {commentShots.length > 0 && <small className="comment-shot-note">截图暂不参与评分，评论自然度只根据上方文字评论判断。</small>}
+                  </div>
                 </label>
-                <label className="new-analysis-field">
-                  <span><b>T</b> 账号历史 <em>JSON · ≥3 篇才评分</em></span>
-                  <textarea
-                    aria-label="补充账号历史"
-                    onChange={(event) => setManualAccountHistory(event.target.value)}
-                    placeholder={'{"handle":"账号名","posts":[{"text":"换季护肤记录","published_at":"2026-09-01T09:00:00Z"}]}'}
-                    rows={4}
-                    value={manualAccountHistory}
+                <div className="new-analysis-field account-history-form">
+                  <span><b>T</b> 账号历史 <em>至少 3 篇才评估</em></span>
+                  <input
+                    aria-label="账号名"
+                    onChange={(event) => setAccountHandle(event.target.value)}
+                    placeholder="例如：护肤小账本"
+                    value={accountHandle}
                   />
-                </label>
+                  <textarea
+                    aria-label="近期笔记"
+                    onChange={(event) => {
+                      const value = event.target.value;
+                      // Old JSON pasted in: turn it back into the form when it parses, else keep it as typed.
+                      const legacy = /^\s*[[{]/.test(value) ? parseAccountHistoryJson(value) : null;
+                      if (legacy) {
+                        if (legacy.handle && !accountHandle) setAccountHandle(legacy.handle);
+                        setAccountPostsText(legacy.lines);
+                        return;
+                      }
+                      setAccountPostsText(value);
+                    }}
+                    placeholder={"2026-09-01 | 换季护肤记录：最近皮肤有点干\n2026-09-05 | 空瓶记录：这瓶面霜用完了"}
+                    rows={4}
+                    value={accountPostsText}
+                  />
+                  <small className={accountHistoryPartial ? "account-history-hint warn" : "account-history-hint"}>
+                    {accountHistoryPartial ? "账号历史不足 3 篇，本次不评估账号" : "每行一篇，可选日期，用 | 分隔；至少 3 篇才会评估账号可信度"}
+                  </small>
+                </div>
               </div>
             )}
             <div className="new-analysis-dimension-preview" aria-label="预计启用维度">
@@ -5019,11 +5482,14 @@ function NewAnalysisForm({
       <div className="new-analysis-actions">
         <span>
           {mode === "link"
-            ? "两个链接都完成后才能开始核验"
+            ? "填写笔记链接即可，作者主页留空会自动获取"
             : mode === "creator"
               ? "草稿文案与配图至少提供一项"
               : "文案与图片至少提供一项"}
         </span>
+        {mode !== "creator" && (
+          <button className="new-analysis-example" onClick={loadExample} type="button">载入示例</button>
+        )}
         <button
           className="new-analysis-submit"
           disabled={mode === "link" ? !linkReady : mode === "creator" ? !creatorReady : !manualReady}
@@ -5050,6 +5516,8 @@ function Workspace({
   onSubmitCreator,
   onSubmitLink,
   onSubmitManual,
+  manualPreset = "",
+  notice = "",
   preset = "",
 }: {
   accountUrl: string;
@@ -5061,10 +5529,22 @@ function Workspace({
   onPickFile?: (file: File | null) => void;
   onHome: () => void;
   onSubmitCreator: (input: CreatorReportInput) => void;
-  onSubmitLink: (noteUrl: string, accountUrl: string) => void;
+  onSubmitLink: (noteUrl: string, accountUrl: string, rawInput?: string) => void;
   onSubmitManual: (input: { text: string; image: File | null; comments: string; accountHistory: string }) => void;
+  manualPreset?: string;
+  notice?: string;
   preset?: string;
 }) {
+  const [workspaceMode, setWorkspaceMode] = useState<"verify" | "creator">(initialMode === "creator" ? "creator" : "verify");
+
+  useEffect(() => {
+    setWorkspaceMode(initialMode === "creator" ? "creator" : "verify");
+  }, [initialMode]);
+
+  useEffect(() => {
+    if (creatorPreset) setWorkspaceMode("creator");
+  }, [creatorPreset]);
+
   return (
     <section className="workspace">
       <div className="workspace-orb orb-left" />
@@ -5076,6 +5556,10 @@ function Workspace({
               <path d="M19 12H5m6-6-6 6 6 6" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.6" />
             </Icon>
           </button>
+        </div>
+        <div aria-label="核验模式" className="workspace-mode-switch">
+          <button className={workspaceMode === "verify" ? "active" : ""} onClick={() => setWorkspaceMode("verify")} type="button">核验别人的笔记</button>
+          <button className={workspaceMode === "creator" ? "active" : ""} onClick={() => setWorkspaceMode("creator")} type="button">我是创作者 · 发布前自检</button>
         </div>
       </header>
       <div className="workspace-center">
@@ -5092,7 +5576,10 @@ function Workspace({
           onSubmitCreator={onSubmitCreator}
           onSubmitLink={onSubmitLink}
           onSubmitManual={onSubmitManual}
+          manualPreset={manualPreset}
+          notice={notice}
           preset={preset}
+          workspaceMode={workspaceMode}
         />
         <div className="suggestions" />
       </div>
@@ -5106,10 +5593,16 @@ function AnalysisSteps({
   paused,
   liveAgents,
   liveMode,
+  overallScore,
+  creatorMode = false,
 }: {
   done: boolean;
   activeDimensions: DimensionCode[];
   paused: boolean;
+  /** Backend trust_score (already rounded) for a real run; the demo derives its own. */
+  overallScore?: number;
+  /** 创作者发布前自检: list every expert, with the ones lacking pre-publish data shown as 未启用. */
+  creatorMode?: boolean;
   /** Real per-dimension status from `/api/status`; omitted in demo mode. */
   liveAgents?: AgentStatusItem[];
   /** Suppress story-deck verdicts while a real backend run is in flight. */
@@ -5191,10 +5684,17 @@ function AnalysisSteps({
     });
   const scoredRoles = activeRoles.filter((item) => item.assessed !== false);
   const activeWeightTotal = activeRoles.reduce((total, item) => total + item.weight, 0);
-  const analysisScore = Math.round(
+  const analysisScore = overallScore ?? Math.round(
     scoredRoles.reduce((total, item) => total + item.score, 0) / (scoredRoles.length || 1),
   );
+  // A real run weighs only the dimensions the backend actually assessed.
+  const weightedRoles = liveMode && done ? activeRoles.filter((item) => item.assessed === true) : activeRoles;
+  const weightedTotal = weightedRoles.reduce((total, item) => total + item.weight, 0) || 1;
+  const assessedCodes = activeRoles.filter((item) => item.assessed === true).map((item) => item.code);
   const dimensionWord = ["", "单", "双", "三", "四"][activeRoles.length];
+  const disabledRoles = creatorMode ? roles.filter((item) => !activeDimensions.includes(item.code as DimensionCode)) : [];
+  const disabledReason = (code: string) =>
+    code === "T" || code === "U" ? "发布前暂无账号互动与评论数据，未启用" : code === "R" ? "未提供待发布配图，未启用" : "未提供文案，未启用";
 
   useEffect(() => {
     if (done || paused) return;
@@ -5317,6 +5817,25 @@ function AnalysisSteps({
             )}
           </div>
         ))}
+        {disabledRoles.map((item) => (
+          <div className="council-role-wrap council-role-disabled" key={item.code}>
+            <div aria-disabled="true" className={`council-role role-${item.code.toLowerCase()}`}>
+              <span className="role-persona">
+                <span className="role-avatar">
+                  <img alt={`${item.role}角色`} src={roleAvatarByCode[item.code as DimensionCode]} />
+                  <i>{item.code}</i>
+                </span>
+                <span>
+                  <strong>{item.role}</strong>
+                  <small>{item.dimension}</small>
+                  <p>{disabledReason(item.code)}</p>
+                </span>
+              </span>
+              <span className="role-weight">—</span>
+              <span className="role-judgement"><strong>—</strong><small>未启用</small></span>
+            </div>
+          </div>
+        ))}
       </div>
 
       {!liveMode && reasoningStage >= 2 && reasoningStage < 4 && activeDebateMessages.length > 1 && (
@@ -5358,17 +5877,21 @@ function AnalysisSteps({
 
       {reasoningStage >= 4 && (!liveMode || done) && (
         <div className="debate-consensus">
-          <span><Sparkle size={13} /> {activeRoles.length > 1 ? `${activeRoles.length} 位专家达成共识` : `${activeRoles[0].role}完成独立审查`}</span>
-          <p>{activeRoles.length > 1 ? "已结合当前可用模态完成交叉验证，并生成对应维度的可信度报告。" : "当前输入仅支持单维度判断，报告会明确标注证据范围。"}</p>
+          <span><Sparkle size={13} /> {creatorMode && disabledRoles.length ? `${activeRoles.length} 位专家完成，${disabledRoles.length} 位未启用` : activeRoles.length > 1 ? `${activeRoles.length} 位专家达成共识` : `${activeRoles[0].role}完成独立审查`}</span>
+          <p>
+            {liveMode && done
+              ? `本次结论仅基于已评估的维度（${assessedCodes.join(" / ") || "无"}）；未评估的维度不计入加权。`
+              : activeRoles.length > 1 ? "已结合当前可用模态完成交叉验证，并生成对应维度的可信度报告。" : "当前输入仅支持单维度判断，报告会明确标注证据范围。"}
+          </p>
         </div>
       )}
 
       <div className="council-result">
         <div>
-          {activeRoles.map((item, index) => (
+          {weightedRoles.map((item, index) => (
             <span key={item.code}>
               {index > 0 && (item.code === "R" ? <span className="fg-inline-italic">+</span> : <i>+</i>)}
-              <span>{item.code} {item.code === "R" || item.code === "U" ? 25 : Math.round((item.weight / activeWeightTotal) * 100)}%</span>
+              <span>{item.code} {liveMode && done ? Math.round((item.weight / weightedTotal) * 100) : item.code === "R" || item.code === "U" ? 25 : Math.round((item.weight / activeWeightTotal) * 100)}%</span>
             </span>
           ))}
         </div>
@@ -5541,27 +6064,52 @@ function ArgueReviewFlow({
   onArchive,
   onViewReport,
   option,
+  recordOnly = false,
+  baseScore,
+  scopeCodes,
+  creatorMode = false,
 }: {
   evidenceName: string;
   explanation: string;
   onArchive: (score: number) => void;
   onViewReport: (score: number) => void;
   option: (typeof appealOptions)[number];
+  /**
+   * Real (link) run: the appeal is only recorded — nothing is recomputed, so the score
+   * stays at the backend's trust_score and the copy must not claim a re-analysis.
+   */
+  recordOnly?: boolean;
+  baseScore?: number;
+  /** Dimensions the run actually assessed (record-only mode shows just these experts). */
+  scopeCodes?: DimensionCode[];
+  /** 创作者发布前自检: the appeal is about a self-check score. */
+  creatorMode?: boolean;
 }) {
   const [stage, setStage] = useState(0);
   const [archived, setArchived] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
-  const accepted = option.code === "R" || option.code === "S";
-  const oldScore = 84;
-  const newScore = option.code === "R" ? 93 : option.code === "S" ? 90 : oldScore;
-  const decisionCopy = option.code === "R"
+  const accepted = !recordOnly && (option.code === "R" || option.code === "S");
+  const oldScore = recordOnly && baseScore != null ? baseScore : 84;
+  const newScore = recordOnly ? oldScore : option.code === "R" ? 93 : option.code === "S" ? 90 : oldScore;
+  const castCodes: DimensionCode[] = recordOnly && scopeCodes?.length ? scopeCodes : ["T", "R", "U", "S"];
+  const decisionCopy = recordOnly
+    ? creatorMode
+      ? "已记录你的申诉与补充材料，自检分数维持原样，建议结合证据人工复核。"
+      : "已记录你的申诉与补充材料，综合分维持原样，建议结合证据人工复核。"
+    : option.code === "R"
     ? "感谢纠错，经二次复核，该区域确系环境强反光与底妆高光叠加，并非 AI 生成式修饰。我们已降低原异常信号权重，并对视觉取证结论作出修正。"
     : option.code === "S"
       ? "感谢补充。结合完整上下文后，原文属于个人体验描述而非确定性功效承诺，文案风险等级已下调。"
       : option.code === "U"
         ? "您的申诉部分成立：部分短评可能来自真实用户的品牌共识，但评论区仍存在明显的同质化传播痕迹，因此综合信任分维持原样，建议重点关注评论风险。"
         : "您的申诉部分成立：账号的高关注数不足以单独证明互关增长，但历史内容中的产品推荐密度依然较高，因此综合信任分维持原样，并优化账号风险提示。";
-  const thinkingLabels = [
+  const thinkingLabels = recordOnly ? [
+    `已接收针对${option.role} ${option.code} 的申诉材料`,
+    "已记录申诉理由，正在整理复核材料",
+    `正在汇总 ${castCodes.join(" / ")} 的原始证据，供人工复核参考`,
+    "正在核对申诉理由与原始证据的对应关系",
+    "申诉记录已生成，原始结论保持不变",
+  ] : [
     `正在仅调用 ${option.role} ${option.code} 接收申诉材料`,
     `${option.role} ${option.code} 正在独立重检争议证据`,
     "单维复核完成，T / R / U / S 圆桌会议已启动",
@@ -5583,16 +6131,20 @@ function ArgueReviewFlow({
     <div className="argue-consultation">
       <div className="argue-consultation-head">
         <div>
-          <span>ARGUE COUNCIL · 重新会诊</span>
-          <strong>{stage < 2 ? `${option.role}正在单独复核“${option.label}”` : stage < 4 ? "四位专家正在进行圆桌会议" : "重新评估报告已生成"}</strong>
+          <span>{recordOnly ? "ARGUE RECORD · 申诉记录" : "ARGUE COUNCIL · 重新会诊"}</span>
+          <strong>
+            {recordOnly
+              ? stage < 4 ? `正在记录针对“${option.label}”的申诉` : "申诉记录已生成"
+              : stage < 2 ? `${option.role}正在单独复核“${option.label}”` : stage < 4 ? "四位专家正在进行圆桌会议" : "重新评估报告已生成"}
+          </strong>
           {explanation && <small>用户补充：“{explanation}”</small>}
           {evidenceName && <small>新增证据：{evidenceName}</small>}
         </div>
-        <span className="argue-live"><i /> {stage < 4 ? "会诊中" : "已完成"}</span>
+        <span className="argue-live"><i /> {stage < 4 ? (recordOnly ? "整理中" : "会诊中") : "已完成"}</span>
       </div>
 
       <div className="argue-council-cast">
-        {(["T", "R", "U", "S"] as DimensionCode[]).map((code) => (
+        {castCodes.map((code) => (
           <span className={`${code === option.code ? "lead" : ""} ${code === option.code || stage >= 2 ? "active" : ""}`} key={code}>
             <img alt={`${code} 专家`} src={roleAvatarByCode[code]} />
             <i>{code}</i>
@@ -5600,12 +6152,12 @@ function ArgueReviewFlow({
         ))}
         <div>
           <span>{thinkingLabels[stage]}</span>
-          <small>{Math.min(100, 18 + stage * 22)}% · 正在重新计算证据权重</small>
+          <small>{Math.min(100, 18 + stage * 22)}% · {recordOnly ? "正在整理复核材料" : "正在重新计算证据权重"}</small>
         </div>
       </div>
 
       <div className="argue-thinking-flow">
-        {["专属专家接单", "单维证据复核", "四专家圆桌会议", "生成重评报告"].map((label, index) => (
+        {(recordOnly ? ["接收申诉材料", "整理复核材料", "汇总原始证据", "生成申诉记录"] : ["专属专家接单", "单维证据复核", "四专家圆桌会议", "生成重评报告"]).map((label, index) => (
           <span className={stage > index ? "complete" : stage === index ? "active" : ""} key={label}>
             <i>{stage > index ? "✓" : index + 1}</i>{label}
           </span>
@@ -5618,14 +6170,21 @@ function ArgueReviewFlow({
             <img alt={`${option.role} ${option.code}`} src={roleAvatarByCode[option.code]} />
             <i>{option.code}</i>
           </span>
-          <div><small>{option.role} · 单专家二次取证</small><p>{option.reply}</p></div>
+          <div>
+            <small>{option.role} · {recordOnly ? "申诉材料已记录" : "单专家二次取证"}</small>
+            <p>{recordOnly ? `收到您的申诉，已记录申诉理由${evidenceName ? "与补充证据" : ""}，正在整理复核材料。本次不会重新运行模型，原始结论与分数保持不变。` : option.reply}</p>
+          </div>
         </div>
       )}
 
       {stage >= 2 && stage < 4 && (
         <div className="argue-roundtable-note">
           <span><Sparkle size={13} /> ROUND TABLE</span>
-          <p>专项复核结果已提交圆桌。T / R / U / S 正在从账号、图像、评论与文案四个维度重新评估其对综合信任分的影响。</p>
+          <p>
+            {recordOnly
+              ? `申诉材料已与 ${castCodes.join(" / ")} 的原始证据放在一起，供人工复核时对照；综合分不会因此自动变化。`
+              : "专项复核结果已提交圆桌。T / R / U / S 正在从账号、图像、评论与文案四个维度重新评估其对综合信任分的影响。"}
+          </p>
         </div>
       )}
 
@@ -5633,8 +6192,8 @@ function ArgueReviewFlow({
         <div className={`argue-final-decision ${accepted ? "accepted" : "partial"}`}>
           <header>
             <div>
-              <span>重新评估报告 · {accepted ? "申诉已采纳" : "申诉部分成立"}</span>
-              <strong>{accepted ? "AI 已修正原核验结论" : "保留原分数，风险提示已优化"}</strong>
+              <span>{recordOnly ? "申诉记录 · 待人工复核" : `重新评估报告 · ${accepted ? "申诉已采纳" : "申诉部分成立"}`}</span>
+              <strong>{recordOnly ? (creatorMode ? "自检分数维持原样，申诉已记录" : "综合分维持原样，申诉已记录") : accepted ? "AI 已修正原核验结论" : "保留原分数，风险提示已优化"}</strong>
             </div>
             <div className="argue-score-change">
               <span>{oldScore}</span><i>→</i><strong>{newScore}</strong><small>/100</small>
@@ -5642,7 +6201,7 @@ function ArgueReviewFlow({
           </header>
           <p>{decisionCopy}</p>
           <div className="argue-decision-meta">
-            <span>复核编号 TL-A-{option.code}-0618</span>
+            <span>{recordOnly ? `申诉维度 ${option.code} · ${option.label}` : `复核编号 TL-A-${option.code}-0618`}</span>
             <span>原始报告与申诉过程已保留</span>
           </div>
           <div className="argue-final-actions">
@@ -5658,7 +6217,7 @@ function ArgueReviewFlow({
               {!archived && <Arrow size={16} />}
             </button>
             <button className="view-revised-report" onClick={() => onViewReport(newScore)}>
-              查看新报告 <Arrow size={16} />
+              {recordOnly ? "查看核验报告" : "查看新报告"} <Arrow size={16} />
             </button>
           </div>
         </div>
@@ -5666,6 +6225,31 @@ function ArgueReviewFlow({
       <div ref={endRef} />
     </div>
   );
+}
+
+/**
+ * One readable sentence for a failed run. The backend joins a prefix and a reason
+ * ("无法识别的链接：无法识别的链接，…"), so never show it verbatim.
+ */
+/** Backend `assessed_dimensions` uses agent keys (account/image/comment/text); map to T/R/U/S. */
+function assessedDimensionCodes(keys: readonly string[] | undefined): DimensionCode[] {
+  const byKey: Record<string, DimensionCode> = { account: "T", image: "R", comment: "U", comments: "U", text: "S", T: "T", R: "R", U: "U", S: "S" };
+  return allDimensions.filter((code) => (keys ?? []).some((key) => byKey[key] === code));
+}
+
+function friendlyLiveError(raw: string): { message: string; fallback: boolean } {
+  if (/抓取失败|无法抓取|抓取超时|抓取无法启动|没有返回结果|未取到正文|安全限制|登录/.test(raw)) {
+    return { message: "暂时无法获取该链接内容，可以复制笔记文案和图片，使用「文案 / 图片核验」。", fallback: true };
+  }
+  if (/请求失败 \(5\d\d\)|无法连接后端|network_error/.test(raw)) {
+    return { message: "暂时无法连接核验服务，请稍后点击「重试」。", fallback: false };
+  }
+  if (/无法识别的账号主页链接/.test(raw)) return { message: "作者主页链接无法识别，请粘贴 xiaohongshu.com/user/profile/… 或 xhslink 开头的主页链接，或留空由系统自动获取。", fallback: false };
+  if (/无法识别的链接|链接为空/.test(raw)) return { message: "链接无法识别：请粘贴小红书笔记链接（xiaohongshu.com 或 xhslink.com 开头），或直接粘贴整段分享内容。", fallback: true };
+  if (/账号主页链接需要与笔记链接一起使用/.test(raw)) return { message: "作者主页链接需要与笔记链接一起使用，请填写笔记链接。", fallback: false };
+  const parts = raw.split(/[：:]/);
+  const deduped = parts.length > 1 && parts[1].startsWith(parts[0]) ? parts.slice(1).join("：") : raw;
+  return { message: `核验未完成：${deduped}`, fallback: false };
 }
 
 function Chat({
@@ -5679,7 +6263,12 @@ function Chat({
   onHome,
   onResult,
   onTechnicalViewChange,
+  onUseManual,
   onViewRevisedReport,
+  appealRecordOnly = false,
+  creatorMode = false,
+  appealPreset = null,
+  onAppealSubmitted,
   technicalView,
 }: {
   prompt: string;
@@ -5693,10 +6282,24 @@ function Chat({
   onHome: () => void;
   onResult: () => void;
   onTechnicalViewChange: (enabled: boolean) => void;
+  /** Switch to 文案 / 图片核验, carrying whatever text is worth keeping. */
+  onUseManual?: (text: string) => void;
   onViewRevisedReport: (score: number) => void;
+  /** Real backend run (link or 文案 / 图片): appeals are recorded only, never "recomputed". */
+  appealRecordOnly?: boolean;
+  /** 创作者发布前自检: same page, creator copy, T/U shown as 未启用, no appeal. */
+  creatorMode?: boolean;
+  /** Open the appeal right away with this dimension / explanation pre-filled (「我有异议」). */
+  appealPreset?: { code: DimensionCode; text: string; issueId?: string; nonce: number } | null;
+  onAppealSubmitted?: (appeal: { code: DimensionCode; issueId?: string }) => void;
   technicalView: boolean;
 }) {
   const [done, setDone] = useState(false);
+  // Creator self-check plays the expert animation for at least this long, even when
+  // checkCreator answers sooner; a slower answer simply keeps the 「等待结果」 state.
+  const CREATOR_MIN_ANIMATION_MS = 4500;
+  const chatMountedAtRef = useRef(Date.now());
+  const readyAtChatMountRef = useRef(Boolean(live?.phase === "done" && live.report));
   const [paused, setPaused] = useState(false);
   const [quickPrompt, setQuickPrompt] = useState("");
   const [followups, setFollowups] = useState<Array<{ id: number; question: string; answered: boolean; detail?: string; evidenceName?: string }>>([]);
@@ -5712,6 +6315,9 @@ function Chat({
   const followupStartedAtRef = useRef(0);
   const latestFollowup = followups[followups.length - 1];
   const hasAppealed = followups.some((followup) => followup.question === appealPrompt);
+  const recordOnlyAppeal = Boolean(appealRecordOnly && live?.report);
+  const assessedCodes = assessedDimensionCodes(live?.report?.assessed_dimensions);
+  const visibleAppealOptions = recordOnlyAppeal ? appealOptions.filter((option) => assessedCodes.includes(option.code)) : appealOptions;
   const selectedAppeal = appealOptions.find((option) =>
     followups.some((followup) => followup.question === option.label),
   );
@@ -5773,28 +6379,20 @@ function Chat({
     };
   }, [liveActive, paused, done]);
 
-  // `onResult` is an inline closure from App, so it changes identity every App
-  // render (which the polling triggers). Keep it in a ref and depend only on the
-  // boolean, otherwise this effect would re-arm its timer on every poll and the
-  // jump to the report would never fire.
-  const onResultRef = useRef(onResult);
-  useEffect(() => {
-    onResultRef.current = onResult;
-  });
-
-  // Snapshot at mount: if the run had ALREADY finished before this Chat mounted
-  // (i.e. the user navigated back from the report), don't jump again — otherwise
-  // pressing "返回" from the report would bounce straight back to it.
-  const readyAtMountRef = useRef(liveReady);
-
   useEffect(() => {
     // The real pipeline finished: end the scripted animation immediately and
     // jump to the report instead of waiting out the remaining demo time.
     if (!liveReady) return;
+    // Stay on this page: the score card below offers 「查看核验结果」, and only that
+    // click opens the report.
     analysisRemainingRef.current = 0;
-    setDone(true);
-    if (readyAtMountRef.current) return;
-    const timer = window.setTimeout(() => onResultRef.current(), 900);
+    // Coming back from the report (result already there at mount) shows the score at once.
+    const wait = creatorMode && !readyAtChatMountRef.current ? Math.max(0, CREATOR_MIN_ANIMATION_MS - (Date.now() - chatMountedAtRef.current)) : 0;
+    if (!wait) {
+      setDone(true);
+      return;
+    }
+    const timer = window.setTimeout(() => setDone(true), wait);
     return () => window.clearTimeout(timer);
   }, [liveReady]);
 
@@ -5832,10 +6430,21 @@ function Chat({
     setFollowups((current) => [...current, { id, question: cleanQuestion, answered: false, detail, evidenceName }]);
   };
 
+  const appliedPresetRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (!appealPreset || !done || appliedPresetRef.current === appealPreset.nonce) return;
+    appliedPresetRef.current = appealPreset.nonce;
+    if (!hasAppealed) sendFollowup(appealPrompt);
+    setAppealDraftCode(appealPreset.code);
+    setAppealExplanation(appealPreset.text);
+    setAppealEvidenceName("");
+  }, [appealPreset?.nonce, done]);
+
   const submitAppeal = () => {
     const option = appealOptions.find((item) => item.code === appealDraftCode);
     if (!option) return;
     sendFollowup(option.label, appealExplanation.trim(), appealEvidenceName);
+    onAppealSubmitted?.({ code: option.code, issueId: appealPreset && appealPreset.code === option.code ? appealPreset.issueId : undefined });
     setAppealDraftCode(null);
     setAppealExplanation("");
     setAppealEvidenceName("");
@@ -5851,8 +6460,8 @@ function Chat({
             </Icon>
           </button>
           <div className="chat-header-title">
-            <strong>{activeDimensions.length === 1 ? "文案安全性鉴别" : `${activeDimensions.length} 维内容鉴别`}</strong>
-            <small>{liveFailed ? "实时核验失败" : paused && isGenerating ? "生成已暂停" : !done ? liveActive ? "实时核验进行中…" : `正在调用 ${activeDimensions.map((code) => expertNames[code]).join("、")}…` : latestFollowup && !latestFollowup.answered ? "正在生成追问回答…" : "分析完成"}</small>
+            <strong>{creatorMode ? "创作者发布前自检" : activeDimensions.length === 1 ? "文案安全性鉴别" : `${activeDimensions.length} 维内容鉴别`}</strong>
+            <small>{liveFailed ? "核验失败" : paused && isGenerating ? "生成已暂停" : !done ? liveActive ? "核验进行中…" : `正在调用 ${activeDimensions.map((code) => expertNames[code]).join("、")}…` : latestFollowup && !latestFollowup.answered ? "正在生成追问回答…" : "分析完成"}</small>
           </div>
         </div>
         <div className="chat-header-actions">
@@ -5895,11 +6504,25 @@ function Chat({
           <span className="agent-avatar"><Sparkle size={17} /></span>
           <div className="agent-content">
             <div className="agent-name">TruLens <span>多模态鉴别 Agent</span></div>
-            <p>收到。根据当前输入，我将调用 {activeDimensions.map((code) => expertNames[code]).join("和")}，只分析有足够证据支持的维度。</p>
-            {live?.error && (
+            <p>
+              {creatorMode
+                ? `收到。发布前自检仅调用 ${activeDimensions.map((code) => expertNames[code]).join("和")}；账号和评论数据发布前还没有，会明确标记为未启用。`
+                : <>收到。根据当前输入，我将调用 {activeDimensions.map((code) => expertNames[code]).join("和")}，只分析有足够证据支持的维度。</>}
+            </p>
+            {creatorMode && live?.error && (
               <p className="live-error">
-                实时核验未完成：{live.error}
-                {live.taskId && (
+                {friendlyLiveError(live.error).message}
+                {friendlyLiveError(live.error).fallback && onUseManual && (
+                  <button className="live-resume-button" onClick={() => onUseManual(stripLinksFromShareText(prompt))} type="button">
+                    改用文案 / 图片核验
+                  </button>
+                )}
+                {creatorMode && (
+                  <button className="live-resume-button" onClick={() => void live.resume()} type="button">
+                    重试
+                  </button>
+                )}
+                {!creatorMode && live.taskId && (
                   <>
                     <br />
                     任务编号：{live.taskId}。如果任务已在后台完成，请刷新后从「最近任务」重新打开。
@@ -5915,24 +6538,30 @@ function Chat({
               </p>
             )}
             <AnalysisProcessProgress
-              creatorMode={false}
+              creatorMode={creatorMode}
               done={done}
               stage={processStage}
               technicalView={technicalView}
             />
-            <AnalysisSteps activeDimensions={activeDimensions} done={done} paused={paused} liveAgents={liveAgents} liveMode={liveActive} />
+            <AnalysisSteps activeDimensions={activeDimensions} done={done} paused={paused} liveAgents={liveAgents} liveMode={liveActive} overallScore={liveReport ? analysisScore : undefined} creatorMode={creatorMode} />
             {!done && !liveFailed ? (
-              <div className={`thinking ${paused ? "paused" : ""}`}><i /><i /><i /> {paused ? "分析已暂停，点击继续恢复推理" : activeDimensions.length > 1 ? `${activeDimensions.length} 位专家正在交换证据并校准权重` : `${expertNames[activeDimensions[0]]}正在独立核验证据`}</div>
+              <div className={`thinking ${paused ? "paused" : ""}`}><i /><i /><i /> {paused ? "分析已暂停，点击继续恢复推理" : creatorMode ? (liveReady ? "专家正在整理自检结论…" : "专家正在核验，等待自检结果返回…") : activeDimensions.length > 1 ? `${activeDimensions.length} 位专家正在交换证据并校准权重` : `${expertNames[activeDimensions[0]]}正在独立核验证据`}</div>
             ) : done && !liveFailed ? (
               <>
                 <div className="analysis-complete">
-                  <div className="mini-score" style={{ "--mini-score": analysisScore } as React.CSSProperties}>
-                    <span><strong>{analysisScore}</strong>/100</span>
+                  <div className="mini-score" style={{ "--mini-score": liveReport && !liveReport.assessed_dimensions.length ? 0 : analysisScore } as React.CSSProperties}>
+                    {liveReport && !liveReport.assessed_dimensions.length
+                      ? <span><strong>—</strong>暂不评分</span>
+                      : <span><strong>{analysisScore}</strong>/100</span>}
                     <small>综合可信度</small>
                   </div>
                   <div>
                     <strong>{analysisSummary}</strong>
-                    <p>本次结论仅基于当前输入可识别的 {activeDimensions.join(" / ")} 维度生成；未提供的模态不会被模型假设或补全。</p>
+                    <p>
+                      {liveReport
+                        ? `本次结论仅基于已评估的维度（${assessedDimensionCodes(liveReport.assessed_dimensions).join(" / ") || "无"}）生成；未评估的维度显示“暂不评分”，不计入加权，也不会被模型假设或补全。`
+                        : `本次结论仅基于当前输入可识别的 ${activeDimensions.join(" / ")} 维度生成；未提供的模态不会被模型假设或补全。`}
+                    </p>
                     <div className="evidence-tags">
                       {activeDimensions.map((code) => {
                         const item = liveAgentsByCode.get(code);
@@ -5945,10 +6574,16 @@ function Chat({
                       })}
                     </div>
                   </div>
-                  <button className="report-button" onClick={onResult}>
-                    查看完整信任报告 <Arrow size={17} />
-                  </button>
                 </div>
+                <motion.div
+                  animate={{ opacity: 1, y: 0 }}
+                  className="analysis-result-entry"
+                  initial={{ opacity: 0, y: 10 }}
+                  transition={{ delay: 0.18, duration: 0.42 }}
+                >
+                  <small>分析已完成，点击查看完整报告</small>
+                  <button onClick={onResult} type="button">{creatorMode ? "查看自检报告 →" : "查看核验结果 →"}</button>
+                </motion.div>
                 <button
                   className="appeal-button"
                   disabled={hasAppealed}
@@ -6006,9 +6641,14 @@ function Chat({
                         <small>原结论暂不变更</small>
                       </div>
                       <strong>收到。你不同意当前核验结果的哪一部分？</strong>
-                      <p>请选择一项具体异议，TruLens 会将原始证据和评分依据交给对应专家重新审查。</p>
+                      <p>
+                        {creatorMode
+                          ? "请选择一项具体异议，TruLens 会记录你的申诉理由与补充材料，供人工复核参考；自检分数不会因此自动变化。"
+                          : "请选择一项具体异议，TruLens 会将原始证据和评分依据交给对应专家重新审查。"}
+                      </p>
                       <div className="argue-options">
-                        {appealOptions.map((option) => (
+                        {recordOnlyAppeal && !visibleAppealOptions.length && <p className="argue-empty-note">本次没有已评估的维度，暂无可申诉的专家结论。</p>}
+                        {visibleAppealOptions.map((option) => (
                           <div
                             className={`argue-option-card ${appealDraftCode === option.code && !selectedAppeal ? "selected" : ""}`}
                             key={option.code}
@@ -6022,7 +6662,7 @@ function Chat({
                               }}
                             >
                               <span className={`report-dimension-badge badge-${option.code.toLowerCase()}`}>{option.code}</span>
-                              <span><strong>{option.label}</strong><small>{option.role}重新核验</small></span>
+                              <span><strong>{option.label}</strong><small>{recordOnlyAppeal ? `记录对${option.role}结论的申诉，供人工复核` : `${option.role}重新核验`}</small></span>
                               <i aria-hidden="true">{appealDraftCode === option.code ? "⌄" : "→"}</i>
                             </button>
                             {appealDraftCode === option.code && !selectedAppeal && (
@@ -6031,19 +6671,19 @@ function Chat({
                                 <textarea
                                   id={`appeal-${option.code}`}
                                   onChange={(event) => setAppealExplanation(event.target.value)}
-                                  placeholder="我觉得这里没问题，因为……"
+                                  placeholder={creatorMode ? "如果内容属实，补充原图、检测报告或使用凭证即可申诉。" : "我觉得这里没问题，因为……"}
                                   rows={3}
                                   value={appealExplanation}
                                 />
                                 <div className="argue-appeal-actions">
-                                  <label className="argue-evidence-upload" title="上传图片或其他证据">
+                                  <label className="argue-evidence-upload" title={creatorMode ? "可上传原图、检测报告、合作说明等" : "上传图片或其他证据"}>
                                     <input
                                       accept="image/*,.pdf,.doc,.docx,.txt"
                                       onChange={(event) => setAppealEvidenceName(event.target.files?.[0]?.name ?? "")}
                                       type="file"
                                     />
                                     <Icon size={15}><path d="M12 16V4m0 0L8 8m4-4 4 4M5 14v5h14v-5" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" /></Icon>
-                                    <span>{appealEvidenceName || "上传图片或其他证据"}</span>
+                                    <span>{appealEvidenceName || (creatorMode ? "可上传原图、检测报告、合作说明等" : "上传图片或其他证据")}</span>
                                   </label>
                                   <div>
                                     <button className="skip" onClick={submitAppeal}>跳过，不填写</button>
@@ -6063,6 +6703,10 @@ function Chat({
                       onArchive={onArchiveReport}
                       onViewReport={onViewRevisedReport}
                       option={appealSelection}
+                      baseScore={recordOnlyAppeal ? analysisScore : undefined}
+                      recordOnly={recordOnlyAppeal}
+                      creatorMode={creatorMode}
+                      scopeCodes={recordOnlyAppeal ? assessedCodes : undefined}
                     />
                   ) : isImageDetection ? (
                     <>
@@ -6150,7 +6794,7 @@ const dimensions = [
   { code: "T", title: "账号可信度", en: "Trustworthiness", score: 82, status: "可信", tone: "violet", text: "“眠云的护肤手账”明确标注为虚构演示账号，简介与历史笔记都围绕日常护肤、精华体验和成分记录展开；内容轨迹稳定，连续体验记录仍需结合原始素材核对。", evidence: ["粉丝 3.5 万", "获赞与收藏 24.6 万", "历史内容垂直"] },
   { code: "R", title: "图像原生性", en: "Reality", score: 88, status: "轻度修饰", tone: "blue", text: "左右脸对比中的人物结构、拍摄角度和环境光线基本一致；右侧皮肤微纹理明显减少，存在局部磨皮或生成式细化信号。", evidence: ["人物结构一致", "右脸纹理减少", "未见整图生成"] },
   { code: "U", title: "评论自然度", en: "User Voice", score: 74, status: "较自然", tone: "peach", text: "可见评论以保湿感、成分、敏感肌适配和使用周期等具体问题为主，作者也针对肤质差异与成分进行回复；暂未发现集中复制的模板话术。", evidence: ["问题表达具体", "作者回复有针对性", "评论地域与时间分散"] },
-  { code: "S", title: "文本真实性", en: "Safety", score: 91, status: "安全", tone: "green", text: "未使用绝对化功效承诺，色号、持妆与肤质描述均保留了个人体验边界。", evidence: ["无医疗功效宣称", "含个体差异说明", "合作标识清晰"] },
+  { code: "S", title: "文案真实性", en: "Safety", score: 91, status: "安全", tone: "green", text: "未使用绝对化功效承诺，色号、持妆与肤质描述均保留了个人体验边界。", evidence: ["无医疗功效宣称", "含个体差异说明", "合作标识清晰"] },
 ];
 
 const archivedTasks = {
@@ -6189,7 +6833,7 @@ const archivedTasks = {
       { code: "T", title: "账号可信度", en: "Trustworthiness", score: 68, status: "一般", tone: "violet", text: "账号持续运营 1.8 年，但近 30 天商业合作密度明显上升。", evidence: ["历史发布 174 篇", "商业内容占比 42%", "近期合作集中"] },
       { code: "R", title: "图像原生性", en: "Reality", score: 81, status: "较真实", tone: "blue", text: "产品包装与质地图片未发现明显生成痕迹，部分对比图曝光不一致。", evidence: ["主体边缘自然", "两组曝光差异", "无整图生成"] },
       { code: "U", title: "评论自然度", en: "User Voice", score: 42, status: "高风险", tone: "peach", text: "评论区存在集中发布与重复句式，真实体验反馈被营销话术稀释。", evidence: ["相似评论 31%", "27 个关联账号", "发布时间集中"] },
-      { code: "S", title: "文本真实性", en: "Safety", score: 47, status: "需核验", tone: "green", text: "多处功效对比缺乏统一条件，部分结论超出个人体验表达边界。", evidence: ["3 项无来源结论", "对比标准不统一", "合作标识存在"] },
+      { code: "S", title: "文案真实性", en: "Safety", score: 47, status: "需核验", tone: "green", text: "多处功效对比缺乏统一条件，部分结论超出个人体验表达边界。", evidence: ["3 项无来源结论", "对比标准不统一", "合作标识存在"] },
     ],
     decision: "暂缓将该合集作为主要决策依据。建议寻找采用统一测试周期、披露合作关系，并能提供原始观察记录的独立测评进行交叉验证。",
   },
@@ -6211,7 +6855,7 @@ const archivedTasks = {
       { code: "T", title: "账号可信度", en: "Trustworthiness", score: 55, status: "需留意", tone: "violet", text: "账号存在真实历史内容，但挑战发布前后集中出现同品牌合作。", evidence: ["运营 11 个月", "合作发布集中", "关联账号 8 个"] },
       { code: "R", title: "图像原生性", en: "Reality", score: 43, status: "条件异常", tone: "blue", text: "对比图未发现整图生成，但曝光和白平衡差异足以改变视觉结果。", evidence: ["曝光差异 +18%", "白平衡不一致", "拍摄角度变化"] },
       { code: "U", title: "评论自然度", en: "User Voice", score: 38, status: "低可信", tone: "peach", text: "大量评论重复挑战口号，缺少具体使用过程与差异化体验。", evidence: ["重复话术 36%", "短时集中发布", "体验细节不足"] },
-      { code: "S", title: "文本真实性", en: "Safety", score: 22, status: "高风险", tone: "green", text: "短周期确定性功效表达缺乏依据，并使用明显的结果导向措辞。", evidence: ["绝对化表达 4 处", "无证据来源", "缺少差异说明"] },
+      { code: "S", title: "文案真实性", en: "Safety", score: 22, status: "高风险", tone: "green", text: "短周期确定性功效表达缺乏依据，并使用明显的结果导向措辞。", evidence: ["绝对化表达 4 处", "无证据来源", "缺少差异说明"] },
     ],
     decision: "不建议根据该帖子作出购买决定。核心主张缺少可追溯证据，且三个模态的风险信号相互强化，应等待独立来源或更完整记录。",
   },
@@ -6385,8 +7029,8 @@ function ReportEvidenceModal({
   const modalTitle = {
     T: "账号可信度证据链",
     R: "图像原生性证据链",
-    U: "评论区自然度证据链",
-    S: "文本真实性证据链",
+    U: "评论自然度证据链",
+    S: "文案真实性证据链",
   }[code];
 
   return (
@@ -6410,7 +7054,7 @@ function ReportEvidenceModal({
           </div>
           <div className="evidence-modal-score">
             <span>维度评分</span>
-            <strong>{(dimension.score / 10).toFixed(1)}</strong>
+            <strong>{Math.round(dimension.score)}<small>/ 100</small></strong>
           </div>
           <button aria-label="关闭证据链" className="evidence-modal-close" onClick={onClose}>
             <Icon size={18}><path d="m6 6 12 12M18 6 6 18" stroke="currentColor" strokeLinecap="round" strokeWidth="1.5" /></Icon>
@@ -6555,9 +7199,9 @@ function ReportEvidenceModal({
 
 const evidenceDimensionOptions: Record<DimensionCode, { label: string; hint: string }> = {
   T: { label: "账号可信度", hint: "账号主页链接、简介或历史发布记录" },
-  R: { label: "图片原生性", hint: "原始图片、对比图或局部细节截图" },
-  U: { label: "评论区自然度", hint: "评论区截图、评论文本或发布时间信息" },
-  S: { label: "文本真实性", hint: "笔记正文、标题或功效描述" },
+  R: { label: "图像原生性", hint: "原始图片、对比图或局部细节截图" },
+  U: { label: "评论自然度", hint: "评论区截图、评论文本或发布时间信息" },
+  S: { label: "文案真实性", hint: "笔记正文、标题或功效描述" },
 };
 
 function EvidenceExpansionPrompt({
@@ -6838,7 +7482,7 @@ function UnifiedReportTemplate({
                   <span className={`report-dimension-badge badge-${code.toLowerCase()}`}>{code}</span>
                   <div>
                     <span>
-                      <strong>{title === "当前美妆种草内容" && code === "S" ? "文本真实性" : dimension?.title ?? { T: "账号可信度", R: "图片真实性", U: "评论区真实性", S: "文案真实性" }[code as DimensionCode]}</strong>
+                      <strong>{dimension?.title ?? { T: "账号可信度", R: "图像原生性", U: "评论自然度", S: "文案真实性" }[code as DimensionCode]}</strong>
                       <b>{dimension ? <>{dimension.score}<small>/100 · 权重 {scoreWeights[code]}%</small><i aria-hidden="true">查看证据 →</i></> : "数据不足"}</b>
                     </span>
                     <div><i style={{ width: dimension ? `${dimension.score}%` : "0%" }} /></div>
@@ -6918,7 +7562,9 @@ function ArchivedResult({
   onBack,
   onTechnicalViewChange,
   technicalView,
+  demoNotice = false,
 }: {
+  demoNotice?: boolean;
   task: Exclude<RecentTask, "makeup">;
   onBack: () => void;
   onTechnicalViewChange: (enabled: boolean) => void;
@@ -6939,6 +7585,7 @@ function ArchivedResult({
           </button>
         </div>
       </header>
+      {demoNotice && <p className="demo-report-notice">虚构示例，不涉及真实账号</p>}
       <UnifiedReportTemplate
         continueLabel="开始新的鉴别"
         decision={data.decision}
@@ -6966,6 +7613,13 @@ function Result({
   creatorInput,
   creatorLoading,
   creatorResult,
+  demoNotice = false,
+  recentNotice = null,
+  creatorProgress,
+  creatorAppeals,
+  onCreatorDispute,
+  onCreatorProgress,
+  onCreatorRecheck,
   onContinueOther,
   onReturnModify,
   onTechnicalViewChange,
@@ -6982,12 +7636,23 @@ function Result({
   creatorInput?: CreatorReportInput | null;
   creatorLoading?: boolean;
   creatorResult?: CreatorCheckRead | null;
+  /** Fixed example opened from the sidebar: label it as fictional. */
+  demoNotice?: boolean;
+  /** Background refresh of a sidebar record's report. */
+  recentNotice?: { state: "loading" | "error"; onRetry: () => void } | null;
+  creatorProgress?: CreatorSelfCheckProgress | null;
+  creatorAppeals?: Array<{ code: DimensionCode; issueId?: string }>;
+  onCreatorDispute?: (dispute: { code: DimensionCode; text: string; issueId?: string }) => void;
+  onCreatorProgress?: (progress: CreatorSelfCheckProgress) => void;
+  onCreatorRecheck?: (draft: string) => Promise<CreatorCheckRead>;
   onContinueOther?: () => void;
   onReturnModify?: (draft: string) => void;
   onTechnicalViewChange: (enabled: boolean) => void;
   technicalView: boolean;
 }) {
   const [shareOpen, setShareOpen] = useState(false);
+  // 导出 PDF stays locked until the self-check is complete (reported by the report itself).
+  const [creatorCompletion, setCreatorCompletion] = useState<{ complete: boolean; reasons: string[] }>({ complete: false, reasons: [] });
   const reportDimensions = dimensions.filter((item) => activeDimensions.includes(item.code as DimensionCode));
   const reportScore = scoreOverride ?? Math.round(reportDimensions.reduce((total, item) => total + item.score, 0) / reportDimensions.length);
   const dimensionName = ["", "单维", "双维", "三维", "四维"][reportDimensions.length];
@@ -7007,13 +7672,22 @@ function Result({
           </button>
           <div className="result-actions">
             <TechnicalViewToggle enabled={technicalView} onChange={onTechnicalViewChange} />
-            <button onClick={() => window.print()}>
-              <Icon size={17}><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 19h14" stroke="currentColor" strokeLinecap="round" strokeWidth="1.5" /></Icon>
-              导出 PDF
-            </button>
+            <span className="creator-locked-action" title={creatorCompletion.complete ? "" : "采用修改建议并再次检测通过后，可保存自检记录"}>
+              <button disabled={!creatorCompletion.complete} onClick={() => window.print()} type="button">
+                <Icon size={17}><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 19h14" stroke="currentColor" strokeLinecap="round" strokeWidth="1.5" /></Icon>
+                导出 PDF
+              </button>
+            </span>
           </div>
         </header>
         <CreatorSelfCheckReport
+          key={creatorResult?.task_id ?? "creator-report"}
+          onCompletionChange={setCreatorCompletion}
+          onProgressChange={onCreatorProgress}
+          onRecheck={onCreatorRecheck}
+          progress={creatorProgress}
+          appeals={creatorAppeals}
+          onDispute={onCreatorDispute}
           error={creatorError}
           input={creatorInput}
           loading={creatorLoading}
@@ -7048,6 +7722,14 @@ function Result({
           </div>
         </div>
       </header>
+      {demoNotice && <p className="demo-report-notice">虚构示例，不涉及真实账号</p>}
+      {recentNotice?.state === "loading" && !liveReport && <p className="recent-report-loading">正在打开报告…</p>}
+      {recentNotice?.state === "error" && (
+        <p className="live-error recent-report-error">
+          暂时无法获取最新报告，当前显示的是已保存的版本。
+          <button className="live-resume-button" onClick={recentNotice.onRetry} type="button">重试</button>
+        </p>
+      )}
       {liveReport ? (
         <LiveReportView
           continueLabel="开始新的核验"
@@ -7132,6 +7814,7 @@ function TeamPage({
               taskId: member.task_id,
               title: member.title,
               author: member.author,
+              createdAt: member.created_at,
               time: new Date(member.created_at).toLocaleDateString("zh-CN", {
                 month: "2-digit",
                 day: "2-digit",
@@ -7181,10 +7864,7 @@ function TeamPage({
 
 export default function App() {
   const [screen, setScreen] = useState<Screen>(() => {
-    // Deep links: /?live=true opens the real-backend verification screen directly,
-    // so the live slice can be demoed without walking the story deck first.
     const params = new URLSearchParams(window.location.search);
-    if (params.get("live") === "true") return "live";
     if (params.get("report") === "true") return "result";
     return "home";
   });
@@ -7194,9 +7874,23 @@ export default function App() {
   const [creatorInput, setCreatorInput] = useState<CreatorReportInput | null>(null);
   const [creatorSeed, setCreatorSeed] = useState("");
   const [creatorResult, setCreatorResult] = useState<CreatorCheckRead | null>(null);
+  // In-memory 发布前自检 progress (draft edits, adopt/ignore, 再次检测 result). Cleared per submission.
+  const [creatorProgress, setCreatorProgress] = useState<CreatorSelfCheckProgress | null>(null);
+  // 创作者自检 appeals (front-end record only) and a pending 「我有异议」 pre-fill.
+  const [creatorAppeals, setCreatorAppeals] = useState<Array<{ code: DimensionCode; issueId?: string }>>([]);
+  // Where 「返回」 goes after opening a report from the sidebar, and the fetch state of that report.
+  const [returnScreen, setReturnScreen] = useState<Screen>("workspace");
+  const [recentLoad, setRecentLoad] = useState<{ id: string; state: "loading" | "error" | "missing" } | null>(null);
+  const [creatorAppealPreset, setCreatorAppealPreset] = useState<{ code: DimensionCode; text: string; issueId?: string; nonce: number } | null>(null);
   const [creatorLoading, setCreatorLoading] = useState(false);
   const [creatorError, setCreatorError] = useState<string | null>(null);
   const [workspaceInitialMode, setWorkspaceInitialMode] = useState<"link" | "manual" | "creator">("link");
+  const [manualSeed, setManualSeed] = useState("");
+  // The note field as typed (share text included), so a failed crawl can carry the copy over.
+  const [lastLinkInput, setLastLinkInput] = useState("");
+  // What the last 核验别人的笔记 run was given, so a failed run returns to a filled-in form.
+  const [lastSubmission, setLastSubmission] = useState<{ kind: "link" | "manual"; note: string; account: string; text: string } | null>(null);
+  const [workspaceNotice, setWorkspaceNotice] = useState("");
   const [activeTask, setActiveTask] = useState<RecentTask>("makeup");
   const [activeDimensions, setActiveDimensions] = useState<DimensionCode[]>(allDimensions);
   const [exampleSubmission, setExampleSubmission] = useState(false);
@@ -7221,6 +7915,16 @@ export default function App() {
   const viewedRecent = viewedRecentId
     ? recentRuns.find((run) => run.id === viewedRecentId) ?? null
     : null;
+  const viewingVerifyRecord = Boolean(viewedRecent && viewedRecent.kind !== "creator");
+  // A fixed example case opened from the sidebar shows its demo report, never live data.
+  const viewingDemoReport = viewingHistory && !viewedRecent;
+
+  // Screens replace the previous page in place, so the browser otherwise keeps
+  // the homepage's scroll offset. Reset before paint so route-level pages such
+  // as the team workspace always open from their header.
+  useLayoutEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }, [screen]);
 
   useEffect(() => {
     window.localStorage.setItem(RECENT_RUNS_STORAGE_KEY, JSON.stringify(recentRuns));
@@ -7239,6 +7943,7 @@ export default function App() {
       activeDimensions: [...activeDimensions],
       report: live.report,
       sample: live.sample,
+      role: "consumer",
     };
     setRecentRuns((current) => {
       const existing = current.find((run) => run.id === next.id);
@@ -7271,6 +7976,7 @@ export default function App() {
           activeDimensions: active,
           report,
           sample,
+          role: "consumer",
         };
         setRecentRuns((current) => [
           record,
@@ -7314,13 +8020,6 @@ export default function App() {
     submittedAccountUrl = "",
   ) => {
     const isLink = !isExample && looksLikeXhsLink(newPrompt);
-    if (isLink && !submittedAccountUrl.trim()) {
-      setFilename(submittedFilename);
-      setPendingPrompt(newPrompt);
-      setAccountUrl("");
-      setScreen("workspace");
-      return;
-    }
     setActiveTask("makeup");
     setViewingHistory(false);
     setActiveRecentId(null);
@@ -7349,8 +8048,14 @@ export default function App() {
     );
   };
 
-  const submitLink = (noteUrl: string, profileUrl: string) => {
-    if (!looksLikeXhsLink(noteUrl) || !/xiaohongshu\.com\/user\/profile\/|xhslink\.(com|cn)/i.test(profileUrl)) {
+  const submitLink = (noteUrl: string, profileUrl: string, rawInput = noteUrl) => {
+    setLastLinkInput(rawInput);
+    setLastSubmission({ kind: "link", note: rawInput, account: profileUrl, text: "" });
+    setWorkspaceNotice("");
+    // The author homepage is optional: the crawler discovers it from the note.
+    // Only reject the note itself; a supplied-but-unusable profile is validated
+    // before this callback in NewAnalysisForm.
+    if (!looksLikeXhsLink(noteUrl)) {
       return;
     }
     live.reset();
@@ -7389,6 +8094,8 @@ export default function App() {
     accountHistory: string;
   }) => {
     if (!text.trim() && !image) return;
+    setLastSubmission({ kind: "manual", note: "", account: "", text });
+    setWorkspaceNotice("");
     live.reset();
     setLiveFile(null);
     setAccountUrl("");
@@ -7434,7 +8141,50 @@ export default function App() {
     setCreatorError(null);
     setCreatorLoading(true);
     setCreatorSeed("");
-    setScreen("result");
+    // Experts think on the chat page first; the report opens from 「查看自检报告」.
+    setScreen("chat");
+    runCreatorCheck(input);
+  };
+
+  // Same checkCreator call and arguments as before; reused by 「重试」.
+  // A verification that failed (e.g. a well-formed link the backend could not fetch) does not
+  // linger on the process page: go back to the input with one short line and the inputs kept.
+  useEffect(() => {
+    if (screen !== "chat" || creatorInput || live.phase !== "error" || !lastSubmission) return;
+    const message = friendlyLiveError(live.error ?? "").message;
+    live.reset();
+    if (lastSubmission.kind === "link") {
+      setPendingPrompt(lastSubmission.note);
+      setAccountUrl(lastSubmission.account);
+      setWorkspaceInitialMode("link");
+    } else {
+      setManualSeed(lastSubmission.text);
+      setWorkspaceInitialMode("manual");
+    }
+    setWorkspaceNotice(message);
+    setScreen("workspace");
+  }, [live.phase, screen]);
+
+  const loadRecentReport = (id: string, taskId: string, hasCache: boolean) => {
+    void getReport(taskId)
+      .then((report) => {
+        setRecentRuns((current) =>
+          current.map((item) =>
+            item.id === id ? { ...item, report, trustScore: report.trust_score, trustLabel: report.trust_label } : item,
+          ),
+        );
+        setRecentLoad((current) => (current?.id === id ? null : current));
+      })
+      .catch(() => setRecentLoad((current) => (current && current.id !== id ? current : { id, state: hasCache ? "error" : "missing" })));
+  };
+
+  const runCreatorCheck = (input: CreatorReportInput) => {
+    setCreatorProgress(null);
+    setCreatorAppeals([]);
+    setCreatorAppealPreset(null);
+    setCreatorResult(null);
+    setCreatorError(null);
+    setCreatorLoading(true);
     const image = input.images.find((item) => item.file)?.file ?? null;
     void checkCreator({
       draft: input.draft,
@@ -7444,6 +8194,29 @@ export default function App() {
     })
       .then((result) => {
         setCreatorResult(result);
+        const record: RecentRunRecord = {
+          id: result.task_id,
+          taskId: result.task_id,
+          title: deriveRecentTitle(input.draft, input.images[0]?.name ?? ""),
+          createdAt: new Date().toISOString(),
+          trustScore: result.report.trust_score,
+          trustLabel: result.report.trust_label,
+          activeDimensions: result.report.dimensions.filter((dimension) => dimension.assessed).map((dimension) => dimension.code),
+          report: result.report,
+          sample: null,
+          kind: "creator",
+          role: "creator",
+          creator: {
+            draft: input.draft,
+            category: input.category,
+            isCollaboration: input.isCollaboration,
+            imageNames: input.images.map((image) => image.name),
+            result,
+          },
+        };
+        setRecentRuns((current) => [record, ...current.filter((run) => run.id !== record.id)].slice(0, 8));
+        setActiveRecentId(record.id);
+        setHistoryCleared(false);
         setActiveDimensions(
           result.report.dimensions
             .filter((dimension) => dimension.assessed)
@@ -7452,6 +8225,37 @@ export default function App() {
       })
       .catch((err) => setCreatorError(describeApiError(err)))
       .finally(() => setCreatorLoading(false));
+  };
+
+  // checkCreator's result in the shape the verification chat already understands, so the
+  // creator flow renders through the very same Chat / AnalysisSteps components.
+  const creatorLive: LiveRun = {
+    phase: creatorLoading ? "running" : creatorError ? "error" : creatorResult ? "done" : creatorInput ? "running" : "idle",
+    taskId: creatorResult?.task_id ?? null,
+    sampleId: creatorResult?.sample_id ?? null,
+    status: null,
+    agents: (creatorResult?.report.dimensions ?? []).map((dimension) => ({
+      agent: dimension.key,
+      code: dimension.code,
+      label: dimension.label,
+      status: "completed" as const,
+      assessed: dimension.assessed,
+      risk_level: dimension.risk_level,
+      risk_score: dimension.risk_score,
+      trust_level: dimension.trust_level,
+      trust_score: dimension.trust_score,
+      trust_label: dimension.trust_label,
+      duration_ms: null,
+      error_message: null,
+    })),
+    report: creatorResult?.report ?? null,
+    sample: null,
+    error: creatorError,
+    start: async () => undefined,
+    resume: async () => {
+      if (creatorInput) runCreatorCheck(creatorInput);
+    },
+    reset: () => undefined,
   };
 
   const openTaskReport = (taskId: string) => {
@@ -7471,6 +8275,7 @@ export default function App() {
           activeDimensions: active,
           report,
           sample,
+          role: "consumer",
         };
         setRecentRuns((current) => [
           record,
@@ -7551,38 +8356,43 @@ export default function App() {
           setViewedRecentId(null);
           setScreen("workspace");
         }}
-        onLive={() => {
-          setViewingHistory(false);
-          setActiveRecentId(null);
-          setViewedRecentId(null);
-          setScreen("live");
-        }}
         onRecent={(id) => {
           const run = recentRuns.find((item) => item.id === id);
           if (!run) return;
+          setReturnScreen(screen === "result" ? returnScreen : screen);
           setActiveRecentId(id);
           setViewedRecentId(id);
           setActiveTask("makeup");
           setViewingHistory(false);
           setRevisedScore(null);
           setActiveDimensions(run.activeDimensions?.length ? run.activeDimensions : allDimensions);
+          if (run.kind === "creator") {
+            // Rebuild the creator report from what the record saved (no backend call).
+            if (!run.creator?.result) {
+              setRecentLoad({ id, state: "missing" });
+              setScreen("result");
+              return;
+            }
+            setRecentLoad(null);
+            setCreatorInput({
+              draft: run.creator.draft,
+              images: [],
+              isCollaboration: run.creator.isCollaboration,
+              category: run.creator.category,
+              isExample: false,
+            });
+            setCreatorResult(run.creator.result);
+            setCreatorError(null);
+            setCreatorLoading(false);
+            setCreatorProgress(null);
+            setCreatorAppeals([]);
+            setScreen("result");
+            return;
+          }
+          // Verification record: show the cached report at once, refresh it in the background.
+          setRecentLoad(run.report ? null : { id, state: "loading" });
           setScreen("result");
-          void getReport(run.taskId)
-            .then((report) => {
-              setRecentRuns((current) =>
-                current.map((item) =>
-                  item.id === id
-                    ? {
-                        ...item,
-                        report,
-                        trustScore: report.trust_score,
-                        trustLabel: report.trust_label,
-                      }
-                    : item,
-                ),
-              );
-            })
-            .catch(() => undefined);
+          loadRecentReport(id, run.taskId, Boolean(run.report));
         }}
         onResetAgent={() => {
           setFilename("");
@@ -7608,6 +8418,8 @@ export default function App() {
           setScreen("workspace");
         }}
         onReport={(task) => {
+          setReturnScreen(screen === "result" ? returnScreen : screen);
+          setRecentLoad(null);
           setActiveRecentId(null);
           setViewedRecentId(null);
           setActiveTask(task);
@@ -7636,19 +8448,26 @@ export default function App() {
           onFile={setFilename}
           onPickFile={setLiveFile}
           onHome={() => setScreen("home")}
+          manualPreset={manualSeed}
+          notice={workspaceNotice}
           preset={pendingPrompt}
           onSubmitCreator={submitCreator}
           onSubmitLink={submitLink}
           onSubmitManual={submitManual}
         />
       )}
-      {screen === "live" && <LiveAnalysis onBack={() => setScreen("workspace")} />}
       {screen === "chat" && activeTask === "makeup" && !viewingHistory && (
         <Chat
-          activeDimensions={activeDimensions}
+          activeDimensions={creatorInput ? (creatorInput.images.length ? ["R", "S"] : ["S"]) : activeDimensions}
+          creatorMode={Boolean(creatorInput)}
+          appealPreset={creatorInput ? creatorAppealPreset : null}
+          onAppealSubmitted={(appeal) => {
+            if (creatorInput) setCreatorAppeals((current) => [...current, appeal]);
+          }}
           filename={filename}
           isExampleSubmission={exampleSubmission}
-          live={live}
+          key={creatorInput ? "creator-chat" : "verify-chat"}
+          live={creatorInput ? creatorLive : live}
           onArchiveReport={(score) => {
             setArchivedScore(score);
             setHistoryCleared(false);
@@ -7662,6 +8481,13 @@ export default function App() {
             setScreen("result");
           }}
           onTechnicalViewChange={setTechnicalView}
+          appealRecordOnly
+          onUseManual={(text) => {
+            live.reset();
+            setManualSeed(stripLinksFromShareText(lastLinkInput) || text);
+            setWorkspaceInitialMode("manual");
+            setScreen("workspace");
+          }}
           onViewRevisedReport={(score) => {
             setActiveTask("makeup");
             setRevisedScore(score);
@@ -7681,17 +8507,66 @@ export default function App() {
           task={activeTask}
         />
       )}
-      {screen === "result" && activeTask === "makeup" && (
+      {screen === "result" && activeTask === "makeup" && recentLoad?.state === "missing" && (
+        <section className="result recent-report-missing">
+          <div>
+            <strong>该记录的报告无法打开</strong>
+            <p>这条记录没有可还原的报告，也暂时无法从服务端取回。</p>
+            <div>
+              <button onClick={() => { setRecentLoad(null); setViewedRecentId(null); setActiveRecentId(null); setScreen("workspace"); }} type="button">新建核验</button>
+              {viewedRecent && viewedRecent.kind !== "creator" && (
+                <button onClick={() => { setRecentLoad({ id: viewedRecent.id, state: "loading" }); loadRecentReport(viewedRecent.id, viewedRecent.taskId, false); }} type="button">重试</button>
+              )}
+            </div>
+          </div>
+        </section>
+      )}
+      {screen === "result" && activeTask === "makeup" && recentLoad?.state !== "missing" && (
         <Result
           activeDimensions={activeDimensions}
           creatorError={creatorError}
-          creatorInput={creatorInput}
+          creatorInput={viewingVerifyRecord || viewingDemoReport ? null : creatorInput}
+          demoNotice={viewingDemoReport}
+          recentNotice={viewedRecent && recentLoad && recentLoad.id === viewedRecent.id ? { state: recentLoad.state, onRetry: () => { setRecentLoad({ id: viewedRecent.id, state: "loading" }); loadRecentReport(viewedRecent.id, viewedRecent.taskId, Boolean(viewedRecent.report)); } } : null}
           creatorLoading={creatorLoading}
           creatorResult={creatorResult}
-          liveReport={viewedRecent?.report ?? live.report}
-          liveSample={viewedRecent?.sample ?? live.sample}
+          creatorProgress={creatorProgress}
+          creatorAppeals={creatorAppeals}
+          onCreatorDispute={(dispute) => {
+            setCreatorAppealPreset({ ...dispute, nonce: Date.now() });
+            setScreen("chat");
+          }}
+          onCreatorProgress={setCreatorProgress}
+          onCreatorRecheck={(draft) => {
+            // 再次检测: the same checkCreator call and argument format as the first check.
+            const input = creatorInput;
+            const image = input?.images.find((item) => item.file)?.file ?? null;
+            return checkCreator({
+              draft,
+              isCollaboration: input?.isCollaboration ?? false,
+              category: input?.category ?? "护肤",
+              image,
+            }).catch((err) => {
+              throw new Error(describeApiError(err));
+            });
+          }}
+          liveReport={viewingDemoReport ? null : viewedRecent?.report ?? live.report}
+          liveSample={viewingDemoReport ? null : viewedRecent?.sample ?? live.sample}
           onAddEvidence={(code) => setActiveDimensions((current) => allDimensions.filter((dimension) => current.includes(dimension) || dimension === code))}
           onBack={() => {
+            // Opened from the sidebar (a record or a fixed example): back to where the user was.
+            if (viewedRecent || viewingDemoReport) {
+              setViewedRecentId(null);
+              setActiveRecentId(null);
+              setViewingHistory(false);
+              setScreen(returnScreen === "result" ? "workspace" : returnScreen);
+              return;
+            }
+            // Creator report → back to its score page while the result is still here.
+            if (creatorInput && (creatorResult || creatorLoading)) {
+              setScreen("chat");
+              return;
+            }
             if (creatorInput) {
               setCreatorInput(null);
               setCreatorResult(null);
@@ -7727,7 +8602,11 @@ export default function App() {
       )}
       {screen === "result" && activeTask !== "makeup" && (
         <ArchivedResult
-          onBack={() => setScreen("chat")}
+          demoNotice
+          onBack={() => {
+            setViewingHistory(false);
+            setScreen(returnScreen === "result" ? "workspace" : returnScreen);
+          }}
           onTechnicalViewChange={setTechnicalView}
           task={activeTask}
           technicalView={technicalView}

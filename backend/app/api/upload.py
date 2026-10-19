@@ -88,11 +88,12 @@ async def upload_content(
         except XhsError as exc:
             raise ValidationError(f"无法识别的账号主页链接：{exc.reason}") from exc
 
-    # The official "new analysis" link flow must collect both URLs. This keeps a
-    # four-dimensional run from silently degrading to three dimensions when the
-    # client forgets the author-homepage field.
-    if canonical_url and source == "frontend-link" and not canonical_account_url:
-        raise ValidationError("使用笔记链接进行四维核验时，必须同时提供账号主页链接")
+    # The author homepage is optional: the crawl runner discovers the author's
+    # profile URL from the note page itself (`account_hint or _profile_url(...)`
+    # in scripts/xhs_fetch.py) and crawls it for the T dimension, so a note link
+    # alone already yields all four dimensions. Supplying it explicitly only
+    # overrides that discovery, which is still useful when the note page does not
+    # expose a stable user id.
 
     # Validate on *meaningful* content: a whitespace-only copy or an empty
     # comment array would otherwise create a task with nothing to analyse.

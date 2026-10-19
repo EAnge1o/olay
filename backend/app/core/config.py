@@ -127,6 +127,23 @@ class Settings(BaseSettings):
     def max_upload_size_bytes(self) -> int:
         return self.max_upload_size_mb * 1024 * 1024
 
+    @property
+    def xhs_user_data_path_absolute(self) -> Path | None:
+        """The persistent Chrome profile as an absolute path, or ``None``.
+
+        A relative ``XHS_USER_DATA_PATH`` is resolved against the backend root
+        rather than the process cwd: the crawl runner is spawned with a
+        different cwd (and then chdirs into a temp dir), so a relative value
+        would silently point Chrome at a brand-new empty profile and the logged-in
+        session would never be reused.
+        """
+        if self.xhs_user_data_path is None:
+            return None
+        path = self.xhs_user_data_path.expanduser()
+        if not path.is_absolute():
+            path = BACKEND_ROOT / path
+        return path
+
     def ensure_directories(self) -> None:
         """Create storage directories. Safe to call repeatedly."""
         self.storage_dir.mkdir(parents=True, exist_ok=True)

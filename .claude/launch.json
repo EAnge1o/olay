@@ -1,0 +1,21 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "backend",
+      "runtimeExecutable": "/Users/lele/Downloads/olay/backend/.venv-mac/bin/python",
+      "runtimeArgs": ["run.py"],
+      "cwd": "/Users/lele/Downloads/olay/backend",
+      "env": { "SSL_CERT_FILE": "/etc/ssl/cert.pem" },
+      "port": 8000
+    },
+    {
+      "name": "frontend",
+      "runtimeExecutable": "/Users/lele/.local/node/bin/node",
+      "runtimeArgs": ["node_modules/vite/bin/vite.js"],
+      "cwd": "/Users/lele/Downloads/olay/fronted",
+      "env": { "PATH": "/Users/lele/.local/node/bin:/usr/bin:/bin" },
+      "port": 8443
+    }
+  ]
+}

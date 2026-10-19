@@ -29,8 +29,8 @@ export const ORDERED_CODES: DimensionCode[] = ["T", "R", "U", "S"];
 
 export const CODE_FALLBACK_LABEL: Record<DimensionCode, string> = {
   T: "账号可信度",
-  R: "图片真实性",
-  U: "评论区真实性",
+  R: "图像原生性",
+  U: "评论自然度",
   S: "文案真实性",
 };
 
@@ -81,7 +81,7 @@ export function LiveReportView({
   const confidenceBars = report.confidence?.bars ?? (confidenceLevel === "high" ? 3 : confidenceLevel === "medium" ? 2 : 1);
   const missingLabels = report.confidence?.missing_materials ?? ORDERED_CODES
     .filter((code) => !byCode.get(code)?.assessed)
-    .map((code) => CODE_FALLBACK_LABEL[code].replace("真实性", "").replace("可信度", ""));
+    .map((code) => crossDimensionName(code));
   const crossCheckCount = report.confidence?.cross_check_count ?? crossCheckItems.filter((item) => item.state !== "unverified").length;
 
   useEffect(() => {
@@ -272,16 +272,16 @@ export function LiveReportView({
                   <span className={`report-dimension-badge badge-${code.toLowerCase()}`}>{code}</span>
                   <div>
                     <span>
-                      <strong>{dimension?.label ?? CODE_FALLBACK_LABEL[code]}</strong>
-                      <b>{assessed ? (dimension!.trust_score! / 10).toFixed(1) : "暂不评分"}</b>
+                      <strong>{CODE_FALLBACK_LABEL[code]}</strong>
+                      <b>{assessed ? <>{Math.round(dimension!.trust_score!)}<small> / 100</small></> : "暂不评分"}</b>
                     </span>
                     <div>
                       <i style={{ width: assessed ? `${dimension!.trust_score}%` : "0%" }} />
                     </div>
                     <small>
                       {assessed && dimension?.trust_label
-                        ? `${dimension.trust_label} · ${dimension.summary}`
-                        : dimension?.summary || "尚未提供该维度所需材料，未参与评分。"}
+                        ? roundScoresInText(`${dimension.trust_label} · ${dimension.summary}`)
+                        : dimension?.summary ? roundScoresInText(dimension.summary) : "尚未提供该维度所需材料，未参与评分。"}
                     </small>
                     {technicalView && assessed && (
                       <MethodBadge method={(dimension?.evidence.length ?? 0) > 0 ? "llm" : "rule"} />
@@ -300,7 +300,7 @@ export function LiveReportView({
         {report.summary && (
           <section className="live-report-summary">
             <span>Report Summary</span>
-            <p>{report.summary}</p>
+            <p>{roundScoresInText(report.summary)}</p>
           </section>
         )}
 
@@ -328,7 +328,7 @@ export function LiveReportView({
           recommendations={report.recommendations}
           score={score}
           sourceLabel="实时报告"
-          subtitle={report.decision?.headline ?? headline(report, byCode)}
+          subtitle={roundScoresInText(report.decision?.headline ?? headline(report, byCode))}
         />
       </article>
 
@@ -560,13 +560,13 @@ function getLiveCrossCheckItems(report: ReportRead): CrossCheckItem[] {
         id: `live-intra-${code.toLowerCase()}`,
         from: code,
         to: code,
-        left: `${dimension.label}：${score.toFixed(0)} / 100`,
+        left: `${CODE_FALLBACK_LABEL[code]}：${Math.round(score)} / 100`,
         right: `${dimension.evidence.length} 条证据 · ${dimension.trust_label ?? "已评估"}`,
-        conclusion: score >= 70 ? `${dimension.label}当前未呈现明显高风险` : `${dimension.label}存在需要留意的风险信号`,
+        conclusion: score >= 70 ? `${CODE_FALLBACK_LABEL[code]}当前未呈现明显高风险` : `${CODE_FALLBACK_LABEL[code]}存在需要留意的风险信号`,
         state: score >= 70 ? "consistent" : "doubtful",
         confidence: liveConfidence(dimension),
         dimension: `${crossDimensionName(code)}维度内`,
-        detail: `${dimension.summary} 本次仅提供${crossDimensionName(code)}材料，因此先展示维度内结论，不推断其他模态。`,
+        detail: `${roundScoresInText(dimension.summary)} 本次仅提供${crossDimensionName(code)}材料，因此先展示维度内结论，不推断其他模态。`,
         method: dimension.evidence.length > 0 ? "llm" : "rule",
         label: "本次报告",
       },
@@ -624,13 +624,13 @@ function getLiveCrossCheckItems(report: ReportRead): CrossCheckItem[] {
       id: `live-${from}-${to}`.toLowerCase(),
       from,
       to,
-      left: `${left?.label ?? crossDimensionName(from)}：${leftScore.toFixed(0)} / 100`,
-      right: `${right?.label ?? crossDimensionName(to)}：${rightScore.toFixed(0)} / 100`,
+      left: `${CODE_FALLBACK_LABEL[from]}：${Math.round(leftScore)} / 100`,
+      right: `${CODE_FALLBACK_LABEL[to]}：${Math.round(rightScore)} / 100`,
       conclusion,
       state,
       confidence: gap <= 18 ? liveConfidence(left!, right!) : evidenceCount >= 4 ? "中" : "低",
       dimension: `${crossDimensionName(from)} × ${crossDimensionName(to)}`,
-      detail: `本次报告显示${crossDimensionName(from)}可信度 ${leftScore.toFixed(0)}，${crossDimensionName(to)}可信度 ${rightScore.toFixed(0)}，分差 ${gap.toFixed(0)}。该关系基于分数、风险等级和 ${evidenceCount} 条证据计算，不替代进一步的人工事实核验。`,
+      detail: `本次报告显示${crossDimensionName(from)}可信度 ${Math.round(leftScore)}，${crossDimensionName(to)}可信度 ${Math.round(rightScore)}，分差 ${Math.round(gap)}。该关系基于分数、风险等级和 ${evidenceCount} 条证据计算，不替代进一步的人工事实核验。`,
       method: evidenceCount > 0 ? "llm" : "rule",
       label: "实时比对",
     };
@@ -646,8 +646,19 @@ const livePairs: Array<[DimensionCode, DimensionCode]> = [
   ["U", "S"],
 ];
 
+/**
+ * Backend summaries embed scores as decimals ("风险分 10.0/100", "文案 10.0分"). Display only:
+ * round any number that is directly followed by "/100" or "分" so the page stays on integers.
+ */
+export function roundScoresInText(text: string) {
+  return text.replace(/(\d+(?:\.\d+)?)(\s*(?:\/\s*100|分))/g, (_, value: string, unit: string) => `${Math.round(Number(value))}${unit}`);
+}
+
+/** Short dimension names for sentences (账号 / 图像 / 评论 / 文案). */
+const CODE_SHORT_LABEL: Record<DimensionCode, string> = { T: "账号", R: "图像", U: "评论", S: "文案" };
+
 function crossDimensionName(code: DimensionCode) {
-  return CODE_FALLBACK_LABEL[code].replace("真实性", "").replace("可信度", "");
+  return CODE_SHORT_LABEL[code];
 }
 
 function liveConfidence(...dimensions: DimensionRead[]): "高" | "中" | "低" {
@@ -666,7 +677,7 @@ export function LiveProgressList({ agents }: { agents: AgentStatusItemLike[] }) 
           const item = agents.find((agent) => agent.code === code);
           const state = item?.status ?? "pending";
           const verdict = item?.assessed
-            ? `可信度 ${item.trust_score}`
+            ? `可信度 ${item.trust_score != null ? Math.round(item.trust_score) : "暂不评分"}`
             : state === "completed"
               ? "暂不评分"
               : "";
@@ -674,7 +685,7 @@ export function LiveProgressList({ agents }: { agents: AgentStatusItemLike[] }) 
             <li key={code}>
               <i className={`live-dot ${state}`} />
               <span>
-                {code} · {item?.label ?? CODE_FALLBACK_LABEL[code]}
+                {code} · {CODE_FALLBACK_LABEL[code]}
               </span>
               <b>{verdict}</b>
             </li>
@@ -705,7 +716,7 @@ function headline(
 
   if (assessed.length === 1) {
     const only = assessed[0];
-    const label = byCode.get(only.code)?.label ?? only.label;
+    const label = CODE_FALLBACK_LABEL[only.code];
     return `当前仅完成 ${only.code} · ${label} 单维核验。`;
   }
 
@@ -714,7 +725,7 @@ function headline(
   if ((top.risk_score ?? 0) < 30) {
     return "已评估维度暂未发现明显高风险信号。";
   }
-  const label = byCode.get(top.code)?.label ?? top.label;
+  const label = CODE_FALLBACK_LABEL[top.code];
   return `最需要留意的维度：${top.code} · ${label}。`;
 }
 

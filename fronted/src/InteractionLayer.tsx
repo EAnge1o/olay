@@ -99,20 +99,6 @@ const SEGMENT_SELECTORS = [
   ".team-view-switch",
 ].join(",");
 
-const FLIGHT_TARGET_SELECTOR = [
-  ".why-trust-heading",
-  ".promise-card-grid",
-  ".trust-boundary-grid",
-  ".trust-verification-band",
-  ".learn-intro",
-  ".learn-scroll-card",
-  ".quiz-panel",
-  ".faq-heading",
-  ".faq-shell",
-  ".landing-footer-main",
-  ".landing-footer-bottom",
-].join(",");
-
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
 function closestElement(target: EventTarget | null, selector: string): HTMLElement | null {
@@ -141,7 +127,6 @@ export default function InteractionLayer() {
     const root = document.documentElement;
     const finePointerQuery = window.matchMedia("(pointer: fine) and (hover: hover)");
     const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const activeFlights = new WeakMap<HTMLElement, Animation>();
     const revealObserver = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -161,71 +146,10 @@ export default function InteractionLayer() {
     let scrollFrame = 0;
     let pageScrollEndTimer = 0;
     let pageMoving = false;
-    let lastScrollUiAt = 0;
-    let lastWheelAt = 0;
-    let wheelLockUntil = 0;
     let lastScrollY = window.scrollY;
-    let scrollDirection: 1 | -1 = 1;
     let latestPointerEvent: PointerEvent | null = null;
+    let scrollingTimer = 0;
     let disposed = false;
-
-    function animateFlight(element: HTMLElement, orderOverride?: number) {
-      if (activeFlights.has(element)) return;
-      const reduced = reducedMotionQuery.matches;
-      const order =
-        orderOverride ?? (Number.parseInt(element.style.getPropertyValue("--tl-reveal-order"), 10) || 0);
-      const isCard = element.matches(
-        ".promise-card-grid, .trust-boundary-grid, .trust-verification-band, .faq-shell, .landing-footer-main, .landing-footer-bottom",
-      );
-      const isCompact = element.matches(
-        ".agent-segmented, .evidence-points > div, .faq-group, .landing-footer-column",
-      );
-      const isStatement = element.matches(
-        ".trust-heading, .why-trust-heading, .faq-heading, .report-showcase-heading, .one-agent-heading, .architecture-heading, .evidence-heading",
-      );
-      const side = order % 2 === 0 ? -1 : 1;
-      const cardSlots = [-96, -48, 48, 96];
-      const distanceScale = reduced ? 0.58 : 1;
-      const x = (isCard
-        ? cardSlots[Math.min(order, cardSlots.length - 1)]
-        : isCompact
-          ? side * 42
-          : isStatement
-            ? 0
-            : side * 66) * distanceScale;
-      const y =
-        (isCard ? 96 : isCompact ? 54 : isStatement ? 82 : 68) *
-        distanceScale *
-        scrollDirection;
-      const scale = isCard ? 0.9 : isCompact ? 0.96 : isStatement ? 0.92 : 0.94;
-      const animation = element.animate(
-        [
-          {
-            opacity: 0.04,
-            translate: `${x}px ${y}px`,
-            scale: String(scale),
-          },
-          {
-            opacity: 1,
-            translate: "0px 0px",
-            scale: "1",
-          },
-        ],
-        {
-          delay: Math.min(order * 60, 240),
-          duration: reduced ? 480 : 720,
-          easing: "cubic-bezier(0.16, 1, 0.3, 1)",
-          fill: "both",
-        },
-      );
-      animation.id = "tl-flight-in";
-      activeFlights.set(element, animation);
-      animation.onfinish = () => {
-        if (activeFlights.get(element) === animation) {
-          activeFlights.delete(element);
-        }
-      };
-    }
 
     const syncEnvironment = () => {
       const fine = finePointerQuery.matches;
@@ -297,44 +221,29 @@ export default function InteractionLayer() {
       root.style.setProperty("--tl-scroll-progress", String(progress));
     };
 
-    const buildLandingStops = () => {
-      const viewportHeight = Math.max(1, window.innerHeight);
-      const maxScroll = Math.max(0, document.documentElement.scrollHeight - viewportHeight);
-      const stops = new Set<number>([0]);
-      const how = document.querySelector<HTMLElement>(".home > .how-narrative");
-      if (how) {
-        const howTop = how.offsetTop;
-        const howTravel = Math.max(0, how.offsetHeight - viewportHeight);
-        [0, 0.25, 0.5, 0.75, 1].forEach((progress) => {
-          stops.add(howTop + howTravel * progress);
-        });
-      }
-
-      document
-        .querySelectorAll<HTMLElement>(
-          ".home > .why-trust-section, .home > .who-uses-section, .home > .learn-section, .home > .faq-section, .home > .landing-footer",
-        )
-        .forEach((section) => {
-          stops.add(section.offsetTop);
-          const overflow = Math.max(0, section.offsetHeight - viewportHeight);
-          if (overflow > 360) {
-            stops.add(section.offsetTop + overflow);
-          }
-        });
-
-      return [...stops]
-        .map((stop) => clamp(Math.round(stop), 0, maxScroll))
-        .sort((a, b) => a - b)
-        .filter((stop, index, values) => index === 0 || Math.abs(stop - values[index - 1]) > 220);
+    /**
+     * Flag the document as mid-scroll so CSS can drop the expensive
+     * `backdrop-filter` panels (see interaction.css). Re-arms on every scroll
+     * event and only clears once the user has been idle for a beat, so a
+     * continuous drag keeps them off instead of flickering back on.
+     */
+    const markScrolling = () => {
+      root.classList.add("tl-scrolling");
+      window.clearTimeout(scrollingTimer);
+      scrollingTimer = window.setTimeout(() => {
+        scrollingTimer = 0;
+        root.classList.remove("tl-scrolling");
+        // One layout read once the page has settled, instead of every 80ms.
+        queueSyncSegments();
+      }, 160);
     };
 
     const animateWindowTo = (target: number) => {
       window.clearTimeout(pageScrollEndTimer);
       pageMoving = true;
-      root.style.scrollBehavior = "auto";
-      window.scrollTo({ top: target, behavior: "auto" });
-      root.style.removeProperty("scroll-behavior");
-      pageScrollEndTimer = window.setTimeout(finishPageMove, 60);
+      // Native smooth scroll: sections arrive by scrolling instead of a jump plus a fly-in.
+      window.scrollTo({ top: target, behavior: reducedMotionQuery.matches ? "auto" : "smooth" });
+      pageScrollEndTimer = window.setTimeout(finishPageMove, reducedMotionQuery.matches ? 60 : 1200);
     };
 
     const finishPageMove = () => {
@@ -342,61 +251,6 @@ export default function InteractionLayer() {
       pageMoving = false;
       window.clearTimeout(pageScrollEndTimer);
       queueSyncSegments();
-      replayVisibleFlights();
-    };
-
-    const replayVisibleFlights = () => {
-      const viewportHeight = Math.max(1, window.innerHeight);
-      const targets = Array.from(document.querySelectorAll<HTMLElement>(`.home ${FLIGHT_TARGET_SELECTOR}`));
-      let animated = 0;
-      targets.forEach((element) => {
-        if (animated >= 6) return;
-        if (element.closest(".how-scene[aria-hidden='true']")) return;
-        const rect = element.getBoundingClientRect();
-        if (rect.bottom <= 24 || rect.top >= viewportHeight * 0.92) return;
-        const style = window.getComputedStyle(element);
-        if (style.display === "none" || style.visibility === "hidden" || style.opacity === "0") return;
-        activeFlights.get(element)?.cancel();
-        activeFlights.delete(element);
-        animateFlight(element, animated);
-        animated += 1;
-      });
-    };
-
-    const onLandingWheel = (event: WheelEvent) => {
-      if (!document.querySelector(".home") || !finePointerQuery.matches || window.innerWidth < 900) return;
-      if (event.ctrlKey || Math.abs(event.deltaX) > Math.abs(event.deltaY)) return;
-      if (
-        closestElement(
-          event.target,
-          ".merged-card-scroll, .report-evidence-modal, .account-dialog, .global-search-results",
-        )
-      ) {
-        return;
-      }
-
-      const now = performance.now();
-      const delta = event.deltaY;
-      if (Math.abs(delta) < 6) return;
-      if (now < wheelLockUntil || pageMoving || now - lastWheelAt < 150) {
-        lastWheelAt = now;
-        if (event.cancelable) event.preventDefault();
-        return;
-      }
-
-      const stops = buildLandingStops();
-      const current = window.scrollY;
-      const direction = delta > 0 ? 1 : -1;
-      const nextStop =
-        direction > 0
-          ? stops.find((stop) => stop > current + 18)
-          : [...stops].reverse().find((stop) => stop < current - 18);
-      if (nextStop == null) return;
-
-      if (event.cancelable) event.preventDefault();
-      lastWheelAt = now;
-      wheelLockUntil = now + 650;
-      animateWindowTo(nextStop);
     };
 
     const updatePointer = () => {
@@ -520,18 +374,17 @@ export default function InteractionLayer() {
     const onScroll = () => {
       const nextScrollY = window.scrollY;
       if (Math.abs(nextScrollY - lastScrollY) > 1) {
-        scrollDirection = nextScrollY > lastScrollY ? 1 : -1;
         lastScrollY = nextScrollY;
+        markScrolling();
       }
       if (scrollFrame) return;
       scrollFrame = window.requestAnimationFrame(() => {
         scrollFrame = 0;
+        // Only the progress bar depends on scroll position. `syncSegments` reads
+        // offsetLeft/offsetTop of every segment control, which forces a sync
+        // layout — scrolling cannot move those, so it waits for the scroll to
+        // settle (see markScrolling's trailing timer).
         updateScrollProgress();
-        const now = performance.now();
-        if (now - lastScrollUiAt > 80) {
-          lastScrollUiAt = now;
-          queueSyncSegments();
-        }
       });
     };
 
@@ -562,7 +415,6 @@ export default function InteractionLayer() {
     document.addEventListener("pointerdown", onPointerDown, { passive: true });
     document.addEventListener("click", onDocumentClick, { passive: true });
     document.addEventListener("pointerleave", onPointerLeave);
-    window.addEventListener("wheel", onLandingWheel, { passive: false });
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("scrollend", onScrollEnd);
     window.addEventListener("resize", onResize);
@@ -578,7 +430,6 @@ export default function InteractionLayer() {
       document.removeEventListener("pointerdown", onPointerDown);
       document.removeEventListener("click", onDocumentClick);
       document.removeEventListener("pointerleave", onPointerLeave);
-      window.removeEventListener("wheel", onLandingWheel);
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("scrollend", onScrollEnd);
       window.removeEventListener("resize", onResize);
@@ -588,6 +439,8 @@ export default function InteractionLayer() {
       if (segmentFrame) window.cancelAnimationFrame(segmentFrame);
       if (scrollFrame) window.cancelAnimationFrame(scrollFrame);
       window.clearTimeout(pageScrollEndTimer);
+      window.clearTimeout(scrollingTimer);
+      root.classList.remove("tl-scrolling");
       resetTilt(activeTilt);
       resetMagnetic(activeMagnetic);
       root.classList.remove(
