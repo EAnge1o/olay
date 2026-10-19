@@ -1,0 +1,705 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="data:," />
+  <title>TruLens · 信任纹理方向</title>
+  <!--
+    Direction 03 · data humanism.
+    Designer lens: Giorgia Lupi / Pentagram (verified at giorgialupi.com).
+    Assumption: trust should read as a material made of many human signals, not a magic score.
+  -->
+  <style>
+    @import url("https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600&family=Noto+Serif+SC:wght@500;600&display=swap");
+
+    :root {
+      --canvas: #f0eee7;
+      --paper: #faf9f4;
+      --ink: #1c1b18;
+      --muted: #77736a;
+      --line: #cbc7bc;
+      --coral: #d74d35;
+      --blue: #2c5f9d;
+      --ochre: #c58d1d;
+      --teal: #1b7a74;
+      --active: var(--coral);
+      --serif: "Noto Serif SC", "Songti SC", "SimSun", serif;
+      --sans: "Manrope", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+      --mono: "DM Mono", "Consolas", monospace;
+    }
+
+    * { box-sizing: border-box; }
+    html { background: var(--canvas); }
+    body { margin: 0; min-width: 320px; color: var(--ink); background: var(--canvas); font-family: var(--sans); }
+    body[data-active="t"] { --active: var(--ochre); }
+    body[data-active="r"] { --active: var(--coral); }
+    body[data-active="u"] { --active: var(--blue); }
+    body[data-active="s"] { --active: var(--teal); }
+    button { color: inherit; font: inherit; cursor: pointer; }
+    button:focus-visible { outline: 2px solid var(--active); outline-offset: 3px; }
+    img { display: block; max-width: 100%; }
+
+    .topbar {
+      min-height: 68px;
+      padding: 0 30px;
+      border-bottom: 1px solid var(--line);
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      background: rgba(250,249,244,.84);
+      backdrop-filter: blur(16px);
+      position: sticky;
+      top: 0;
+      z-index: 30;
+    }
+    .brand { display: flex; align-items: center; gap: 14px; }
+    .brand img { width: 102px; height: 56px; object-fit: contain; filter: grayscale(1) contrast(2.6); }
+    .brand span { padding-left: 14px; border-left: 1px solid var(--line); color: var(--muted); font: 9px var(--mono); letter-spacing: .1em; white-space: nowrap; }
+    .case-center { display: flex; align-items: center; gap: 9px; font: 8px var(--mono); letter-spacing: .1em; }
+    .case-center i { width: 6px; height: 6px; border-radius: 50%; background: var(--coral); box-shadow: 0 0 0 4px rgba(215,77,53,.12); }
+    .case-center span { color: var(--muted); }
+    .top-actions { justify-self: end; display: flex; gap: 8px; }
+    .top-actions button { min-height: 34px; padding: 0 13px; border: 1px solid var(--line); background: transparent; font-size: 10px; }
+    .top-actions button:last-child { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+
+    .page { width: min(1420px, calc(100% - 52px)); margin: 0 auto; padding: 25px 0 28px; }
+    .intro {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 310px;
+      gap: 35px;
+      align-items: end;
+      padding-bottom: 20px;
+    }
+    .intro-kicker { margin: 0 0 10px; color: var(--muted); font: 8px var(--mono); letter-spacing: .13em; }
+    h1 {
+      margin: 0;
+      max-width: 830px;
+      font: 500 clamp(44px, 5vw, 70px)/.98 var(--serif);
+      letter-spacing: -.035em;
+      text-wrap: balance;
+    }
+    h1 em { color: var(--coral); font-style: normal; }
+    .intro-copy { margin: 12px 0 0; max-width: 630px; color: #5f5c55; font-size: 11px; line-height: 1.75; }
+    .intro-side { border-top: 1px solid var(--ink); padding-top: 10px; }
+    .intro-side span { display: flex; justify-content: space-between; color: var(--muted); font: 8px var(--mono); letter-spacing: .06em; }
+    .intro-side strong { display: block; margin-top: 7px; font: 500 46px/.9 var(--serif); letter-spacing: -.04em; }
+    .intro-side strong small { color: var(--muted); font: 8px var(--mono); }
+    .intro-side p { margin: 8px 0 0; color: var(--muted); font-size: 8px; line-height: 1.55; }
+
+    .studio {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(420px, .85fr);
+      gap: 24px;
+      align-items: stretch;
+    }
+    .evidence-field {
+      position: relative;
+      min-height: 625px;
+      overflow: hidden;
+      border-top: 1px solid var(--ink);
+      border-bottom: 1px solid var(--ink);
+      background:
+        radial-gradient(circle at 1px 1px, rgba(28,27,24,.09) 1px, transparent 0);
+      background-size: 18px 18px;
+    }
+    .field-label {
+      position: absolute;
+      top: 11px;
+      left: 0;
+      color: var(--muted);
+      font: 8px var(--mono);
+      letter-spacing: .08em;
+    }
+    .field-label strong { color: var(--ink); font-weight: 500; }
+    .main-photo {
+      position: absolute;
+      left: 22px;
+      top: 46px;
+      width: 68%;
+      height: 354px;
+      margin: 0;
+      overflow: hidden;
+      background: #d9d3ca;
+      border: 1px solid var(--line);
+      transform: rotate(-.35deg);
+    }
+    .main-photo img { width: 100%; height: 100%; object-fit: cover; object-position: center 43%; filter: saturate(.76) contrast(.95); }
+    .main-photo::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, transparent 49.8%, rgba(250,249,244,.86) 50%, transparent 50.2%);
+      pointer-events: none;
+    }
+    .photo-tag {
+      position: absolute;
+      z-index: 5;
+      left: 12px;
+      top: 12px;
+      padding: 5px 7px;
+      background: rgba(250,249,244,.88);
+      border: 1px solid rgba(255,255,255,.75);
+      font: 7px var(--mono);
+      letter-spacing: .06em;
+    }
+    .photo-note {
+      position: absolute;
+      z-index: 6;
+      right: 13px;
+      bottom: 13px;
+      width: 190px;
+      padding: 8px 10px;
+      color: white;
+      background: rgba(28,27,24,.75);
+      backdrop-filter: blur(8px);
+      font-size: 8px;
+      line-height: 1.55;
+    }
+    .photo-note strong { display: block; color: #ff9b89; font: 7px var(--mono); letter-spacing: .06em; }
+    .threads {
+      position: absolute;
+      z-index: 7;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      overflow: visible;
+    }
+    .threads path { fill: none; stroke-width: 1.2; stroke-dasharray: 3 5; opacity: .42; transition: opacity .2s ease, stroke-width .2s ease; }
+    .threads .thread-t { stroke: var(--ochre); }
+    .threads .thread-r { stroke: var(--coral); }
+    .threads .thread-u { stroke: var(--blue); }
+    .threads .thread-s { stroke: var(--teal); }
+    body[data-active="t"] .thread-t,
+    body[data-active="r"] .thread-r,
+    body[data-active="u"] .thread-u,
+    body[data-active="s"] .thread-s { opacity: 1; stroke-width: 2.4; stroke-dasharray: 2 3; }
+    .pin {
+      position: absolute;
+      z-index: 9;
+      width: 17px;
+      height: 17px;
+      padding: 0;
+      border: 1px solid var(--paper);
+      border-radius: 50%;
+      background: var(--coral);
+      box-shadow: 0 0 0 5px rgba(250,249,244,.42);
+      transition: transform .2s ease;
+    }
+    .pin:hover { transform: scale(1.2); }
+    .pin::after {
+      content: attr(data-label);
+      position: absolute;
+      left: 22px;
+      top: -4px;
+      min-width: max-content;
+      padding: 3px 5px;
+      background: rgba(250,249,244,.92);
+      border: 1px solid var(--line);
+      color: var(--ink);
+      font: 6px var(--mono);
+      letter-spacing: .04em;
+      opacity: 0;
+      transform: translateX(-3px);
+      transition: .18s ease;
+      pointer-events: none;
+    }
+    .pin:hover::after { opacity: 1; transform: translateX(0); }
+    .pin-a { left: 45%; top: 35%; }
+    .pin-b { left: 61%; top: 61%; background: var(--blue); }
+    .pin-c { left: 52%; top: 70%; background: var(--teal); }
+    .fragment {
+      position: absolute;
+      z-index: 10;
+      padding: 0;
+      border: 1px solid rgba(250,249,244,.92);
+      background: var(--paper);
+      box-shadow: 0 15px 36px rgba(30,28,23,.13);
+      overflow: hidden;
+      text-align: left;
+    }
+    .fragment img { width: 100%; height: 100%; object-fit: cover; filter: saturate(.78); transition: transform .4s ease; }
+    .fragment:hover img { transform: scale(1.025); }
+    .fragment span {
+      position: absolute;
+      left: 8px;
+      top: 8px;
+      padding: 4px 6px;
+      background: rgba(250,249,244,.9);
+      border: 1px solid rgba(255,255,255,.8);
+      font: 6px var(--mono);
+      letter-spacing: .04em;
+    }
+    .fragment-comments { right: 10px; top: 77px; width: 25%; height: 258px; transform: rotate(1.25deg); }
+    .fragment-account { right: 38px; top: 356px; width: 27%; height: 180px; transform: rotate(-1.1deg); }
+    .fragment-comments.active, .fragment-account.active { box-shadow: 0 0 0 3px var(--blue), 0 18px 42px rgba(30,28,23,.16); }
+    .evidence-strip {
+      position: absolute;
+      left: 22px;
+      right: 22px;
+      bottom: 19px;
+      min-height: 101px;
+      padding: 12px 14px;
+      background: rgba(250,249,244,.92);
+      border: 1px solid var(--line);
+      display: grid;
+      grid-template-columns: 124px 1fr auto;
+      gap: 17px;
+      align-items: center;
+      backdrop-filter: blur(10px);
+    }
+    .strip-index { color: var(--active); font: 8px var(--mono); letter-spacing: .09em; }
+    .strip-index strong { display: block; margin-top: 3px; font: 500 30px/.9 var(--serif); letter-spacing: -.04em; }
+    .strip-copy { min-width: 0; }
+    .strip-copy strong { display: block; font-size: 12px; font-weight: 600; }
+    .strip-copy p { margin: 5px 0 0; color: var(--muted); font-size: 8px; line-height: 1.65; }
+    .strip-action { width: 35px; height: 35px; border: 1px solid var(--ink); border-radius: 50%; background: transparent; display: grid; place-items: center; font-size: 13px; }
+
+    .portrait-panel {
+      min-width: 0;
+      border-top: 1px solid var(--ink);
+      padding-left: 24px;
+      position: relative;
+    }
+    .portrait-head { min-height: 43px; display: flex; align-items: center; justify-content: space-between; gap: 12px; color: var(--muted); font: 8px var(--mono); letter-spacing: .08em; }
+    .portrait-head strong { color: var(--ink); font-weight: 500; }
+    .fingerprint {
+      position: relative;
+      height: 225px;
+      border-bottom: 1px solid var(--line);
+      overflow: hidden;
+    }
+    .fingerprint svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+    .fingerprint .guide { fill: none; stroke: #d3cfc4; stroke-width: .8; }
+    .fingerprint .arc { fill: none; stroke-width: 4; stroke-linecap: round; stroke-dasharray: 1 8; opacity: .35; transition: opacity .22s ease, stroke-width .22s ease; }
+    .fingerprint .arc-t { stroke: var(--ochre); }
+    .fingerprint .arc-r { stroke: var(--coral); }
+    .fingerprint .arc-u { stroke: var(--blue); }
+    .fingerprint .arc-s { stroke: var(--teal); }
+    body[data-active="t"] .arc-t,
+    body[data-active="r"] .arc-r,
+    body[data-active="u"] .arc-u,
+    body[data-active="s"] .arc-s { opacity: 1; stroke-width: 6; stroke-dasharray: 1 5; }
+    .fingerprint.reweaving .arc { animation: trace 1s ease both; }
+    @keyframes trace {
+      0% { stroke-dashoffset: 80; opacity: 0; }
+      100% { stroke-dashoffset: 0; opacity: .45; }
+    }
+    .fingerprint .tick { stroke: var(--ink); stroke-width: .6; opacity: .45; }
+    .score-center {
+      position: absolute;
+      z-index: 5;
+      left: 50%;
+      top: 51%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      background: var(--canvas);
+      width: 116px;
+      height: 116px;
+      border-radius: 50%;
+      display: grid;
+      place-content: center;
+      box-shadow: 0 0 0 1px rgba(28,27,24,.05);
+    }
+    .score-center span { color: var(--muted); font: 7px var(--mono); letter-spacing: .08em; }
+    .score-center strong { font: 500 57px/.86 var(--serif); letter-spacing: -.06em; }
+    .score-center small { color: var(--muted); font: 7px var(--mono); }
+    .score-center em { margin-top: 4px; color: var(--coral); font: normal 7px var(--mono); letter-spacing: .08em; }
+    .portrait-caption { display: flex; justify-content: space-between; gap: 16px; padding: 9px 0 14px; color: var(--muted); font: 7px/1.55 var(--mono); }
+    .portrait-caption span:last-child { text-align: right; }
+
+    .dimension-list { border-top: 1px solid var(--line); }
+    .dimension-row {
+      width: 100%;
+      min-height: 50px;
+      padding: 9px 0;
+      border: 0;
+      border-bottom: 1px solid var(--line);
+      background: transparent;
+      display: grid;
+      grid-template-columns: 24px 1fr 53px;
+      align-items: center;
+      gap: 10px;
+      text-align: left;
+      position: relative;
+    }
+    .dimension-row::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: var(--row-color); transition: width .2s ease; }
+    .dimension-row:hover::before, .dimension-row.active::before { width: 3px; }
+    .dimension-row.t { --row-color: var(--ochre); }
+    .dimension-row.r { --row-color: var(--coral); }
+    .dimension-row.u { --row-color: var(--blue); }
+    .dimension-row.s { --row-color: var(--teal); }
+    .dimension-row > b {
+      width: 22px;
+      height: 22px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--row-color);
+      color: var(--row-color);
+      font: 8px var(--mono);
+      font-weight: 500;
+    }
+    .dimension-copy strong { display: block; font-size: 10px; font-weight: 600; }
+    .dimension-copy span { display: flex; align-items: center; gap: 8px; margin-top: 5px; }
+    .dimension-copy .bar { height: 4px; flex: 1; background: #d9d5cb; overflow: hidden; }
+    .dimension-copy .bar i { display: block; height: 100%; background: var(--row-color); }
+    .dimension-copy small { color: var(--muted); font: 6px var(--mono); white-space: nowrap; }
+    .dimension-row > em { justify-self: end; font: normal 500 22px var(--serif); font-variant-numeric: tabular-nums; }
+    .dimension-row > em small { color: var(--muted); font: 6px var(--mono); }
+
+    .reading {
+      margin-top: 10px;
+      padding: 13px 14px;
+      border: 1px solid var(--line);
+      border-left: 3px solid var(--active);
+      background: rgba(250,249,244,.54);
+      min-height: 101px;
+    }
+    .reading > span { display: flex; align-items: center; justify-content: space-between; color: var(--active); font: 7px var(--mono); letter-spacing: .08em; }
+    .reading > span em { color: var(--muted); font-style: normal; }
+    .reading h2 { margin: 7px 0 5px; font: 500 20px/1.25 var(--serif); letter-spacing: -.015em; }
+    .reading p { margin: 0; color: #656158; font-size: 8px; line-height: 1.65; }
+    .reading-foot { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 11px; padding-top: 8px; border-top: 1px solid var(--line); }
+    .reading-foot span { color: var(--muted); font: 6px var(--mono); }
+    .reading-foot button { min-height: 30px; padding: 0 10px; border: 1px solid var(--ink); background: var(--ink); color: var(--paper); font-size: 8px; }
+
+    .bottom-band {
+      margin-top: 17px;
+      border-top: 1px solid var(--ink);
+      border-bottom: 1px solid var(--ink);
+      min-height: 82px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr) auto;
+      align-items: stretch;
+    }
+    .legend-item {
+      padding: 12px 15px;
+      border-right: 1px solid var(--line);
+      display: grid;
+      grid-template-columns: 8px 1fr;
+      gap: 9px;
+      align-content: center;
+    }
+    .legend-item i { width: 7px; height: 7px; margin-top: 2px; border-radius: 50%; background: var(--legend); }
+    .legend-item:nth-child(1) { --legend: var(--ochre); }
+    .legend-item:nth-child(2) { --legend: var(--coral); }
+    .legend-item:nth-child(3) { --legend: var(--blue); }
+    .legend-item:nth-child(4) { --legend: var(--teal); }
+    .legend-item span { display: block; color: var(--muted); font: 7px var(--mono); }
+    .legend-item strong { display: block; margin-top: 3px; font-size: 9px; font-weight: 600; }
+    .legend-note { align-self: center; max-width: 250px; padding: 0 15px; color: var(--muted); font: 6px/1.6 var(--mono); }
+    .method { margin: 12px 0 0; color: var(--muted); font: 6px/1.65 var(--mono); }
+
+    .intro-copy { font-size: 13px; }
+    .photo-note { font-size: 9px; }
+    .strip-copy strong { font-size: 13px; }
+    .strip-copy p,
+    .reading p { font-size: 10px; }
+    .dimension-copy strong { font-size: 12px; }
+    .legend-item strong { font-size: 10px; }
+
+    @media (max-width: 1120px) {
+      .studio { grid-template-columns: minmax(0, 1.05fr) minmax(390px, .95fr); }
+      .evidence-field { min-height: 610px; }
+      .main-photo { width: 66%; height: 340px; }
+      .fragment-comments { width: 28%; }
+      .fragment-account { width: 30%; }
+      .fingerprint { height: 250px; }
+    }
+    @media (max-width: 900px) {
+      .topbar { grid-template-columns: 1fr auto; padding: 0 18px; }
+      .case-center { display: none; }
+      .page { width: calc(100% - 28px); }
+      .intro { grid-template-columns: 1fr 240px; gap: 22px; }
+      .studio { grid-template-columns: 1fr; }
+      .portrait-panel { padding-left: 0; }
+      .fingerprint { height: 300px; }
+      .bottom-band { grid-template-columns: repeat(2, 1fr); }
+      .legend-item:nth-child(2) { border-right: 0; }
+      .legend-item:nth-child(3), .legend-item:nth-child(4) { border-top: 1px solid var(--line); }
+      .legend-note { grid-column: 1 / 3; border-top: 1px solid var(--line); padding: 11px 14px; max-width: none; }
+    }
+    @media (max-width: 620px) {
+      .topbar { padding: 0 14px; }
+      .brand span { display: none; }
+      .brand img { width: 88px; height: 48px; }
+      .top-actions button:first-child { display: none; }
+      .page { padding-top: 20px; }
+      .intro { grid-template-columns: 1fr; }
+      .intro-side { max-width: 300px; }
+      h1 { font-size: clamp(37px, 11vw, 53px); }
+      .evidence-field { min-height: 670px; }
+      .main-photo { left: 8px; width: calc(100% - 16px); height: 310px; }
+      .fragment-comments { right: 10px; top: 375px; width: 43%; height: 180px; }
+      .fragment-account { right: auto; left: 12px; top: 422px; width: 43%; height: 154px; }
+      .evidence-strip { left: 8px; right: 8px; grid-template-columns: 72px 1fr; }
+      .strip-action { display: none; }
+      .fingerprint { height: 280px; }
+      .dimension-row { min-height: 60px; }
+      .bottom-band { grid-template-columns: 1fr; }
+      .legend-item { border-right: 0; border-top: 1px solid var(--line); }
+      .legend-item:first-child { border-top: 0; }
+      .legend-note { grid-column: auto; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; }
+    }
+  </style>
+</head>
+<body data-active="u">
+  <header class="topbar">
+    <div class="brand">
+      <img src="../fronted/public/trulens-nav-logo.png" alt="TruLens" />
+      <span>CASE 027 / TRUST PORTRAIT</span>
+    </div>
+    <div class="case-center"><i></i><strong>高风险</strong><span>· 9 条证据 · 虚构演示</span></div>
+    <div class="top-actions">
+      <button type="button" id="reweaveButton">重新织入证据</button>
+      <button type="button">生成核验卡</button>
+    </div>
+  </header>
+
+  <main class="page">
+    <section class="intro">
+      <div>
+        <p class="intro-kicker">TRUST IS MADE OF MANY SMALL SIGNALS / 2026.05.10</p>
+        <h1>一张对比图，<br /><em>四种可信度。</em></h1>
+        <p class="intro-copy">这篇「7 天逆袭」笔记不是单一维度的真假题。图片里的纹理、评论里的节奏、账号的发布习惯与文案中的断言，共同织出一张可读的信任纹理。</p>
+      </div>
+      <div class="intro-side">
+        <span><b>DEMO SAMPLE</b><b>综合可信度</b></span>
+        <strong>36<small> / 100</small></strong>
+        <p>高风险 · 评论区异常最集中<br />建议降权并转人工复核</p>
+      </div>
+    </section>
+
+    <section class="studio">
+      <section class="evidence-field" aria-label="证据拼合墙">
+        <div class="field-label"><strong>EVIDENCE FIELD</strong> · 04 FRAGMENTS / 09 SIGNALS</div>
+        <svg class="threads" viewBox="0 0 760 625" preserveAspectRatio="none" aria-hidden="true">
+          <path class="thread-t" d="M110 58 C235 22 420 31 560 62" />
+          <path class="thread-r" d="M182 214 C304 157 441 164 610 108" />
+          <path class="thread-u" d="M564 270 C596 388 611 443 650 512" />
+          <path class="thread-s" d="M126 449 C242 408 365 456 566 527" />
+          <circle cx="560" cy="62" r="3" fill="var(--ochre)" />
+          <circle cx="610" cy="108" r="3" fill="var(--coral)" />
+          <circle cx="650" cy="512" r="3" fill="var(--blue)" />
+          <circle cx="566" cy="527" r="3" fill="var(--teal)" />
+        </svg>
+
+        <figure class="main-photo">
+          <img src="../fronted/public/evidence/skin-comparison.jpg" alt="虚构的护肤前后对比图" />
+          <span class="photo-tag">R / BEFORE — AFTER</span>
+          <button class="pin pin-a" type="button" aria-label="查看纹理异常" data-label="纹理断裂 0.91"></button>
+          <button class="pin pin-b" type="button" aria-label="查看评论异常" data-label="相似评论 0.94"></button>
+          <button class="pin pin-c" type="button" aria-label="查看文案异常" data-label="功效断言 0.89"></button>
+          <figcaption class="photo-note"><strong>R—01 / IMAGE FORENSICS</strong>对比图局部纹理与主光源方向不一致。异常不等于直接证明功效造假。</figcaption>
+        </figure>
+
+        <button class="fragment fragment-comments" type="button" data-dimension="u" data-detail="37 个账号在 11 分钟内使用高度相似的句式，评论聚类向同一时间窗口收拢。">
+          <img src="../fronted/public/evidence/comments-1.jpg" alt="虚构的评论截图" />
+          <span>U / COMMENT FIELD</span>
+        </button>
+        <button class="fragment fragment-account" type="button" data-dimension="t" data-detail="14 天内 37 篇同题材笔记，封面模板与标题结构重复，呈疑似矩阵化运营特征。">
+          <img src="../fronted/public/evidence/account-history.jpg" alt="虚构的账号主页截图" />
+          <span>T / ACCOUNT HISTORY</span>
+        </button>
+
+        <div class="evidence-strip">
+          <div class="strip-index"><span id="stripCode">U / 02</span><strong id="stripScore">28</strong></div>
+          <div class="strip-copy">
+            <strong id="stripTitle">评论区是最集中的异常场。</strong>
+            <p id="stripText">37 个账号在 11 分钟内使用高度相似的句式，评论聚类向同一时间窗口收拢。</p>
+          </div>
+          <button class="strip-action" type="button" aria-label="展开证据详情">↗</button>
+        </div>
+      </section>
+
+      <aside class="portrait-panel">
+        <div class="portrait-head"><strong>TRUST PORTRAIT / T—R—U—S</strong><span>信度越高，纹理越完整</span></div>
+        <div class="fingerprint" id="fingerprint">
+          <svg viewBox="0 0 460 275" aria-hidden="true">
+            <ellipse class="guide" cx="230" cy="137" rx="191" ry="101" />
+            <ellipse class="guide" cx="230" cy="137" rx="160" ry="78" />
+            <ellipse class="guide" cx="230" cy="137" rx="125" ry="54" />
+            <path class="arc arc-t" d="M65 150 C38 82 112 24 222 21 C327 18 406 75 398 139" />
+            <path class="arc arc-r" d="M55 180 C47 119 117 59 225 55 C332 51 420 121 399 190" />
+            <path class="arc arc-u" d="M85 223 C65 173 123 107 229 101 C338 96 421 174 384 234" />
+            <path class="arc arc-s" d="M123 260 C92 230 137 177 230 169 C328 161 397 218 355 263" />
+            <g class="tick">
+              <line x1="39" y1="137" x2="49" y2="137" /><line x1="411" y1="137" x2="421" y2="137" />
+              <line x1="230" y1="27" x2="230" y2="17" /><line x1="230" y1="257" x2="230" y2="267" />
+              <line x1="104" y1="55" x2="97" y2="48" /><line x1="355" y1="219" x2="362" y2="226" />
+              <line x1="356" y1="55" x2="363" y2="48" /><line x1="104" y1="219" x2="97" y2="226" />
+            </g>
+          </svg>
+          <div class="score-center"><span>OVERALL TRUST</span><strong>36</strong><small>/ 100</small><em>HIGH RISK</em></div>
+        </div>
+        <div class="portrait-caption"><span>每条短划代表一个可复核信号。<br />缺失的材料不会被画成 0 分。</span><span>09 SIGNALS<br />04 DIMENSIONS</span></div>
+
+        <div class="dimension-list">
+          <button class="dimension-row t" type="button" data-dimension="t" data-detail="14 天内 37 篇同题材笔记，封面模板与标题结构重复，呈疑似矩阵化运营特征。">
+            <b>T</b>
+            <div class="dimension-copy">
+              <strong>账号可信度</strong>
+              <span><i class="bar"><i style="width:46%"></i></i><small>37 POSTS / 14D</small></span>
+            </div>
+            <em>46<small>/100</small></em>
+          </button>
+          <button class="dimension-row r" type="button" data-dimension="r" data-detail="对比图在左颊与眼下区域出现纹理断裂、光照方向偏差和二次压缩痕迹。">
+            <b>R</b>
+            <div class="dimension-copy">
+              <strong>图片真实性</strong>
+              <span><i class="bar"><i style="width:42%"></i></i><small>4 ANOMALIES</small></span>
+            </div>
+            <em>42<small>/100</small></em>
+          </button>
+          <button class="dimension-row u active" type="button" data-dimension="u" data-detail="37 个账号在 11 分钟内使用高度相似的句式，评论聚类向同一时间窗口收拢。">
+            <b>U</b>
+            <div class="dimension-copy">
+              <strong>评论区真实性</strong>
+              <span><i class="bar"><i style="width:28%"></i></i><small>SIMILARITY 0.86</small></span>
+            </div>
+            <em>28<small>/100</small></em>
+          </button>
+          <button class="dimension-row s" type="button" data-dimension="s" data-detail="「7 天逆袭」「闭眼冲」与无来源专家背书共同出现，文案营销风险较高。">
+            <b>S</b>
+            <div class="dimension-copy">
+              <strong>文案真实性</strong>
+              <span><i class="bar"><i style="width:38%"></i></i><small>3 CLAIM TAGS</small></span>
+            </div>
+            <em>38<small>/100</small></em>
+          </button>
+        </div>
+
+        <div class="reading">
+          <span><b id="readingCode">U / COMMENT FIELD</b><em id="readingScore">28 / 100</em></span>
+          <h2 id="readingTitle">先看评论，不要先看分数。</h2>
+          <p id="readingText">37 个账号在 11 分钟内使用高度相似的句式，评论聚类向同一时间窗口收拢。这是最强的异常汇聚点，但仍需结合账号历史判断是否属于协同互动。</p>
+          <div class="reading-foot"><span id="readingMeta">EVIDENCE 02 · 0.94 · 可复核</span><button type="button">加入人工复核</button></div>
+        </div>
+      </aside>
+    </section>
+
+    <section class="bottom-band" aria-label="四维图例">
+      <div class="legend-item"><i></i><div><span>T / ACCOUNT</span><strong>账号可信度 46</strong></div></div>
+      <div class="legend-item"><i></i><div><span>R / IMAGE</span><strong>图片真实性 42</strong></div></div>
+      <div class="legend-item"><i></i><div><span>U / COMMENT</span><strong>评论区真实性 28</strong></div></div>
+      <div class="legend-item"><i></i><div><span>S / LANGUAGE</span><strong>文案真实性 38</strong></div></div>
+      <div class="legend-note">演示数据不构成对真实人物、品牌或平台的指控。AI 只解释信号，不替代人工复核。</div>
+    </section>
+    <p class="method">TRULENS / CONTENT TRUST PORTRAIT · 虚构样本 · 四维交叉核验 · 2026.05.10</p>
+  </main>
+
+  <script>
+    const detailMap = {
+      t: {
+        code: "T / ACCOUNT",
+        score: "46 / 100",
+        title: "账号不是单篇内容，而是一条轨迹。",
+        text: "14 天内 37 篇同题材笔记，封面模板与标题结构重复，呈疑似矩阵化运营特征。发布时间与评论峰值频繁重合。",
+        meta: "EVIDENCE 03 · 0.82 · 可复核",
+        stripCode: "T / 03",
+        stripScore: "46",
+        stripTitle: "账号节奏像一条被批量排好的时间线。",
+        stripText: "14 天内 37 篇同题材笔记，视觉模板、标题结构与发布时间高度重复。"
+      },
+      r: {
+        code: "R / IMAGE",
+        score: "42 / 100",
+        title: "图片异常，不等于功效造假。",
+        text: "对比图在左颊与眼下区域出现纹理断裂、光照方向偏差和二次压缩痕迹。模型给出局部取证结果，仍需原始文件与拍摄链路。",
+        meta: "EVIDENCE 01 · 0.91 · 可复核",
+        stripCode: "R / 01",
+        stripScore: "42",
+        stripTitle: "证据从像素的断裂处开始。",
+        stripText: "左颊与眼下区域的纹理、光照边界和压缩痕迹不一致，建议索取原始拍摄文件。"
+      },
+      u: {
+        code: "U / COMMENT FIELD",
+        score: "28 / 100",
+        title: "先看评论，不要先看分数。",
+        text: "37 个账号在 11 分钟内使用高度相似的句式，评论聚类向同一时间窗口收拢。这是最强的异常汇聚点，但仍需结合账号历史判断是否属于协同互动。",
+        meta: "EVIDENCE 02 · 0.94 · 可复核",
+        stripCode: "U / 02",
+        stripScore: "28",
+        stripTitle: "评论区是最集中的异常场。",
+        stripText: "37 个账号在 11 分钟内使用高度相似的句式，评论聚类向同一时间窗口收拢。"
+      },
+      s: {
+        code: "S / LANGUAGE",
+        score: "38 / 100",
+        title: "话术把「可能」写成了「一定」。",
+        text: "「7 天逆袭」「敏感肌闭眼冲」与无来源专家背书共同出现，命中绝对化功效与从众暗示。建议要求补充合作披露与依据。",
+        meta: "EVIDENCE 04 · 0.89 · 可复核",
+        stripCode: "S / 04",
+        stripScore: "38",
+        stripTitle: "文案把不确定的功效写成了确定结论。",
+        stripText: "绝对化功效、无来源专家背书与从众暗示共同出现，缺少可核验依据。"
+      }
+    };
+
+    const readingCode = document.getElementById("readingCode");
+    const readingScore = document.getElementById("readingScore");
+    const readingTitle = document.getElementById("readingTitle");
+    const readingText = document.getElementById("readingText");
+    const readingMeta = document.getElementById("readingMeta");
+    const stripCode = document.getElementById("stripCode");
+    const stripScore = document.getElementById("stripScore");
+    const stripTitle = document.getElementById("stripTitle");
+    const stripText = document.getElementById("stripText");
+    const fingerprint = document.getElementById("fingerprint");
+
+    function selectDimension(dimension) {
+      const item = detailMap[dimension];
+      if (!item) return;
+      document.body.dataset.active = dimension;
+      document.querySelectorAll(".dimension-row").forEach((row) => {
+        row.classList.toggle("active", row.dataset.dimension === dimension);
+      });
+      readingCode.textContent = item.code;
+      readingScore.textContent = item.score;
+      readingTitle.textContent = item.title;
+      readingText.textContent = item.text;
+      readingMeta.textContent = item.meta;
+      stripCode.textContent = item.stripCode;
+      stripScore.textContent = item.stripScore;
+      stripTitle.textContent = item.stripTitle;
+      stripText.textContent = item.stripText;
+      document.querySelectorAll(".fragment").forEach((fragment) => {
+        fragment.classList.toggle("active", fragment.dataset.dimension === dimension);
+      });
+    }
+
+    document.querySelectorAll(".dimension-row, .fragment").forEach((button) => {
+      button.addEventListener("click", () => selectDimension(button.dataset.dimension));
+    });
+
+    document.querySelectorAll(".pin").forEach((pin, index) => {
+      pin.addEventListener("click", () => {
+        const dims = ["r", "u", "s"];
+        selectDimension(dims[index]);
+        fingerprint.classList.remove("reweaving");
+        requestAnimationFrame(() => fingerprint.classList.add("reweaving"));
+      });
+    });
+
+    const reweaveButton = document.getElementById("reweaveButton");
+    reweaveButton.addEventListener("click", () => {
+      reweaveButton.disabled = true;
+      reweaveButton.textContent = "重织信号…";
+      fingerprint.classList.remove("reweaving");
+      void fingerprint.offsetWidth;
+      fingerprint.classList.add("reweaving");
+      setTimeout(() => {
+        reweaveButton.textContent = "信号已更新";
+        setTimeout(() => {
+          reweaveButton.textContent = "重新织入证据";
+          reweaveButton.disabled = false;
+        }, 1000);
+      }, 1100);
+    });
+  </script>
+</body>
+</html>

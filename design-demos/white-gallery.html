@@ -1,0 +1,680 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="data:," />
+  <title>TruLens · 证据画廊方向</title>
+  <!--
+    Direction 01 · Japanese white gallery.
+    Assumption: first screen is a live case-review surface, not a marketing landing page.
+    Content, scores, accounts and comments are explicitly fictional demo data.
+  -->
+  <style>
+    @import url("https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600&family=Noto+Serif+SC:wght@500;600&display=swap");
+
+    :root {
+      --paper: #f5f4ef;
+      --white: #fbfbf8;
+      --ink: #171714;
+      --muted: #77746c;
+      --line: #d9d6cf;
+      --soft: #eae7df;
+      --wine: #6d1320;
+      --signal: #d44e2f;
+      --safe: #1d765f;
+      --serif: "Noto Serif SC", "Songti SC", "SimSun", serif;
+      --sans: "Manrope", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+      --mono: "DM Mono", "Consolas", monospace;
+    }
+
+    * { box-sizing: border-box; }
+    html { background: var(--paper); }
+    body {
+      margin: 0;
+      min-width: 320px;
+      color: var(--ink);
+      background:
+        linear-gradient(var(--paper), var(--paper)),
+        var(--paper);
+      font-family: var(--sans);
+      -webkit-font-smoothing: antialiased;
+    }
+    button { color: inherit; font: inherit; cursor: pointer; }
+    button:focus-visible { outline: 2px solid var(--signal); outline-offset: 3px; }
+    img { display: block; max-width: 100%; }
+
+    .topbar {
+      min-height: 68px;
+      padding: 0 34px;
+      border-bottom: 1px solid var(--line);
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      background: rgba(251, 251, 248, .88);
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      backdrop-filter: blur(16px);
+    }
+    .brand { display: flex; align-items: center; gap: 15px; min-width: 0; }
+    .brand img { width: 108px; height: 58px; object-fit: contain; filter: grayscale(1) contrast(2.2); }
+    .brand span {
+      padding-left: 15px;
+      border-left: 1px solid var(--line);
+      color: var(--muted);
+      font: 10px/1.4 var(--mono);
+      letter-spacing: .12em;
+      white-space: nowrap;
+    }
+    .display-note {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font: 10px var(--mono);
+      letter-spacing: .06em;
+    }
+    .display-note i { width: 5px; height: 5px; border-radius: 50%; background: var(--safe); }
+    .top-actions { justify-self: end; display: flex; align-items: center; gap: 8px; }
+    .top-actions button {
+      min-height: 34px;
+      padding: 0 14px;
+      border: 1px solid var(--line);
+      background: transparent;
+      font-size: 11px;
+    }
+    .top-actions button:last-child { background: var(--ink); border-color: var(--ink); color: var(--white); }
+    #rerunButton { min-width: 88px; }
+
+    .page {
+      width: min(1372px, calc(100% - 68px));
+      margin: 0 auto;
+      padding: 30px 0 54px;
+    }
+    .masthead {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 330px;
+      gap: 42px;
+      align-items: end;
+      padding-bottom: 24px;
+    }
+    .kicker {
+      margin: 0 0 14px;
+      color: var(--muted);
+      font: 9px var(--mono);
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+    h1 {
+      margin: 0;
+      max-width: 790px;
+      font: 500 clamp(42px, 4.6vw, 70px)/.98 var(--serif);
+      letter-spacing: -.035em;
+      text-wrap: balance;
+    }
+    h1 span { color: var(--wine); }
+    .case-subtitle {
+      max-width: 620px;
+      margin: 14px 0 0;
+      color: #55524c;
+      font-size: 13px;
+      line-height: 1.85;
+    }
+    .score-block {
+      padding: 16px 0 2px;
+      border-top: 1px solid var(--ink);
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: end;
+      gap: 12px;
+    }
+    .score-block > span { color: var(--muted); font: 9px var(--mono); letter-spacing: .1em; }
+    .score-block strong {
+      grid-row: 2 / 4;
+      font: 500 88px/.78 var(--serif);
+      letter-spacing: -.065em;
+      font-variant-numeric: tabular-nums;
+    }
+    .score-block strong small { margin-left: 5px; color: var(--muted); font: 10px var(--mono); letter-spacing: 0; }
+    .score-block em {
+      justify-self: end;
+      padding: 5px 8px;
+      border: 1px solid #dbbdb6;
+      color: var(--signal);
+      font: normal 10px var(--mono);
+      letter-spacing: .08em;
+    }
+    .score-block p {
+      grid-column: 1 / 3;
+      margin: 2px 0 0;
+      color: var(--muted);
+      font-size: 10px;
+      line-height: 1.6;
+    }
+
+    .review {
+      display: grid;
+      grid-template-columns: minmax(0, 1.7fr) minmax(330px, .82fr);
+      gap: 25px;
+      align-items: stretch;
+    }
+    .plate {
+      min-width: 0;
+      border-top: 1px solid var(--ink);
+    }
+    .plate-head {
+      min-height: 42px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      color: var(--muted);
+      font: 9px var(--mono);
+      letter-spacing: .08em;
+    }
+    .plate-head strong { color: var(--ink); font-weight: 500; }
+    .plate-head .plate-status { display: flex; align-items: center; gap: 6px; color: var(--wine); }
+    .plate-head .plate-status i { width: 5px; height: 5px; background: currentColor; border-radius: 50%; }
+
+    .image-stage {
+      --split: 50%;
+      position: relative;
+      min-height: 474px;
+      overflow: hidden;
+      background: #ddd8d1;
+      border: 1px solid var(--line);
+      cursor: crosshair;
+      isolation: isolate;
+    }
+    .image-stage > img {
+      width: 100%;
+      height: 474px;
+      object-fit: cover;
+      object-position: center 46%;
+      filter: saturate(.82) contrast(.97);
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+    .image-stage::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(90deg, transparent calc(var(--split) - .5px), rgba(255,255,255,.9) var(--split), transparent calc(var(--split) + .5px)),
+        linear-gradient(180deg, rgba(23,23,20,.02), rgba(23,23,20,.11));
+      z-index: 4;
+    }
+    .image-chip {
+      position: absolute;
+      z-index: 7;
+      top: 15px;
+      padding: 6px 8px;
+      color: var(--ink);
+      background: rgba(251,251,248,.86);
+      border: 1px solid rgba(255,255,255,.9);
+      font: 8px var(--mono);
+      letter-spacing: .08em;
+      backdrop-filter: blur(8px);
+    }
+    .image-chip.left { left: 15px; }
+    .image-chip.right { right: 15px; }
+    .split-handle {
+      position: absolute;
+      z-index: 8;
+      left: var(--split);
+      top: 50%;
+      width: 34px;
+      height: 34px;
+      transform: translate(-50%, -50%);
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(23,23,20,.32);
+      border-radius: 50%;
+      background: rgba(251,251,248,.92);
+      box-shadow: 0 8px 22px rgba(24,22,18,.16);
+      font: 14px var(--mono);
+      pointer-events: none;
+    }
+    .scan-line {
+      position: absolute;
+      z-index: 5;
+      left: 0;
+      right: 0;
+      top: 30%;
+      height: 1px;
+      background: rgba(255,255,255,.9);
+      box-shadow: 0 0 0 1px rgba(109,19,32,.1), 0 0 20px rgba(255,255,255,.9);
+      animation: scan 4.6s ease-in-out infinite;
+      pointer-events: none;
+    }
+    @keyframes scan {
+      0%, 100% { top: 23%; opacity: .25; }
+      45% { top: 70%; opacity: .9; }
+      55% { top: 70%; opacity: .9; }
+    }
+    .hotspot {
+      position: absolute;
+      z-index: 9;
+      width: 20px;
+      height: 20px;
+      padding: 0;
+      border: 1px solid var(--white);
+      border-radius: 50%;
+      background: rgba(109,19,32,.75);
+      box-shadow: 0 0 0 5px rgba(251,251,248,.22);
+    }
+    .hotspot::before, .hotspot::after {
+      content: "";
+      position: absolute;
+      inset: -6px;
+      border: 1px solid rgba(251,251,248,.78);
+      border-radius: 50%;
+      animation: pulse 2.5s ease-out infinite;
+    }
+    .hotspot::after { animation-delay: 1.2s; }
+    .hotspot:hover, .hotspot.selected { background: var(--signal); }
+    .hotspot-a { left: 34%; top: 57%; }
+    .hotspot-b { left: 72%; top: 43%; }
+    .hotspot-c { left: 61%; top: 70%; }
+    @keyframes pulse {
+      0% { transform: scale(.6); opacity: .8; }
+      100% { transform: scale(1.8); opacity: 0; }
+    }
+    .annotation {
+      position: absolute;
+      z-index: 10;
+      left: 16px;
+      bottom: 16px;
+      max-width: 300px;
+      padding: 11px 13px;
+      border: 1px solid rgba(255,255,255,.75);
+      background: rgba(24,22,19,.76);
+      color: #fff;
+      backdrop-filter: blur(10px);
+      transform: translateY(8px);
+      opacity: 0;
+      pointer-events: none;
+      transition: .2s ease;
+    }
+    .annotation.visible { opacity: 1; transform: translateY(0); }
+    .annotation span { display: block; margin-bottom: 4px; font: 8px var(--mono); letter-spacing: .08em; opacity: .62; }
+    .annotation strong { display: block; font-size: 11px; font-weight: 500; }
+    .annotation p { margin: 5px 0 0; color: rgba(255,255,255,.76); font-size: 9px; line-height: 1.55; }
+    .scan-badge {
+      position: absolute;
+      z-index: 7;
+      right: 16px;
+      bottom: 16px;
+      padding: 8px 10px;
+      background: rgba(251,251,248,.88);
+      border: 1px solid rgba(255,255,255,.88);
+      font: 8px var(--mono);
+      line-height: 1.65;
+      backdrop-filter: blur(10px);
+      transition: .25s ease;
+    }
+    .scan-badge strong { font-size: 9px; font-weight: 500; }
+    .image-stage.scanning .scan-badge { background: var(--wine); color: white; }
+    .plate-caption {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 22px;
+      padding: 12px 0 0;
+      color: var(--muted);
+      font-size: 9px;
+      line-height: 1.7;
+    }
+    .plate-caption strong { display: block; margin-bottom: 2px; color: var(--ink); font-weight: 500; }
+    .plate-caption .caption-index { font: 9px var(--mono); white-space: nowrap; }
+
+    .verdict {
+      min-width: 0;
+      border-top: 1px solid var(--ink);
+      display: flex;
+      flex-direction: column;
+    }
+    .verdict-head { min-height: 42px; display: flex; align-items: center; justify-content: space-between; font: 9px var(--mono); letter-spacing: .08em; }
+    .verdict-head span:last-child { color: var(--muted); }
+    .risk-bar { position: relative; height: 7px; margin: 5px 0 17px; background: linear-gradient(90deg, #d44e2f 0 33%, #d9b565 33% 67%, #38836f 67%); }
+    .risk-bar i { position: absolute; top: -5px; left: 36%; width: 2px; height: 17px; background: var(--ink); }
+    .risk-bar i::before { content: "36"; position: absolute; top: -17px; left: -7px; font: normal 8px var(--mono); }
+    .dimensions { border-top: 1px solid var(--line); }
+    .dimension {
+      width: 100%;
+      min-height: 62px;
+      padding: 9px 0;
+      border: 0;
+      border-bottom: 1px solid var(--line);
+      background: transparent;
+      display: grid;
+      grid-template-columns: 34px 1fr 42px;
+      align-items: center;
+      gap: 10px;
+      text-align: left;
+      transition: background .18s ease, padding .18s ease;
+    }
+    .dimension:hover, .dimension.active { background: rgba(109,19,32,.045); padding-left: 7px; padding-right: 7px; }
+    .dimension > b {
+      width: 26px;
+      height: 26px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--line);
+      font: 10px var(--mono);
+      font-weight: 400;
+    }
+    .dimension.active > b { border-color: var(--wine); color: var(--wine); }
+    .dimension-copy { min-width: 0; }
+    .dimension-copy strong { display: flex; justify-content: space-between; gap: 10px; font-size: 11px; font-weight: 500; }
+    .dimension-copy strong em { color: var(--muted); font: normal 8px var(--mono); }
+    .mini-meter { height: 2px; margin: 8px 0 6px; background: var(--soft); overflow: hidden; }
+    .mini-meter i { display: block; height: 100%; background: var(--wine); }
+    .dimension-copy small { display: block; color: var(--muted); font-size: 8px; line-height: 1.45; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .dimension > strong { justify-self: end; font: 500 18px var(--serif); font-variant-numeric: tabular-nums; }
+    .dimension > strong small { color: var(--muted); font: 7px var(--mono); }
+    .dimension-detail {
+      min-height: 74px;
+      margin-top: 13px;
+      padding: 12px 14px;
+      border-left: 2px solid var(--wine);
+      background: rgba(109,19,32,.045);
+    }
+    .dimension-detail span { color: var(--wine); font: 8px var(--mono); letter-spacing: .08em; }
+    .dimension-detail p { margin: 5px 0 0; color: #57534c; font-size: 9px; line-height: 1.65; }
+    .evidence-list { list-style: none; margin: 17px 0 0; padding: 0; border-top: 1px solid var(--line); }
+    .evidence-list li {
+      display: grid;
+      grid-template-columns: 25px 1fr auto;
+      gap: 8px;
+      align-items: start;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .evidence-list li > span { color: var(--muted); font: 8px var(--mono); }
+    .evidence-list p { margin: 0; color: #4e4b45; font-size: 9px; line-height: 1.55; }
+    .evidence-list strong { color: var(--wine); font: 500 8px var(--mono); white-space: nowrap; }
+    .verdict-actions { margin-top: auto; padding-top: 13px; display: grid; gap: 7px; }
+    .verdict-actions button {
+      min-height: 38px;
+      border: 1px solid var(--ink);
+      background: transparent;
+      font-size: 10px;
+    }
+    .verdict-actions button:first-child { background: var(--ink); color: var(--white); }
+
+    .contact-sheet {
+      margin-top: 31px;
+      padding-top: 18px;
+      border-top: 1px solid var(--ink);
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(260px, .76fr);
+      gap: 20px;
+    }
+    .mini-plate { min-width: 0; }
+    .mini-plate-head { display: flex; justify-content: space-between; gap: 10px; margin-bottom: 8px; color: var(--muted); font: 8px var(--mono); letter-spacing: .06em; }
+    .mini-plate-head strong { color: var(--ink); font-weight: 500; }
+    .mini-plate-image { height: 205px; overflow: hidden; border: 1px solid var(--line); background: #ddd; }
+    .mini-plate-image img { width: 100%; height: 100%; object-fit: cover; object-position: top; filter: saturate(.8); transition: transform .4s ease; }
+    .mini-plate:hover .mini-plate-image img { transform: scale(1.015); }
+    .text-evidence { border-left: 1px solid var(--line); padding-left: 20px; }
+    .text-evidence blockquote {
+      margin: 0 0 15px;
+      font: 500 18px/1.65 var(--serif);
+      text-wrap: pretty;
+    }
+    .text-evidence mark { background: transparent; color: var(--wine); box-shadow: inset 0 -1px var(--wine); }
+    .text-evidence p { margin: 0; color: var(--muted); font-size: 9px; line-height: 1.7; }
+    .method-note {
+      margin: 20px 0 0;
+      color: var(--muted);
+      font-size: 8px;
+      line-height: 1.7;
+    }
+
+    .case-subtitle { font-size: 14px; }
+    .plate-caption,
+    .dimension-detail p,
+    .annotation p { font-size: 11px; }
+    .dimension-copy strong { font-size: 12px; }
+    .dimension-copy small,
+    .evidence-list p { font-size: 10px; }
+    .text-evidence p,
+    .method-note { font-size: 10px; }
+
+    @media (max-width: 1080px) {
+      .page { width: calc(100% - 40px); }
+      .masthead { grid-template-columns: 1fr 250px; gap: 22px; }
+      .review { grid-template-columns: minmax(0, 1.35fr) minmax(300px, .8fr); }
+      .image-stage, .image-stage > img { height: 420px; min-height: 420px; }
+      .contact-sheet { grid-template-columns: 1fr 1fr; }
+      .text-evidence { grid-column: 1 / 3; border-left: 0; border-top: 1px solid var(--line); padding: 16px 0 0; }
+    }
+    @media (max-width: 760px) {
+      .topbar { padding: 0 16px; grid-template-columns: 1fr auto; }
+      .display-note { display: none; }
+      .brand span { display: none; }
+      .brand img { width: 86px; height: 48px; }
+      .top-actions button:last-child { display: none; }
+      .page { width: calc(100% - 28px); padding-top: 21px; }
+      .masthead { grid-template-columns: 1fr; gap: 24px; }
+      .score-block { max-width: 310px; }
+      h1 { font-size: clamp(36px, 11vw, 52px); }
+      .review { grid-template-columns: 1fr; }
+      .image-stage, .image-stage > img { height: 360px; min-height: 360px; }
+      .contact-sheet { grid-template-columns: 1fr; }
+      .text-evidence { grid-column: auto; }
+      .mini-plate-image { height: 240px; }
+      .annotation { max-width: calc(100% - 100px); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <img src="../fronted/public/trulens-nav-logo.png" alt="TruLens" />
+      <span>CASE 027 / 美妆种草核验</span>
+    </div>
+    <div class="display-note"><i></i> 虚构样本 · 2026.05.10</div>
+    <div class="top-actions">
+      <button id="rerunButton" type="button">重跑核验</button>
+      <button type="button">导出档案</button>
+    </div>
+  </header>
+
+  <div class="page">
+    <section class="masthead">
+      <div>
+        <p class="kicker">CONTENT AUTHENTICITY REVIEW / PLATE 01—03</p>
+        <h1>7 天逆袭？<br /><span>先看证据。</span></h1>
+        <p class="case-subtitle">一篇声称「纯自费、敏感肌闭眼冲」的护肤笔记，在图片、评论、账号与文案四个维度同时出现异常。以下不是最终裁决，而是一份可复核的证据档案。</p>
+      </div>
+      <div class="score-block">
+        <span>综合可信度 / DEMO</span>
+        <strong>36<small>/ 100</small></strong>
+        <em>高风险</em>
+        <p>四维交叉后建议降权并转人工复核。重点风险来自评论区真实性与文案断言。</p>
+      </div>
+    </section>
+
+    <main class="review">
+      <section class="plate">
+        <div class="plate-head">
+          <span><strong>PLATE 01</strong> · 图像真实性 / R</span>
+          <span class="plate-status"><i></i> 4 处局部异常 · 置信度 0.91</span>
+        </div>
+        <div class="image-stage" id="compareStage">
+          <img src="../fronted/public/evidence/skin-comparison.jpg" alt="虚构的护肤前后对比图" draggable="false" />
+          <span class="image-chip left">BEFORE / 原图</span>
+          <span class="image-chip right">AFTER / 待核验</span>
+          <span class="split-handle" aria-hidden="true">↔</span>
+          <span class="scan-line" aria-hidden="true"></span>
+          <button class="hotspot hotspot-a" type="button" aria-label="查看左颊纹理异常" data-note="左颊局部高频纹理断裂，与周边皮肤噪声分布不一致。" data-strength="0.91"></button>
+          <button class="hotspot hotspot-b" type="button" aria-label="查看眼下光照异常" data-note="眼下高光边缘与面部主光源方向存在约 14° 偏差。" data-strength="0.87"></button>
+          <button class="hotspot hotspot-c" type="button" aria-label="查看下颌边界异常" data-note="下颌与颈部交界出现重复压缩痕迹，疑似局部重绘后二次保存。" data-strength="0.84"></button>
+          <div class="annotation" id="annotation">
+            <span>IMAGE FORENSICS · <b id="annotationStrength">0.91</b></span>
+            <strong>局部纹理与光照不一致</strong>
+            <p id="annotationText">左颊局部高频纹理断裂，与周边皮肤噪声分布不一致。</p>
+          </div>
+          <div class="scan-badge" id="scanBadge"><strong>像素取证完成</strong><br />ELA · 噪声 · 光照</div>
+        </div>
+        <div class="plate-caption">
+          <div><strong>对比图更像「修图后的结果」，而不是连续记录。</strong>拖动中线查看原图与待核验图。异常区域仅代表模型观察，不直接证明拍摄对象或功效造假。</div>
+          <span class="caption-index">R—01<br />1258 × 1126</span>
+        </div>
+      </section>
+
+      <aside class="verdict">
+        <div class="verdict-head"><span>四维审阅索引</span><span>点击切换</span></div>
+        <div class="risk-bar"><i></i></div>
+        <div class="dimensions">
+          <button class="dimension active" type="button" data-detail="评论区是本案最强风险信号：37 个账号在 11 分钟内完成了高度相似的互动，且多条评论共享相同句式与表情位置。" data-code="U">
+            <b>U</b>
+            <div class="dimension-copy">
+              <strong>评论区真实性 <em>37 个账号</em></strong>
+              <div class="mini-meter"><i style="width:28%"></i></div>
+              <small>模板相似度 0.86 · 异常发布间隔</small>
+            </div>
+            <strong>28<small>/100</small></strong>
+          </button>
+          <button class="dimension" type="button" data-detail="文案包含「7 天逆袭」「闭眼冲」等绝对化功效表述，并引用「皮肤科专家」但未给出可核验来源。模型判断为高营销风险，不等同于医学结论。" data-code="S">
+            <b>S</b>
+            <div class="dimension-copy">
+              <strong>文案真实性 <em>绝对化表述</em></strong>
+              <div class="mini-meter"><i style="width:38%"></i></div>
+              <small>专家背书缺少可追溯来源</small>
+            </div>
+            <strong>38<small>/100</small></strong>
+          </button>
+          <button class="dimension" type="button" data-detail="前后对比图的局部纹理、光照边界与压缩痕迹存在异常。图像模型只能指出「像生成或修改」，不能单独证明功效叙事为假。" data-code="R">
+            <b>R</b>
+            <div class="dimension-copy">
+              <strong>图片真实性 <em>4 处异常</em></strong>
+              <div class="mini-meter"><i style="width:42%"></i></div>
+              <small>纹理断裂 · 光照方向不一致</small>
+            </div>
+            <strong>42<small>/100</small></strong>
+          </button>
+          <button class="dimension" type="button" data-detail="账号在 14 天内发布 37 篇高度同题材笔记，发布时间与评论峰值频繁重合，呈现疑似矩阵化运营特征。" data-code="T">
+            <b>T</b>
+            <div class="dimension-copy">
+              <strong>账号可信度 <em>发布矩阵</em></strong>
+              <div class="mini-meter"><i style="width:46%"></i></div>
+              <small>14 天 37 篇 · 高频同题材</small>
+            </div>
+            <strong>46<small>/100</small></strong>
+          </button>
+        </div>
+        <div class="dimension-detail">
+          <span id="detailCode">U / 评论区真实性</span>
+          <p id="detailText">评论区是本案最强风险信号：37 个账号在 11 分钟内完成了高度相似的互动，且多条评论共享相同句式与表情位置。</p>
+        </div>
+        <ol class="evidence-list">
+          <li><span>01</span><p>37 个账号在同一时段使用「用了几天，先观察」句式</p><strong>0.94</strong></li>
+          <li><span>02</span><p>皮肤对比图局部纹理断裂，疑似二次生成</p><strong>0.91</strong></li>
+          <li><span>03</span><p>「专家背书」无姓名、机构、原文或链接</p><strong>0.89</strong></li>
+          <li><span>04</span><p>账号发布时间呈 6 小时固定间隔矩阵</p><strong>0.82</strong></li>
+        </ol>
+        <div class="verdict-actions">
+          <button type="button">加入人工复核队列</button>
+          <button type="button">查看完整证据链</button>
+        </div>
+      </aside>
+    </main>
+
+    <section class="contact-sheet" aria-label="补充证据">
+      <article class="mini-plate">
+        <div class="mini-plate-head"><span><strong>PLATE 02</strong> · 评论流</span><span>U—03</span></div>
+        <div class="mini-plate-image"><img src="../fronted/public/evidence/comments-1.jpg" alt="虚构的评论区截图" /></div>
+      </article>
+      <article class="mini-plate">
+        <div class="mini-plate-head"><span><strong>PLATE 03</strong> · 账号主页</span><span>T—07</span></div>
+        <div class="mini-plate-image"><img src="../fronted/public/evidence/account-history.jpg" alt="虚构的账号主页截图" /></div>
+      </article>
+      <article class="text-evidence">
+        <div class="mini-plate-head"><span><strong>PLATE 04</strong> · 文案切片</span><span>S—09</span></div>
+        <blockquote>「连续 7 天，<mark>敏感肌也能闭眼冲</mark>。皮肤科专家都说这个浓度可以天天用。」</blockquote>
+        <p>命中绝对化功效、无来源专业背书、稀缺性与从众暗示。建议要求创作者补充合作披露与实验依据。</p>
+      </article>
+    </section>
+    <p class="method-note">TruLens 演示稿 · 本页人物、笔记、评论与账号均为虚构样本。AI 结果用于内容治理辅助，不构成医学、购买或平台最终裁决建议。</p>
+  </div>
+
+  <script>
+    const stage = document.getElementById("compareStage");
+    const annotation = document.getElementById("annotation");
+    const annotationText = document.getElementById("annotationText");
+    const annotationStrength = document.getElementById("annotationStrength");
+    const scanBadge = document.getElementById("scanBadge");
+    const rerunButton = document.getElementById("rerunButton");
+    const detailCode = document.getElementById("detailCode");
+    const detailText = document.getElementById("detailText");
+    let dragging = false;
+
+    function setSplit(clientX) {
+      const box = stage.getBoundingClientRect();
+      const value = Math.max(6, Math.min(94, ((clientX - box.left) / box.width) * 100));
+      stage.style.setProperty("--split", value + "%");
+    }
+
+    stage.addEventListener("pointerdown", (event) => {
+      if (event.target.closest(".hotspot")) return;
+      dragging = true;
+      stage.setPointerCapture(event.pointerId);
+      setSplit(event.clientX);
+    });
+    stage.addEventListener("pointermove", (event) => {
+      if (dragging) setSplit(event.clientX);
+    });
+    stage.addEventListener("pointerup", () => { dragging = false; });
+
+    document.querySelectorAll(".hotspot").forEach((spot) => {
+      spot.addEventListener("click", () => {
+        document.querySelectorAll(".hotspot").forEach((item) => item.classList.remove("selected"));
+        spot.classList.add("selected");
+        annotationText.textContent = spot.dataset.note;
+        annotationStrength.textContent = spot.dataset.strength;
+        annotation.classList.add("visible");
+      });
+    });
+
+    document.querySelectorAll(".dimension").forEach((button) => {
+      button.addEventListener("click", () => {
+        document.querySelectorAll(".dimension").forEach((item) => item.classList.remove("active"));
+        button.classList.add("active");
+        detailCode.textContent = button.dataset.code + " / " + button.querySelector(".dimension-copy strong").childNodes[0].textContent.trim();
+        detailText.textContent = button.dataset.detail;
+      });
+    });
+
+    rerunButton.addEventListener("click", () => {
+      const steps = ["图像 1/4", "评论 2/4", "文案 3/4", "账号 4/4"];
+      let index = 0;
+      stage.classList.add("scanning");
+      scanBadge.innerHTML = "<strong>重新核验中</strong><br />" + steps[index];
+      rerunButton.textContent = "核验中…";
+      rerunButton.disabled = true;
+      const timer = setInterval(() => {
+        index += 1;
+        if (index < steps.length) {
+          scanBadge.innerHTML = "<strong>重新核验中</strong><br />" + steps[index];
+          return;
+        }
+        clearInterval(timer);
+        stage.classList.remove("scanning");
+        scanBadge.innerHTML = "<strong>核验完成</strong><br />4 个维度 · 9 条证据";
+        rerunButton.textContent = "已更新";
+        setTimeout(() => {
+          rerunButton.textContent = "重跑核验";
+          rerunButton.disabled = false;
+        }, 1300);
+      }, 430);
+    });
+  </script>
+</body>
+</html>

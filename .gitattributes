@@ -1,0 +1,5 @@
+*.zip !text !filter !merge !diff
+*.mp4 !text !filter !merge !diff
+*.pptx !text !filter !merge !diff
+*.png !text !filter !merge !diff
+*.jpg !text !filter !merge !diff

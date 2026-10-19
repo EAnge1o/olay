@@ -1,0 +1,110 @@
+Analyze the supplied marketing text for atomic claims, advertising risk, and
+localized wording/consistency signals.
+
+Return exactly one valid JSON object using the shape below. Do not add fields,
+markdown, or prose outside the JSON object.
+
+{
+  "claims": [
+    {
+      "id": "claim-1",
+      "text": "该精华具有淡纹功效",
+      "claim_type": "efficacy",
+      "verification_status": "insufficient_evidence",
+      "risk_score": 0.6,
+      "confidence": null,
+      "evidence_ids": [],
+      "observation": "文案称该精华具有淡纹功效。",
+      "reason": "没有提供能够验证该功效的材料。"
+    }
+  ],
+  "findings": [],
+  "ai_text_signal": null,
+  "semantic_anomaly_score": null,
+  "style_anomalies": [],
+  "text_integrity": {
+    "status": "insufficient_context",
+    "signals": []
+  }
+}
+
+Each item in text_integrity.signals must use this shape:
+{
+  "id": "text-integrity-1",
+  "signal_type": "style_shift",
+  "span": "原文中逐字引用的一个完整句段",
+  "related_span": "用于比较的另一个原文句段",
+  "start_char": null,
+  "end_char": null,
+  "related_start_char": null,
+  "related_end_char": null,
+  "observation": "描述两处文本中可直接观察到的差异。",
+  "reason": "说明为什么该差异值得复核，但不推断作者或编辑行为。",
+  "benign_alternative": "可能是引用、品牌模板、多人编辑或场景变化。",
+  "strength": "weak",
+  "source": "llm"
+}
+
+Allowed claim_type values: efficacy, numeric, time_bound, medical, safety,
+ingredient, endorsement, comparative, absolute, product_identity, other.
+Allowed verification_status values: supported, contradicted,
+insufficient_evidence, or null. Allowed finding categories: exaggerated_claim,
+unsupported_claim, contradicted_claim, semantic_anomaly, fake_endorsement_risk.
+Finding verdict values: supported, suspicious, contradicted,
+insufficient_evidence, unknown. Severity values: info, low, medium, high.
+Allowed text integrity signal_type values: style_shift, repetition,
+internal_contradiction, abrupt_transition. Strength is weak or moderate.
+Text integrity status is signals_found, no_clear_signal, or insufficient_context.
+
+Rules:
+- Treat the input as beauty-product seeding/recommendation content (种草/个人
+  分享). Subjective preference and personal experience are expected.
+- Do not create claims or findings solely for subjective impressions, ordinary
+  enthusiasm, fluency, polished grammar, lack of typos, common marketing phrases,
+  or missing personal details. None of these alone identifies AI authorship.
+- Keep objectively testable efficacy, numeric, time-bound, medical, safety,
+  ingredient, product identity, comparison, and endorsement statements in scope.
+- Split compound copy into atomic, independently testable claims.
+- Verify claims only against supplied evidence_items. Never use model memory as
+  evidence. With no relevant evidence, use insufficient_evidence; never call a
+  claim false or contradicted. Supported or contradicted requires a directly
+  relevant evidence ID.
+- A registered/planned endpoint is not an observed result. A product-name match
+  alone does not establish the same formula. Compare population, endpoint,
+  method, and time point; otherwise use insufficient_evidence.
+- Keep factual verification and advertising wording risk separate. An absolute,
+  medicalized, guaranteed, or authority-backed phrase can be risky without being
+  factually false.
+- Do not decide whether the text was AI-generated, human-written, or edited.
+  Keep ai_text_signal null. Do not use style signals as an AI probability or as
+  evidence that a factual claim is false.
+- Use text_integrity only for localized, directly observable wording patterns:
+  style_shift, repetition, internal_contradiction, or abrupt_transition.
+- For style_shift, compare two exact spans from this same text and describe the
+  difference (for example, a shift from personal colloquial wording to formal
+  technical prose). Do not flag generic wording or missing personal details by
+  themselves.
+- For repetition, quote both passages and report only meaningful repeated
+  wording with little new information. Do not flag ordinary emphasis.
+- For internal_contradiction, quote both statements. Only flag them when they
+  concern the same product, property, and sufficiently similar conditions. If
+  timing, usage, product, or context could explain the difference, use no signal
+  or insufficient_context.
+- For abrupt_transition, quote the text before and after the transition. Treat
+  it as a review cue, not proof of insertion or editing.
+- Every span and related_span must be an exact contiguous quote copied from the
+  input, including its original wording. Do not invent or paraphrase spans.
+- Use weak strength by default. Use moderate only when the contrast is clear and
+  both quoted spans support it. Never output a strong or calibrated probability.
+- If fewer than two meaningful text segments are available, set status to
+  insufficient_context. If no clear signal is found, use no_clear_signal; this
+  does not establish human authorship.
+- style_anomalies is a short legacy summary of the text_integrity signals only.
+  Keep semantic_anomaly_score null; text integrity observations are returned as
+  separate localized signals and are not folded into the deterministic risk score.
+- Findings contains claim and advertising-risk findings only. Text-integrity
+  signals are returned in text_integrity and normalized separately by the caller.
+- Keep observations, reasons, and benign alternatives concise. A reason must
+  state uncertainty and must not claim an edit occurred without source history.
+
+Analyze this JSON input:

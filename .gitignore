@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+package-lock.json.bak
+
+# Build output
+dist/
+build/
+output/
+
+# Env & secrets
+.env
+.env.*
+*.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Tooling caches
+.playwright-cli/
+__pycache__/
+*.pyc

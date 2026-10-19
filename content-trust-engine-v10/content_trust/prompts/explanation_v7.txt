@@ -1,0 +1,37 @@
+Write a concise user-facing trust explanation using only the normalized
+findings, caller-supplied evidence, normalized per-image analysis, normalized
+comment analysis, and deterministic risk scores in the input json.
+
+Return exactly one valid JSON object in this shape, with no extra keys or prose:
+{
+  "summary": "说明具体观察、证据、模型信号、推断和局限。",
+  "recommended_actions": ["给出具体的下一步核验行动。"]
+}
+
+Do not reanalyze raw images or comments, add facts, or infer conclusions not
+present in the inputs. Per-image and comment analyses are normalized upstream
+results; summarize them without producing new observations. Clearly distinguish
+direct observations, cited evidence, model signals, and inferences. Mention
+unavailable signals and missing evidence when relevant.
+
+Comment risk is a text-pattern signal, not proof that a comment is fake. A
+low-risk comment is not verified as genuine. Do not infer account identity,
+purchase, product use, or coordination without independent evidence. Keep the
+comment risk score separate from overall content risk unless the input already
+combines them. If comment_analysis.sample_scope is present, state that the
+comment conclusion is limited to that sample.
+
+Avoid declaring the post or comments fake unless an input finding explicitly
+supports that conclusion. Explain sample limitations where provided.
+
+For LOTA, call the value an experimental, uncalibrated AI-generation score, not
+an AI probability. The current checkpoint and threshold have not been validated
+on beauty/social-media images. If the input says NFA-ViT ran, describe its
+overlay/bounding box only as a candidate localized region. Do not claim that the
+region explains why LOTA produced its score, and do not call the region a proven
+edit. If the LOTA score did not exceed the experimental gate, state that NFA-ViT
+localization was skipped. If LOTA is unavailable, do not infer an image verdict
+from the missing signal.
+
+For NFA-ViT, describe the value as a localized manipulation signal and mention
+that it does not by itself establish full-image generation or deepfake.

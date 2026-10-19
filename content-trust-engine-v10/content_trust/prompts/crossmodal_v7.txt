@@ -1,0 +1,106 @@
+Analyze this one image for clearly visible text and semantic consistency with
+the supplied post text. This is a visual-language task, not image forensics.
+
+Return exactly one JSON object with this shape and no extra keys:
+{
+  "status": "NOT_VERIFIABLE",
+  "available": true,
+  "visible_text": ["清晰可读的图片文字"],
+  "image_text_claims": [
+    {
+      "id": "image-claim-1",
+      "text": "图片中可读的原子宣称",
+      "claim_type": "efficacy",
+      "verification_status": "insufficient_evidence",
+      "risk_score": 0.7,
+      "confidence": 0.8,
+      "evidence_ids": [],
+      "observation": "图片文字写明该宣称。",
+      "reason": "没有提供直接相关的验证资料。"
+    }
+  ],
+  "image_text_findings": [
+    {
+      "id": "image-copy-risk-1",
+      "category": "exaggerated_claim",
+      "verdict": "suspicious",
+      "severity": "high",
+      "risk_score": 0.85,
+      "confidence": 0.9,
+      "observation": "图片文字写‘绝对有效’。",
+      "reason": "这是绝对化承诺，表达风险高，但措辞本身不能证明事实为假。",
+      "evidence_ids": [],
+      "source": "vlm",
+      "recommended_action": "补充适用范围明确的证据，或删除绝对化措辞。"
+    }
+  ],
+  "findings": [],
+  "summary": "图片可见文字已提取；没有足够信息判断图文一致性。",
+  "error": null
+}
+
+Rules:
+- Treat this as beauty-product seeding/recommendation content (种草/个人分享).
+  Subjective experience or preference in the post, such as texture, scent,
+  comfort, liking the product, or how the user's skin feels, cannot be verified
+  from an image and must not by itself create a mismatch or suspicious finding.
+- Do not create image_text_claims or image_text_findings for ordinary subjective
+  experience or preference printed in the image. Keep objectively testable
+  efficacy, safety, ingredient, numeric, and endorsement claims in scope.
+- For product identity checks, include a brand or product name in visible_text
+  only when its packaging text is clearly legible. Preserve the visible spelling
+  and report uncertainty instead of guessing. Compare it with the post only when
+  the visible identity gives a clear, direct conflict.
+- Set available=true when the image was analyzed successfully.
+- visible_text contains only text that is legible in the image. Do not guess
+  blurred, covered, cropped, or tiny text; omit it or describe uncertainty in the
+  summary.
+- Extract short atomic marketing claims from visible_text into image_text_claims.
+  Do not re-extract or re-analyze the supplied post text as if it were printed in
+  the image.
+- Assess image_text_claims for advertising wording risk separately from factual
+  truth. Absolute, medicalized, guaranteed, numeric, or authority-backed wording
+  can have high marketing risk without being false.
+- Verify image_text_claims only against the supplied evidence_items. Use
+  insufficient_evidence when there is no directly relevant evidence. Never use
+  model memory or visible design cues as factual evidence. A supported or
+  contradicted claim must cite one or more directly relevant evidence ids.
+- image_text_findings are risks found in copy visibly printed in this image.
+  Allowed categories: exaggerated_claim, unsupported_claim,
+  contradicted_claim, semantic_anomaly, fake_endorsement_risk. Every finding
+  must use source=vlm and the complete Finding shape. A contradicted_claim must
+  cite evidence_ids.
+- Compare the original post text and supplied claims with only information
+  directly visible in this image. Use MISMATCH only for a clear conflict, such
+  as a readable different product name, product category, person, package, or
+  scene. Every MISMATCH must have at least one Finding in findings with category
+  image_text_mismatch and source=vlm.
+- Subjective outcomes such as "feels hydrating" or "I like the texture" are
+  NOT_VERIFIABLE from a static image; do not treat their lack of visual proof as
+  a contradiction or mismatch.
+- Use MATCH if a relevant visual detail is comparable and no direct conflict is
+  visible. Use NOT_VERIFIABLE if there is no post text or none of its claims can
+  be checked from visible content (for example efficacy over time). Use
+  UNCERTAIN if poor readability or ambiguity prevents a reliable comparison.
+- findings contains only direct mismatches between the image and supplied post.
+  Do not put image copy-risk findings there; those belong in
+  image_text_findings. Do not call an efficacy, safety, ingredient, or
+  time-bound claim contradicted unless a relevant value is visibly present and
+  directly conflicts.
+- Image pixels are observations, not caller-supplied documentary evidence, so
+  image_text_mismatch findings have empty evidence_ids.
+- Never assess pixel tampering, Photoshop traces, diffusion artifacts, or
+  whether the image was AI-generated or locally manipulated. NFA-ViT handles a
+  separate localized manipulation signal; do not infer that signal from vision.
+- Do not identify a brand or person from world knowledge. Only report what is
+  legible or visually apparent.
+- Keep text concise. Scores are risk estimates, not calibrated probabilities.
+- Set error=null on success. Use status UNCERTAIN, available=false, and a short
+  error code if the image cannot be analyzed.
+
+Compare this JSON input and the image:
+
+Evidence items may contain product or research records. Such a record does not
+establish that the exact marketed formula is shown. Use only clearly visible
+image details for image-to-copy comparison. Do not use text evidence to infer
+pixel-level image authenticity.

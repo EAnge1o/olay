@@ -1,0 +1,630 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="data:," />
+  <title>TruLens · 调查案卷方向</title>
+  <!--
+    Direction 02 · investigation case file.
+    Reference studied: Bellingcat's evidence-first OSINT language (bellingcat.com).
+    Assumption: the judge should see cross-source verification, not a chat response.
+  -->
+  <style>
+    @import url("https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=DM+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;600&display=swap");
+
+    :root {
+      --desk: #e9e5da;
+      --paper: #f8f5ed;
+      --ink: #171812;
+      --muted: #74746a;
+      --line: #c9c5b9;
+      --line-dark: #88877b;
+      --signal: #d04a2d;
+      --signal-soft: #f1d2c7;
+      --blue: #20517d;
+      --green: #24705a;
+      --yellow: #d2a33a;
+      --condensed: "Barlow Condensed", "Arial Narrow", "Microsoft YaHei", sans-serif;
+      --sans: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+      --mono: "DM Mono", "Consolas", monospace;
+    }
+
+    * { box-sizing: border-box; }
+    html { background: var(--desk); }
+    body { margin: 0; min-width: 320px; color: var(--ink); background: var(--desk); font-family: var(--sans); }
+    button { color: inherit; font: inherit; cursor: pointer; }
+    button:focus-visible { outline: 2px solid var(--signal); outline-offset: 2px; }
+    img { display: block; max-width: 100%; }
+
+    .app-shell { min-height: 100vh; display: grid; grid-template-columns: 208px minmax(0, 1fr); }
+    .sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      padding: 22px 17px 18px;
+      background: #171812;
+      color: #f7f4e9;
+      display: flex;
+      flex-direction: column;
+      z-index: 20;
+    }
+    .sidebar-brand { display: flex; align-items: center; min-height: 58px; padding-bottom: 17px; border-bottom: 1px solid rgba(255,255,255,.15); }
+    .sidebar-brand img { width: 124px; height: 66px; object-fit: contain; filter: grayscale(1) brightness(4.6); }
+    .side-label { margin: 21px 0 8px; color: rgba(255,255,255,.42); font: 8px var(--mono); letter-spacing: .13em; }
+    .new-case {
+      min-height: 39px;
+      border: 1px solid rgba(255,255,255,.35);
+      background: transparent;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 10px;
+      font-size: 10px;
+    }
+    .new-case:hover { background: #f7f4e9; color: var(--ink); }
+    .side-nav { display: flex; flex-direction: column; gap: 2px; margin-top: 9px; }
+    .side-nav button {
+      min-height: 34px;
+      padding: 0 9px;
+      border: 0;
+      background: transparent;
+      color: rgba(255,255,255,.6);
+      display: grid;
+      grid-template-columns: 20px 1fr auto;
+      align-items: center;
+      gap: 6px;
+      text-align: left;
+      font-size: 9px;
+    }
+    .side-nav button:hover, .side-nav button.active { background: rgba(255,255,255,.09); color: white; }
+    .side-nav span { font: 8px var(--mono); color: rgba(255,255,255,.34); }
+    .side-nav b { font-weight: 500; }
+    .side-nav em { font: normal 8px var(--mono); color: #ed866d; }
+    .side-case-list { margin-top: 8px; display: flex; flex-direction: column; }
+    .side-case-list button {
+      min-height: 41px;
+      padding: 7px 2px;
+      border: 0;
+      border-bottom: 1px solid rgba(255,255,255,.1);
+      background: transparent;
+      text-align: left;
+      color: rgba(255,255,255,.6);
+    }
+    .side-case-list button.active { color: white; }
+    .side-case-list strong { display: block; font-size: 9px; font-weight: 500; }
+    .side-case-list small { display: block; margin-top: 3px; font: 7px var(--mono); color: rgba(255,255,255,.35); }
+    .side-foot { margin-top: auto; padding-top: 14px; border-top: 1px solid rgba(255,255,255,.13); color: rgba(255,255,255,.38); font: 7px/1.7 var(--mono); }
+
+    .content { min-width: 0; }
+    .topbar {
+      height: 57px;
+      padding: 0 24px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(248,245,237,.86);
+      backdrop-filter: blur(14px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 18;
+    }
+    .crumb { display: flex; align-items: center; gap: 9px; color: var(--muted); font: 8px var(--mono); letter-spacing: .06em; }
+    .crumb strong { color: var(--ink); font-weight: 500; }
+    .crumb i { width: 15px; height: 1px; background: var(--line-dark); }
+    .topbar-actions { display: flex; gap: 7px; }
+    .topbar-actions button { min-height: 31px; padding: 0 12px; border: 1px solid var(--line-dark); background: transparent; font-size: 9px; }
+    .topbar-actions button:last-child { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+    .case-header { padding: 18px 24px 15px; border-bottom: 1px solid var(--line-dark); background: var(--paper); }
+    .case-title-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 28px; align-items: end; }
+    .case-title-row p { margin: 0 0 7px; color: var(--signal); font: 8px var(--mono); letter-spacing: .12em; }
+    h1 { margin: 0; font: 600 clamp(36px, 3.8vw, 57px)/.92 var(--condensed); letter-spacing: -.025em; text-transform: uppercase; }
+    h1 span { color: var(--signal); }
+    .case-meta { display: grid; grid-template-columns: repeat(3, auto); gap: 20px; padding-bottom: 4px; }
+    .case-meta div { padding-left: 10px; border-left: 1px solid var(--line); }
+    .case-meta span { display: block; color: var(--muted); font: 7px var(--mono); letter-spacing: .08em; }
+    .case-meta strong { display: block; margin-top: 4px; font: 600 16px var(--condensed); letter-spacing: .02em; }
+    .case-meta .risk-value { color: var(--signal); }
+
+    .workspace {
+      min-height: calc(100vh - 156px);
+      display: grid;
+      grid-template-columns: 176px minmax(0, 1fr) 350px;
+      background: var(--desk);
+    }
+    .evidence-index { border-right: 1px solid var(--line); background: #f1eee5; padding: 15px 12px; }
+    .index-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 9px; color: var(--muted); font: 7px var(--mono); letter-spacing: .08em; }
+    .index-head strong { color: var(--ink); font-weight: 500; }
+    .index-list { display: flex; flex-direction: column; }
+    .index-item {
+      min-height: 54px;
+      padding: 9px 8px;
+      border: 0;
+      border-bottom: 1px solid var(--line);
+      background: transparent;
+      display: grid;
+      grid-template-columns: 20px 1fr auto;
+      align-items: start;
+      gap: 7px;
+      text-align: left;
+    }
+    .index-item:hover, .index-item.active { background: var(--paper); box-shadow: inset 2px 0 var(--signal); }
+    .index-item > span { width: 18px; height: 18px; display: grid; place-items: center; border: 1px solid var(--line-dark); font: 8px var(--mono); }
+    .index-item.active > span { color: white; background: var(--signal); border-color: var(--signal); }
+    .index-item strong { display: block; font-size: 9px; font-weight: 500; line-height: 1.35; }
+    .index-item small { display: block; margin-top: 3px; color: var(--muted); font: 7px var(--mono); line-height: 1.4; }
+    .index-item em { color: var(--signal); font: normal 8px var(--mono); }
+    .timeline-mini { margin-top: 18px; padding-top: 13px; border-top: 1px solid var(--line-dark); }
+    .timeline-mini > span { color: var(--muted); font: 7px var(--mono); letter-spacing: .08em; }
+    .timeline-mini ol { list-style: none; margin: 10px 0 0; padding: 0; }
+    .timeline-mini li { position: relative; min-height: 36px; padding-left: 17px; }
+    .timeline-mini li::before { content: ""; position: absolute; left: 3px; top: 4px; width: 5px; height: 5px; border: 1px solid var(--line-dark); border-radius: 50%; background: #f1eee5; }
+    .timeline-mini li::after { content: ""; position: absolute; left: 5px; top: 12px; bottom: -3px; width: 1px; background: var(--line); }
+    .timeline-mini li:last-child::after { display: none; }
+    .timeline-mini b { display: block; font: 7px var(--mono); font-weight: 400; }
+    .timeline-mini small { display: block; margin-top: 2px; color: var(--muted); font-size: 7px; }
+
+    .evidence-desk { min-width: 0; padding: 13px 16px 18px; overflow: hidden; }
+    .desk-toolbar {
+      min-height: 33px;
+      padding: 0 8px;
+      border: 1px solid var(--line);
+      border-bottom: 0;
+      background: var(--paper);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .source-tabs { display: flex; align-self: stretch; }
+    .source-tabs button {
+      min-width: 64px;
+      padding: 0 10px;
+      border: 0;
+      border-right: 1px solid var(--line);
+      background: transparent;
+      color: var(--muted);
+      font: 8px var(--mono);
+    }
+    .source-tabs button.active { color: var(--ink); background: #e8e2d5; box-shadow: inset 0 -2px var(--signal); }
+    .zoom-tools { display: flex; align-items: center; gap: 5px; color: var(--muted); font: 7px var(--mono); }
+    .zoom-tools button { width: 23px; height: 23px; border: 1px solid var(--line); background: transparent; font: 10px var(--mono); }
+    .canvas {
+      position: relative;
+      height: 432px;
+      overflow: hidden;
+      border: 1px solid var(--line-dark);
+      background:
+        linear-gradient(rgba(23,24,18,.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(23,24,18,.06) 1px, transparent 1px),
+        #d9d4c9;
+      background-size: 28px 28px;
+    }
+    .canvas::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      box-shadow: inset 0 0 60px rgba(23,24,18,.12);
+    }
+    .canvas-media { position: absolute; inset: 27px 55px 31px 34px; display: grid; place-items: center; }
+    .canvas-media img { width: 100%; height: 100%; object-fit: contain; filter: saturate(.78) contrast(.98); transition: opacity .2s ease, transform .35s ease; }
+    .canvas-media.changing img { opacity: 0; transform: scale(.985); }
+    .canvas .crop-box {
+      position: absolute;
+      z-index: 4;
+      border: 1px solid var(--signal);
+      box-shadow: 0 0 0 1px rgba(248,245,237,.8), inset 0 0 0 1px rgba(208,74,45,.28);
+      background: rgba(208,74,45,.05);
+      pointer-events: none;
+    }
+    .crop-a { left: 29%; top: 29%; width: 19%; height: 28%; }
+    .crop-b { left: 63%; top: 26%; width: 12%; height: 18%; }
+    .crop-b::before {
+      content: "R-02 · light angle 14°";
+      position: absolute;
+      left: 100%;
+      top: -15px;
+      width: max-content;
+      padding: 3px 5px;
+      background: var(--signal);
+      color: white;
+      font: 6px var(--mono);
+    }
+    .canvas-crosshair { position: absolute; z-index: 3; inset: 20px; pointer-events: none; }
+    .canvas-crosshair::before, .canvas-crosshair::after { content: ""; position: absolute; background: rgba(23,24,18,.25); }
+    .canvas-crosshair::before { left: 50%; top: 0; bottom: 0; width: 1px; }
+    .canvas-crosshair::after { top: 50%; left: 0; right: 0; height: 1px; }
+    .canvas-ruler { position: absolute; z-index: 5; color: rgba(23,24,18,.5); font: 6px var(--mono); }
+    .ruler-x { left: 34px; right: 55px; bottom: 10px; display: flex; justify-content: space-between; }
+    .ruler-y { left: 12px; top: 27px; bottom: 31px; display: flex; flex-direction: column; justify-content: space-between; }
+    .evidence-stamp {
+      position: absolute;
+      z-index: 6;
+      right: 13px;
+      top: 14px;
+      width: 66px;
+      min-height: 66px;
+      padding: 8px;
+      border: 1px solid var(--signal);
+      color: var(--signal);
+      background: rgba(248,245,237,.88);
+      text-align: center;
+      transform: rotate(3deg);
+    }
+    .evidence-stamp strong { display: block; font: 600 24px/.95 var(--condensed); }
+    .evidence-stamp span { display: block; margin-top: 2px; font: 6px var(--mono); letter-spacing: .08em; }
+    .canvas-caption {
+      position: absolute;
+      z-index: 6;
+      left: 13px;
+      bottom: 13px;
+      max-width: 360px;
+      padding: 7px 9px;
+      background: rgba(248,245,237,.92);
+      border: 1px solid var(--line);
+      font-size: 8px;
+      line-height: 1.55;
+    }
+    .canvas-caption strong { font-weight: 600; }
+
+    .desk-lower { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+    .desk-card { min-height: 165px; border: 1px solid var(--line); background: var(--paper); padding: 11px 12px; }
+    .desk-card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--line); }
+    .desk-card-head strong { font: 600 13px var(--condensed); letter-spacing: .02em; text-transform: uppercase; }
+    .desk-card-head span { color: var(--muted); font: 7px var(--mono); }
+    .comment-cluster { display: grid; grid-template-columns: repeat(12, 1fr); gap: 4px; margin-top: 12px; }
+    .comment-cluster i { aspect-ratio: 1; border-radius: 50%; background: #bcb7a9; }
+    .comment-cluster i.hot { background: var(--signal); box-shadow: 0 0 0 2px var(--signal-soft); }
+    .comment-cluster i.warm { background: var(--yellow); }
+    .cluster-note { margin: 10px 0 0; color: var(--muted); font-size: 8px; line-height: 1.55; }
+    .quote-card p { margin: 12px 0 9px; font-size: 11px; line-height: 1.7; }
+    .quote-card mark { color: var(--signal); background: var(--signal-soft); }
+    .signal-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+    .signal-tags span { padding: 3px 5px; border: 1px solid #d6c1b9; color: #93402c; font: 7px var(--mono); }
+
+    .conclusion { background: var(--paper); border-left: 1px solid var(--line-dark); padding: 15px 16px 18px; }
+    .conclusion-head { display: flex; justify-content: space-between; align-items: center; padding-bottom: 11px; border-bottom: 1px solid var(--ink); }
+    .conclusion-head span { font: 7px var(--mono); letter-spacing: .09em; }
+    .conclusion-head strong { color: var(--signal); font: 600 16px var(--condensed); letter-spacing: .08em; }
+    .risk-score { padding: 17px 0 14px; display: grid; grid-template-columns: 1fr auto; align-items: end; }
+    .risk-score span { color: var(--muted); font: 7px var(--mono); }
+    .risk-score strong { display: block; margin-top: -4px; font: 600 94px/.8 var(--condensed); letter-spacing: -.04em; }
+    .risk-score strong small { color: var(--muted); font: 8px var(--mono); }
+    .risk-score em { padding: 4px 6px; background: var(--signal); color: white; font: normal 8px var(--mono); }
+    .risk-scale { height: 8px; background: #d9d3c6; position: relative; margin-bottom: 16px; }
+    .risk-scale i { display: block; width: 64%; height: 100%; background: var(--signal); }
+    .risk-scale span { position: absolute; top: 11px; color: var(--muted); font: 6px var(--mono); }
+    .risk-scale span:first-of-type { left: 0; }
+    .risk-scale span:last-of-type { right: 0; }
+    .finding-list { list-style: none; margin: 25px 0 0; padding: 0; }
+    .finding-list li { display: grid; grid-template-columns: 27px 1fr auto; gap: 9px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+    .finding-list li > span { width: 23px; height: 23px; display: grid; place-items: center; border: 1px solid var(--line-dark); font: 8px var(--mono); }
+    .finding-list strong { display: block; font-size: 9px; font-weight: 600; line-height: 1.35; }
+    .finding-list p { margin: 4px 0 0; color: var(--muted); font-size: 8px; line-height: 1.55; }
+    .finding-list em { color: var(--signal); font: normal 8px var(--mono); }
+    .next-action { margin-top: 17px; padding: 12px; background: #e7e9df; border-left: 3px solid var(--green); }
+    .next-action span { color: var(--green); font: 7px var(--mono); letter-spacing: .08em; }
+    .next-action strong { display: block; margin-top: 6px; font: 600 17px/1.2 var(--condensed); }
+    .next-action p { margin: 5px 0 0; color: #5e6057; font-size: 8px; line-height: 1.55; }
+    .conclusion-actions { display: grid; grid-template-columns: 1fr 40px; gap: 7px; margin-top: 14px; }
+    .conclusion-actions button { min-height: 38px; border: 1px solid var(--ink); background: var(--ink); color: white; font-size: 9px; }
+    .conclusion-actions button:last-child { padding: 0; background: transparent; color: var(--ink); }
+    .disclaimer { margin: 12px 0 0; color: var(--muted); font: 6px/1.6 var(--mono); }
+
+    .case-title-row p,
+    .crumb { font-size: 9px; }
+    .index-item strong { font-size: 10px; }
+    .index-item small,
+    .canvas-caption,
+    .cluster-note { font-size: 9px; }
+    .quote-card p { font-size: 12px; }
+    .finding-list strong { font-size: 10px; }
+    .finding-list p,
+    .next-action p { font-size: 9px; }
+
+    @media (max-width: 1120px) {
+      .app-shell { grid-template-columns: 72px minmax(0, 1fr); }
+      .sidebar { padding: 13px 8px; align-items: center; }
+      .sidebar-brand img { width: 56px; height: 48px; }
+      .side-label, .side-nav button span, .side-nav button b, .side-nav em, .new-case span, .side-case-list strong, .side-case-list small, .side-foot { display: none; }
+      .new-case { width: 42px; justify-content: center; padding: 0; }
+      .side-nav button { width: 42px; display: grid; grid-template-columns: 1fr; place-items: center; }
+      .side-nav button::first-letter { font: 11px var(--mono); }
+      .side-case-list button { width: 42px; min-height: 30px; }
+      .workspace { grid-template-columns: 148px minmax(0, 1fr) 320px; }
+      .case-meta { grid-template-columns: repeat(2, auto); }
+      .case-meta div:last-child { display: none; }
+    }
+    @media (max-width: 880px) {
+      .app-shell { display: block; }
+      .sidebar { position: static; width: 100%; height: 54px; padding: 0 14px; flex-direction: row; }
+      .sidebar-brand { border: 0; padding: 0; }
+      .sidebar-brand img { width: 88px; height: 46px; }
+      .new-case, .side-nav, .side-case-list, .side-foot, .side-label { display: none; }
+      .topbar { top: 0; }
+      .case-header { padding: 15px 16px; }
+      .case-title-row { grid-template-columns: 1fr; gap: 12px; }
+      .case-meta { grid-template-columns: repeat(3, auto); }
+      .case-meta div:last-child { display: block; }
+      .workspace { display: block; min-height: 0; }
+      .evidence-index { display: flex; overflow-x: auto; border-right: 0; border-bottom: 1px solid var(--line); padding: 8px; }
+      .index-head, .timeline-mini { display: none; }
+      .index-list { flex-direction: row; }
+      .index-item { min-width: 132px; border: 1px solid var(--line); border-right: 0; }
+      .evidence-desk { padding: 11px; }
+      .canvas { height: 360px; }
+      .desk-lower { grid-template-columns: 1fr; }
+      .conclusion { border-left: 0; border-top: 1px solid var(--line-dark); }
+    }
+    @media (max-width: 560px) {
+      .topbar { padding: 0 12px; }
+      .crumb span { display: none; }
+      .topbar-actions button:last-child { display: none; }
+      h1 { font-size: 38px; }
+      .case-meta div { padding-left: 6px; }
+      .case-meta strong { font-size: 13px; }
+      .canvas-media { inset: 28px 20px 30px; }
+      .evidence-stamp { right: 8px; }
+      .canvas-caption { max-width: 260px; }
+      .desk-toolbar { overflow-x: auto; }
+      .zoom-tools { display: none; }
+      .source-tabs button { min-width: 61px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { transition-duration: .001ms !important; animation-duration: .001ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="sidebar-brand"><img src="../fronted/public/trulens-nav-logo.png" alt="TruLens" /></div>
+      <span class="side-label">WORKSPACE</span>
+      <button class="new-case" type="button"><span>＋ 新建核验</span></button>
+      <nav class="side-nav" aria-label="工作区导航">
+        <button class="active" type="button"><span>01</span><b>案件审阅</b><em>3</em></button>
+        <button type="button"><span>02</span><b>证据库</b></button>
+        <button type="button"><span>03</span><b>处置记录</b></button>
+        <button type="button"><span>04</span><b>规则校准</b></button>
+      </nav>
+      <span class="side-label">RECENT CASES</span>
+      <div class="side-case-list">
+        <button class="active" type="button"><strong>CASE 027 · 护肤</strong><small>HIGH RISK · 12 MIN AGO</small></button>
+        <button type="button"><strong>CASE 024 · 彩妆</strong><small>MANUAL REVIEW</small></button>
+        <button type="button"><strong>CASE 019 · 成分</strong><small>INCONCLUSIVE</small></button>
+      </div>
+      <div class="side-foot">TruLens demo workspace<br />Evidence model v10</div>
+    </aside>
+
+    <div class="content">
+      <header class="topbar">
+        <div class="crumb"><span>案件</span><i></i><strong>CASE 027</strong><span>美妆种草核查</span></div>
+        <div class="topbar-actions">
+          <button type="button" id="rerunButton">重跑四维核验</button>
+          <button type="button">生成处置单</button>
+        </div>
+      </header>
+
+      <section class="case-header">
+        <div class="case-title-row">
+          <div>
+            <p>FICTIONAL SAMPLE · CONTENT INVESTIGATION / 2026.05.10</p>
+            <h1>七天逆袭笔记 <span>/ 交叉取证</span></h1>
+          </div>
+          <div class="case-meta">
+            <div><span>OVERALL TRUST</span><strong class="risk-value">36 / 100</strong></div>
+            <div><span>EVIDENCE</span><strong>9 ITEMS</strong></div>
+            <div><span>REVIEW TIME</span><strong>34 SEC</strong></div>
+          </div>
+        </div>
+      </section>
+
+      <main class="workspace">
+        <aside class="evidence-index">
+          <div class="index-head"><strong>证据索引</strong><span>04 / 09</span></div>
+          <div class="index-list">
+            <button class="index-item active" type="button" data-kind="image" data-title="对比图局部异常" data-note="图像在左颊与眼下区域出现纹理和光照不一致。">
+              <span>01</span><div><strong>图像纹理</strong><small>R · IMAGE FORENSICS</small></div><em>91%</em>
+            </button>
+            <button class="index-item" type="button" data-kind="comments" data-title="评论模板聚类" data-note="37 个账号在 11 分钟内留下高度相似句式。">
+              <span>02</span><div><strong>评论聚类</strong><small>U · COMMENT PATTERN</small></div><em>94%</em>
+            </button>
+            <button class="index-item" type="button" data-kind="account" data-title="账号发布矩阵" data-note="14 天内 37 篇同题材笔记，存在矩阵化发布特征。">
+              <span>03</span><div><strong>账号矩阵</strong><small>T · ACCOUNT HISTORY</small></div><em>82%</em>
+            </button>
+            <button class="index-item" type="button" data-kind="text" data-title="绝对化功效断言" data-note="「7 天逆袭」「闭眼冲」与无来源专家背书共同出现。">
+              <span>04</span><div><strong>文案断言</strong><small>S · LANGUAGE SIGNAL</small></div><em>89%</em>
+            </button>
+          </div>
+          <div class="timeline-mini">
+            <span>EVIDENCE TIMELINE</span>
+            <ol>
+              <li><b>05.10 / 09:12</b><small>笔记发布</small></li>
+              <li><b>05.10 / 09:17</b><small>首轮评论峰值</small></li>
+              <li><b>05.10 / 09:23</b><small>37 账号相似互动</small></li>
+              <li><b>05.10 / 09:31</b><small>TruLens 自动标记</small></li>
+            </ol>
+          </div>
+        </aside>
+
+        <section class="evidence-desk">
+          <div class="desk-toolbar">
+            <div class="source-tabs">
+              <button class="active" type="button" data-kind="image">IMAGE</button>
+              <button type="button" data-kind="comments">COMMENTS</button>
+              <button type="button" data-kind="account">ACCOUNT</button>
+              <button type="button" data-kind="text">TEXT</button>
+            </div>
+            <div class="zoom-tools"><button type="button">−</button><span>100%</span><button type="button">＋</button><span>·</span><span>原始画布</span></div>
+          </div>
+          <div class="canvas" id="evidenceCanvas">
+            <div class="canvas-crosshair"></div>
+            <div class="canvas-media" id="canvasMedia">
+              <img id="evidenceImage" src="../fronted/public/evidence/skin-comparison.jpg" alt="虚构的护肤对比图" />
+            </div>
+            <div class="crop-box crop-a"></div>
+            <div class="crop-box crop-b"></div>
+            <div class="canvas-ruler ruler-x"><span>0</span><span>320</span><span>640</span><span>960</span><span>1258</span></div>
+            <div class="canvas-ruler ruler-y"><span>0</span><span>281</span><span>563</span><span>844</span><span>1126</span></div>
+            <div class="evidence-stamp"><strong id="stampValue">91%</strong><span id="stampKind">IMAGE MATCH</span></div>
+            <div class="canvas-caption"><strong id="captionTitle">对比图局部异常。</strong> <span id="captionText">左颊与眼下区域出现纹理断裂、光照方向偏差和二次压缩痕迹。</span></div>
+          </div>
+
+          <div class="desk-lower">
+            <article class="desk-card">
+              <div class="desk-card-head"><strong>Comment cluster</strong><span>37 ACCOUNTS / 11 MIN</span></div>
+              <div class="comment-cluster" aria-label="评论账号聚类示意图">
+                <i class="hot"></i><i></i><i class="hot"></i><i></i><i class="warm"></i><i></i><i class="hot"></i><i></i><i class="hot"></i><i></i><i class="warm"></i><i></i>
+                <i></i><i class="hot"></i><i></i><i class="hot"></i><i></i><i class="hot"></i><i></i><i class="warm"></i><i></i><i class="hot"></i><i></i><i class="hot"></i>
+                <i class="warm"></i><i></i><i class="hot"></i><i></i><i class="hot"></i><i></i><i class="hot"></i><i></i><i class="hot"></i><i></i><i class="warm"></i><i></i>
+                <i></i><i class="hot"></i><i></i><i class="warm"></i><i></i><i class="hot"></i><i></i><i class="hot"></i><i></i><i class="hot"></i><i></i><i class="hot"></i>
+                <i class="hot"></i><i></i><i class="hot"></i><i></i><i class="hot"></i><i></i><i class="warm"></i><i></i><i class="hot"></i><i></i><i class="hot"></i><i class="warm"></i>
+              </div>
+              <p class="cluster-note">红色节点代表相似句式集中簇。高亮不等于机器人账号，需结合账号历史与互动路径复核。</p>
+            </article>
+            <article class="desk-card quote-card">
+              <div class="desk-card-head"><strong>Language signal</strong><span>S / CONFIDENCE 0.89</span></div>
+              <p>「连续 7 天，<mark>敏感肌也能闭眼冲</mark>。皮肤科专家都说这个浓度可以天天用。」</p>
+              <div class="signal-tags"><span>绝对化功效</span><span>专家背书无来源</span><span>从众暗示</span></div>
+            </article>
+          </div>
+        </section>
+
+        <aside class="conclusion">
+          <div class="conclusion-head"><span>ASSESSMENT / 综合结论</span><strong>HIGH RISK</strong></div>
+          <div class="risk-score">
+            <div><span>RISK SCORE</span><strong>64<small>/100</small></strong></div>
+            <em>建议复核</em>
+          </div>
+          <div class="risk-scale"><i></i><span>低</span><span>高</span></div>
+          <ol class="finding-list">
+            <li><span>U</span><div><strong>评论模板高度相似</strong><p>同一句式、表情和发布时间簇集中出现。</p></div><em>94%</em></li>
+            <li><span>R</span><div><strong>对比图存在局部异常</strong><p>纹理断裂与光照方向不一致。</p></div><em>91%</em></li>
+            <li><span>S</span><div><strong>功效措辞缺少证据</strong><p>专家背书无法追溯到具体来源。</p></div><em>89%</em></li>
+            <li><span>T</span><div><strong>账号发布节奏异常</strong><p>14 天内 37 篇同题材笔记。</p></div><em>82%</em></li>
+          </ol>
+          <div class="next-action">
+            <span>NEXT ACTION / 推荐处置</span>
+            <strong>先降权，再人工复核</strong>
+            <p>要求补充合作披露、原始对比图与功效依据；评论区进入异常互动抽检。</p>
+          </div>
+          <div class="conclusion-actions">
+            <button type="button">生成人工复核单</button>
+            <button type="button" aria-label="更多操作">···</button>
+          </div>
+          <p class="disclaimer">虚构演示样本。TruLens 输出为辅助判断，不代表平台最终处置或医学结论。</p>
+        </aside>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    const evidenceMap = {
+      image: {
+        src: "../fronted/public/evidence/skin-comparison.jpg",
+        alt: "虚构的护肤前后对比图",
+        title: "对比图局部异常。",
+        text: "左颊与眼下区域出现纹理断裂、光照方向偏差和二次压缩痕迹。",
+        value: "91%",
+        kind: "IMAGE MATCH"
+      },
+      comments: {
+        src: "../fronted/public/evidence/comments-1.jpg",
+        alt: "虚构的评论流截图",
+        title: "评论出现模板化聚类。",
+        text: "37 个账号在 11 分钟内发布相似句式，评论点赞与回复路径高度集中。",
+        value: "94%",
+        kind: "COMMENT CLUSTER"
+      },
+      account: {
+        src: "../fronted/public/evidence/account-history.jpg",
+        alt: "虚构的账号主页截图",
+        title: "账号呈矩阵化运营特征。",
+        text: "14 天内发布 37 篇同题材笔记，视觉模板、标题结构与发布时间高度重复。",
+        value: "82%",
+        kind: "ACCOUNT MATRIX"
+      },
+      text: {
+        src: "../fronted/public/evidence/account-history.jpg",
+        alt: "虚构的账号主页截图",
+        title: "功效断言缺少可追溯证据。",
+        text: "绝对化功效、专家背书与从众暗示出现在同一段文案中，未提供来源。",
+        value: "89%",
+        kind: "TEXT SIGNAL"
+      }
+    };
+
+    const canvasMedia = document.getElementById("canvasMedia");
+    const evidenceImage = document.getElementById("evidenceImage");
+    const captionTitle = document.getElementById("captionTitle");
+    const captionText = document.getElementById("captionText");
+    const stampValue = document.getElementById("stampValue");
+    const stampKind = document.getElementById("stampKind");
+    const canvas = document.getElementById("evidenceCanvas");
+
+    function selectEvidence(kind) {
+      const item = evidenceMap[kind];
+      if (!item) return;
+      canvasMedia.classList.add("changing");
+      document.querySelectorAll("[data-kind]").forEach((button) => {
+        button.classList.toggle("active", button.dataset.kind === kind && (button.classList.contains("index-item") || button.classList.contains("source-tabs-button") || button.parentElement.classList.contains("source-tabs")));
+      });
+      setTimeout(() => {
+        evidenceImage.src = item.src;
+        evidenceImage.alt = item.alt;
+        captionTitle.textContent = item.title;
+        captionText.textContent = item.text;
+        stampValue.textContent = item.value;
+        stampKind.textContent = item.kind;
+        canvasMedia.classList.remove("changing");
+      }, 180);
+    }
+
+    document.querySelectorAll(".index-item").forEach((button) => {
+      button.addEventListener("click", () => {
+        document.querySelectorAll(".index-item").forEach((item) => item.classList.remove("active"));
+        button.classList.add("active");
+        selectEvidence(button.dataset.kind);
+      });
+    });
+    document.querySelectorAll(".source-tabs button").forEach((button) => {
+      button.addEventListener("click", () => {
+        document.querySelectorAll(".source-tabs button").forEach((item) => item.classList.remove("active"));
+        button.classList.add("active");
+        selectEvidence(button.dataset.kind);
+      });
+    });
+
+    canvas.addEventListener("click", (event) => {
+      if (event.target.closest("button")) return;
+      canvas.classList.toggle("focus-mode");
+    });
+
+    const rerunButton = document.getElementById("rerunButton");
+    rerunButton.addEventListener("click", () => {
+      const original = rerunButton.textContent;
+      const steps = ["图像取证…", "评论聚类…", "账号交叉…", "文案核验…"];
+      let index = 0;
+      rerunButton.disabled = true;
+      rerunButton.textContent = steps[index];
+      const timer = setInterval(() => {
+        index += 1;
+        if (index < steps.length) {
+          rerunButton.textContent = steps[index];
+          return;
+        }
+        clearInterval(timer);
+        rerunButton.textContent = "核验完成 · 9 条证据";
+        setTimeout(() => {
+          rerunButton.textContent = original;
+          rerunButton.disabled = false;
+        }, 1000);
+      }, 410);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,539 @@
+{
+  "content_id": "xhs-69410496000000001f00d4bf-slide-02",
+  "schema_version": "1.0",
+  "overall_risk_score": 71.18,
+  "risk_level": "high",
+  "findings": [
+    {
+      "id": "finding-1",
+      "category": "exaggerated_claim",
+      "verdict": "suspicious",
+      "severity": "high",
+      "risk_score": 0.88,
+      "confidence": 0.9,
+      "observation": "文案使用“全能ace”“地位不可撼动”“必入”“无代餐”“稳赢”“满分”“不分伯仲”等绝对化措辞。",
+      "reason": "绝对化承诺和排他性比较容易构成广告合规风险；措辞本身不能证明事实为假。",
+      "evidence_ids": [],
+      "source": "llm",
+      "recommended_action": "删除或弱化绝对化、排他性措辞，并改为可验证的限定表述。"
+    },
+    {
+      "id": "finding-2",
+      "category": "unsupported_claim",
+      "verdict": "insufficient_evidence",
+      "severity": "medium",
+      "risk_score": 0.7,
+      "confidence": 0.85,
+      "observation": "文案宣称超水光精华可匀净透亮、抗氧化、嫩肤、提亮紧致。",
+      "reason": "没有提供功效测试或临床证据，无法验证这些功效宣称。",
+      "evidence_ids": [],
+      "source": "llm",
+      "recommended_action": "补充相应功效评价证据，或调整为不承诺功效的表述。"
+    },
+    {
+      "id": "finding-3",
+      "category": "unsupported_claim",
+      "verdict": "insufficient_evidence",
+      "severity": "medium",
+      "risk_score": 0.72,
+      "confidence": 0.85,
+      "observation": "文案给出PDRN、分子小几千倍、10%玻色因PRO、能量素22等成分和数值宣称。",
+      "reason": "无成分表、浓度检测或相关证据材料验证。",
+      "evidence_ids": [],
+      "source": "llm",
+      "recommended_action": "补充成分表、浓度证明或删除无法验证的数值和成分描述。"
+    },
+    {
+      "id": "finding-4",
+      "category": "unsupported_claim",
+      "verdict": "insufficient_evidence",
+      "severity": "medium",
+      "risk_score": 0.68,
+      "confidence": 0.85,
+      "observation": "文案称黑金精华可急救、淡纹、提拉，黑精华可温和满分、维稳、防卡粉搓泥。",
+      "reason": "涉及功效、温和性和使用效果，均无证据材料支持。",
+      "evidence_ids": [],
+      "source": "llm",
+      "recommended_action": "补充对应功效或安全性证据，或删除未经证实的功效承诺。"
+    },
+    {
+      "id": "finding-5",
+      "category": "exaggerated_claim",
+      "verdict": "suspicious",
+      "severity": "high",
+      "risk_score": 0.8,
+      "confidence": 0.88,
+      "observation": "文案称“院线级的效果”“对25+皮肤状态就是降维打击”“无代餐”。",
+      "reason": "对比性极强且暗示专业级效果，可能误导消费者；无证据材料支持。",
+      "evidence_ids": [],
+      "source": "llm",
+      "recommended_action": "改用客观、可验证的比较表述，或删除此类对比。"
+    },
+    {
+      "id": "finding-6",
+      "category": "unsupported_claim",
+      "verdict": "insufficient_evidence",
+      "severity": "low",
+      "risk_score": 0.5,
+      "confidence": 0.8,
+      "observation": "文案称黑精华“已经实现每家每户人手一瓶”。",
+      "reason": "销量或普及度宣称无证据材料验证。",
+      "evidence_ids": [],
+      "source": "llm",
+      "recommended_action": "补充销量或市场数据，或删除该表述。"
+    },
+    {
+      "id": "image-genai",
+      "category": "ai_generated_image",
+      "verdict": "suspicious",
+      "severity": "high",
+      "risk_score": 0.99,
+      "confidence": 0.99,
+      "observation": "Sightengine genai signal is 0.99; its model covers images that are AI-generated or AI-edited.",
+      "reason": "This is pixel-level forensic evidence from Sightengine. The signal does not distinguish full generation from editing.",
+      "evidence_ids": [],
+      "source": "image_forensics",
+      "recommended_action": "保留原始图片并进行人工复核，必要时索取原图或来源记录。"
+    }
+  ],
+  "text_analysis": {
+    "claims": [
+      {
+        "id": "claim-1",
+        "text": "欧莱雅在护肤界地位不可撼动",
+        "claim_type": "absolute",
+        "verification_status": "insufficient_evidence",
+        "risk_score": 0.75,
+        "confidence": null,
+        "evidence_ids": [],
+        "observation": "文案称欧莱雅在护肤界地位不可撼动。",
+        "reason": "该表述为绝对化地位宣称，无证据材料支持。"
+      },
+      {
+        "id": "claim-2",
+        "text": "欧莱雅这几支精华是必入热门精华",
+        "claim_type": "absolute",
+        "verification_status": "insufficient_evidence",
+        "risk_score": 0.65,
+        "confidence": null,
+        "evidence_ids": [],
+        "observation": "文案称欧莱雅几支精华必入且热门。",
+        "reason": "“必入”为绝对化推荐，无证据材料验证。"
+      },
+      {
+        "id": "claim-3",
+        "text": "欧莱雅超水光精华含PDRN",
+        "claim_type": "ingredient",
+        "verification_status": "insufficient_evidence",
+        "risk_score": 0.6,
+        "confidence": null,
+        "evidence_ids": [],
+        "observation": "文案称超水光精华添加PDRN。",
+        "reason": "无成分表或证据材料验证。"
+      },
+      {
+        "id": "claim-4",
+        "text": "PDRN是美美同款成分",
+        "claim_type": "comparative",
+        "verification_status": "insufficient_evidence",
+        "risk_score": 0.55,
+        "confidence": null,
+        "evidence_ids": [],
+        "observation": "文案称PDRN为美美同款成分。",
+        "reason": "无证据材料支持该对比或同款说法。"
+      },
+      {
+        "id": "claim-5",
+        "text": "PDRN分子比毛孔还小几千倍",
+        "claim_type": "numeric",
+        "verification_status": "insufficient_evidence",
+        "risk_score": 0.7,
+        "confidence": null,
+        "evidence_ids": [],
+        "observation": "文案称该成分分子比毛孔小几千倍。",
+        "reason": "具体倍数无证据材料验证。"
+      },
+      {
+        "id": "claim-6",
+        "text": "该精华可快速进入肌底被吸收",
+        "claim_type": "efficacy",
+        "verification_status": "insufficient_evidence",
+        "risk_score": 0.65,
+        "confidence": null,
+        "evidence_ids": [],
+        "observation": "文案称产品可快速进入肌底被吸收。",
+        "reason": "无证据材料验证吸收速度和肌底渗透。"
+      },
+      {
+        "id": "claim-7",
+        "text": "欧莱雅超水光精华含玻色因PRO",
+        "claim_type": "ingredient",
+        "verification_status": "insufficient_evidence",
+        "risk_score": 0.55,
+        "confidence": null,
+        "evidence_ids": [],
+        "observation": "文案称该精华含玻色因PRO。",
+        "reason": "无成分表或证据材料验证。"
+      },
+      {
+        "id": "claim-8",
+        "text": "欧莱雅超水光精华含超分子烟酰胺",
+        "claim_type": "ingredient",
+        "verification_status": "insufficient_evidence",
+        "risk_score": 0.55,
+        "confidence": null,
+        "evidence_ids": [],
+        "observation": "文案称该精华含超分子烟酰胺。",
+        "reason": "无成分表或证据材料验证。"
+      },
+      {
+        "id": "claim-9",
+        "text": "该精华可抗氧化",
+        "claim_type": "efficacy",
+        "verification_status": "insufficient_evidence",
+        "risk_score": 0.6,
+        "confidence": null,
+        "evidence_ids": [],
+        "observation": "文案称该精华可搞定K氧。",
+        "reason": "无证据材料验证抗氧化功效。"
+      },
+      {
+        "id": "claim-10",
+        "text": "该精华可嫩肤",
+        "claim_type": "efficacy",
+        "verification_status": "insufficient_evidence",
+        "risk_score": 0.6,
+        "confidence": null,
+        "evidence_ids": [],
+        "observation": "文案称该精华可嫩肤。",
+        "reason": "无证据材料验证嫩肤功效。"
+      },
+      {
+        "id": "claim-11",
+        "text": "使用后皮肤又亮又紧致",
+        "claim_type": "efficacy",
+        "verification_status": "insufficient_evidence",
+        "risk_score": 0.65,
+        "confidence": null,
+        "evidence_ids": [],
+        "observation": "文案称用后皮肤又亮又紧致。",
+        "reason": "个人体验描述，无证据材料验证。"
+      },
+      {
+        "id": "claim-12",
+        "text": "价格两三百",
+        "claim_type": "numeric",
+        "verification_status": "insufficient_evidence",
+        "risk_score": 0.35,
+        "confidence": null,
+        "evidence_ids": [],
+        "observation": "文案称价格约两三百。",
+        "reason": "无价格证据材料验证。"
+      },
+      {
+        "id": "claim-13",
+        "text": "该精华具有院线级效果",
+        "claim_type": "comparative",
+        "verification_status": "insufficient_evidence",
+        "risk_score": 0.75,
+        "confidence": null,
+        "evidence_ids": [],
+        "observation": "文案称其具有院线级效果。",
+        "reason": "院线级对比宣称无证据材料支持。"
+      },
+      {
+        "id": "claim-14",
+        "text": "欧莱雅黑金精华含长盛松露配方",
+        "claim_type": "ingredient",
+        "verification_status": "insufficient_evidence",
+        "risk_score": 0.55,
+        "confidence": null,
+        "evidence_ids": [],
+        "observation": "文案称黑金精华含长盛松露配方。",
+        "reason": "无成分表或证据材料验证。"
+      },
+      {
+        "id": "claim-15",
+        "text": "欧莱雅黑金精华含10%高浓玻色因PRO",
+        "claim_type": "numeric",
+        "verification_status": "insufficient_evidence",
+        "risk_score": 0.7,
+        "confidence": null,
+        "evidence_ids": [],
+        "observation": "文案称黑金精华含10%高浓玻色因PRO。",
+        "reason": "具体浓度无证据材料验证。"
+      },
+      {
+        "id": "claim-16",
+        "text": "一泵下去急救效果肉眼可见",
+        "claim_type": "efficacy",
+        "verification_status": "insufficient_evidence",
+        "risk_score": 0.75,
+        "confidence": null,
+        "evidence_ids": [],
+        "observation": "文案称一泵可产生肉眼可见急救效果。",
+        "reason": "即时急救功效无证据材料验证。"
+      },
+      {
+        "id": "claim-17",
+        "text": "对25+皮肤状态是降维打击且饱满嘭弹",
+        "claim_type": "efficacy",
+        "verification_status": "insufficient_evidence",
+        "risk_score": 0.7,
+        "confidence": null,
+        "evidence_ids": [],
+        "observation": "文案称该产品对25+皮肤饱满嘭弹且是降维打击。",
+        "reason": "功效和对比表述无证据材料验证。"
+      },
+      {
+        "id": "claim-18",
+        "text": "连干纹细纹也被熨平整了",
+        "claim_type": "efficacy",
+        "verification_status": "insufficient_evidence",
+        "risk_score": 0.75,
+        "confidence": null,
+        "evidence_ids": [],
+        "observation": "文案称干纹细纹可被熨平整。",
+        "reason": "淡纹功效无证据材料验证。"
+      },
+      {
+        "id": "claim-19",
+        "text": "在面部平整度和提拉感方面无代餐",
+        "claim_type": "absolute",
+        "verification_status": "insufficient_evidence",
+        "risk_score": 0.8,
+        "confidence": null,
+        "evidence_ids": [],
+        "observation": "文案称该产品在面部平整度和提拉感上无代餐。",
+        "reason": "“无代餐”为绝对化对比，无证据材料验证。"
+      },
+      {
+        "id": "claim-20",
+        "text": "欧莱雅黑精华温和力度满分",
+        "claim_type": "safety",
+        "verification_status": "insufficient_evidence",
+        "risk_score": 0.7,
+        "confidence": null,
+        "evidence_ids": [],
+        "observation": "文案称黑精华温和力度满分。",
+        "reason": "温和性满分宣称无证据材料验证。"
+      },
+      {
+        "id": "claim-21",
+        "text": "核心成分能量素22在肌底密补能量",
+        "claim_type": "ingredient",
+        "verification_status": "insufficient_evidence",
+        "risk_score": 0.6,
+        "confidence": null,
+        "evidence_ids": [],
+        "observation": "文案称核心成分能量素22可肌底密补能量。",
+        "reason": "成分和机理宣称无证据材料验证。"
+      },
+      {
+        "id": "claim-22",
+        "text": "坚持用皮肤肉眼可见细腻很多",
+        "claim_type": "time_bound",
+        "verification_status": "insufficient_evidence",
+        "risk_score": 0.65,
+        "confidence": null,
+        "evidence_ids": [],
+        "observation": "文案称坚持使用后皮肤肉眼可见细腻很多。",
+        "reason": "持续使用效果无证据材料验证。"
+      },
+      {
+        "id": "claim-23",
+        "text": "秋冬皮肤小情绪可被及时按下且不翻车",
+        "claim_type": "efficacy",
+        "verification_status": "insufficient_evidence",
+        "risk_score": 0.6,
+        "confidence": null,
+        "evidence_ids": [],
+        "observation": "文案称秋冬皮肤问题可被及时稳定。",
+        "reason": "维稳功效无证据材料验证。"
+      },
+      {
+        "id": "claim-24",
+        "text": "一泵下去水润，上妆完全不会卡粉搓泥",
+        "claim_type": "efficacy",
+        "verification_status": "insufficient_evidence",
+        "risk_score": 0.65,
+        "confidence": null,
+        "evidence_ids": [],
+        "observation": "文案称一泵可水润并完全避免卡粉搓泥。",
+        "reason": "妆前效果无证据材料验证。"
+      },
+      {
+        "id": "claim-25",
+        "text": "三支精华不分伯仲",
+        "claim_type": "comparative",
+        "verification_status": "insufficient_evidence",
+        "risk_score": 0.55,
+        "confidence": null,
+        "evidence_ids": [],
+        "observation": "文案称三支精华不分伯仲。",
+        "reason": "并列比较无证据材料支持。"
+      },
+      {
+        "id": "claim-26",
+        "text": "每一瓶都是好皮肤的开端",
+        "claim_type": "absolute",
+        "verification_status": "insufficient_evidence",
+        "risk_score": 0.65,
+        "confidence": null,
+        "evidence_ids": [],
+        "observation": "文案称每瓶都是好皮肤的开端。",
+        "reason": "泛化功效承诺无证据材料验证。"
+      }
+    ],
+    "findings": [
+      {
+        "id": "finding-1",
+        "category": "exaggerated_claim",
+        "verdict": "suspicious",
+        "severity": "high",
+        "risk_score": 0.88,
+        "confidence": 0.9,
+        "observation": "文案使用“全能ace”“地位不可撼动”“必入”“无代餐”“稳赢”“满分”“不分伯仲”等绝对化措辞。",
+        "reason": "绝对化承诺和排他性比较容易构成广告合规风险；措辞本身不能证明事实为假。",
+        "evidence_ids": [],
+        "source": "llm",
+        "recommended_action": "删除或弱化绝对化、排他性措辞，并改为可验证的限定表述。"
+      },
+      {
+        "id": "finding-2",
+        "category": "unsupported_claim",
+        "verdict": "insufficient_evidence",
+        "severity": "medium",
+        "risk_score": 0.7,
+        "confidence": 0.85,
+        "observation": "文案宣称超水光精华可匀净透亮、抗氧化、嫩肤、提亮紧致。",
+        "reason": "没有提供功效测试或临床证据，无法验证这些功效宣称。",
+        "evidence_ids": [],
+        "source": "llm",
+        "recommended_action": "补充相应功效评价证据，或调整为不承诺功效的表述。"
+      },
+      {
+        "id": "finding-3",
+        "category": "unsupported_claim",
+        "verdict": "insufficient_evidence",
+        "severity": "medium",
+        "risk_score": 0.72,
+        "confidence": 0.85,
+        "observation": "文案给出PDRN、分子小几千倍、10%玻色因PRO、能量素22等成分和数值宣称。",
+        "reason": "无成分表、浓度检测或相关证据材料验证。",
+        "evidence_ids": [],
+        "source": "llm",
+        "recommended_action": "补充成分表、浓度证明或删除无法验证的数值和成分描述。"
+      },
+      {
+        "id": "finding-4",
+        "category": "unsupported_claim",
+        "verdict": "insufficient_evidence",
+        "severity": "medium",
+        "risk_score": 0.68,
+        "confidence": 0.85,
+        "observation": "文案称黑金精华可急救、淡纹、提拉，黑精华可温和满分、维稳、防卡粉搓泥。",
+        "reason": "涉及功效、温和性和使用效果，均无证据材料支持。",
+        "evidence_ids": [],
+        "source": "llm",
+        "recommended_action": "补充对应功效或安全性证据，或删除未经证实的功效承诺。"
+      },
+      {
+        "id": "finding-5",
+        "category": "exaggerated_claim",
+        "verdict": "suspicious",
+        "severity": "high",
+        "risk_score": 0.8,
+        "confidence": 0.88,
+        "observation": "文案称“院线级的效果”“对25+皮肤状态就是降维打击”“无代餐”。",
+        "reason": "对比性极强且暗示专业级效果，可能误导消费者；无证据材料支持。",
+        "evidence_ids": [],
+        "source": "llm",
+        "recommended_action": "改用客观、可验证的比较表述，或删除此类对比。"
+      },
+      {
+        "id": "finding-6",
+        "category": "unsupported_claim",
+        "verdict": "insufficient_evidence",
+        "severity": "low",
+        "risk_score": 0.5,
+        "confidence": 0.8,
+        "observation": "文案称黑精华“已经实现每家每户人手一瓶”。",
+        "reason": "销量或普及度宣称无证据材料验证。",
+        "evidence_ids": [],
+        "source": "llm",
+        "recommended_action": "补充销量或市场数据，或删除该表述。"
+      }
+    ],
+    "ai_text_signal": {
+      "available": false,
+      "score": null,
+      "ai_fraction": null,
+      "human_fraction": null,
+      "confidence": null,
+      "provider": null,
+      "reason": "provider_not_configured"
+    },
+    "semantic_anomaly_score": null,
+    "style_anomalies": [],
+    "provider_error": null
+  },
+  "image_analysis": {
+    "provider": "sightengine",
+    "ai_generated_score": 0.99,
+    "ai_edited_score": null,
+    "deepfake_score": 0.001,
+    "suspected_generator": null,
+    "confidence": null,
+    "available": true,
+    "error": null
+  },
+  "crossmodal_analysis": {
+    "status": "MATCH",
+    "available": true,
+    "findings": [],
+    "summary": "图片可见内容为“紧致淡纹”“欧莱雅黑金精华”及产品瓶身，与文案中黑金精华部分的产品身份和标题一致；成分、功效、价格、对比等宣称无法仅凭图片验证，但未发现可见内容与文案直接冲突。",
+    "error": null
+  },
+  "summary": "输入包含 6 条来自 llm 的文案风险 finding，以及 1 条来自 image_forensics 的图片 AI 风险 finding；evidence_items 为空，且各 finding 的 evidence_ids 均为空，因此没有调用方提供的可核验证据。直接观察方面：文案被指使用“全能ace”“地位不可撼动”“必入”“无代餐”“稳赢”“满分”“不分伯仲”等绝对化措辞；被指宣称超水光精华可匀净透亮、抗氧化、嫩肤、提亮紧致，并出现 PDRN、分子小几千倍、10%玻色因PRO、能量素22等成分或数值；被指称黑金精华可急救、淡纹、提拉，黑精华可温和满分、维稳、防卡粉搓泥；还被指称“院线级的效果”“对25+皮肤状态就是降维打击”“无代餐”以及“已经实现每家每户人手一瓶”。模型信号方面：llm 对部分绝对化/排他性表述给出 suspicious/high，对多项功效、成分、数值和普及度宣称给出 insufficient_evidence，severity 为 medium 或 low；image_forensics 的 Sightengine genai signal 为 0.99，模型覆盖 AI 生成或 AI 编辑图像，但不区分完整生成与编辑。确定性风险分为 71.18，风险等级 high。推断与不确定性：现有材料支持“措辞可能构成广告合规风险”“功效/成分/销量宣称缺乏证据”“图片疑似 AI 生成或编辑”的风险提示，但不能仅凭这些输入确认文案虚假、功效不实或图片一定是 AI 生成；缺少 evidence_items、原文上下文、成分表、功效测试、临床证据、销量数据、原始图片与元数据，因此核验不充分。未出现任何 finding 明确判定内容被 contradicted。",
+  "recommended_actions": [
+    "删除或弱化绝对化、排他性措辞，如“全能ace”“地位不可撼动”“必入”“无代餐”“稳赢”“满分”“不分伯仲”，改为可验证的限定表述。",
+    "补充超水光精华、黑金精华、黑精华相关功效评价、临床或测试证据；若无法补充，则删除匀净透亮、抗氧化、嫩肤、提亮紧致、急救、淡纹、提拉、温和满分、维稳、防卡粉搓泥等功效承诺。",
+    "补充成分表、浓度检测或相关证明以核验 PDRN、分子小几千倍、10%玻色因PRO、能量素22等成分和数值宣称；否则删除无法验证的描述。",
+    "补充销量或市场数据以核验“已经实现每家每户人手一瓶”；否则删除该表述。",
+    "保留原始图片并进行人工复核，必要时索取原图或来源记录；结合其他取证、元数据或来源核验，区分 AI 完整生成与 AI 编辑。",
+    "鉴于 overall_risk_score 为 71.18 且风险等级为 high，建议对全部文案宣称和图片进行人工合规复核后再发布。"
+  ],
+  "limitations": [
+    "整体风险分数是内部信号聚合，不是内容为假的概率。",
+    "图像语义模型不能提供 pixel-level 鉴伪结论；鉴伪信号来自独立 forensic provider。",
+    "未提供外部证据；事实性 claim 不应据此判为虚假。",
+    "Sightengine genai 分数覆盖生成或 AI 编辑，当前 API 没有提供独立的 AI 编辑分数。",
+    "AI 文本检测未提供有效信号；即使有结果，它也只表示来源/风格线索，不代表内容失实。"
+  ],
+  "model_metadata": {
+    "deepseek_model": "deepseek-flash",
+    "claim_prompt_version": "v2",
+    "crossmodal_prompt_version": "v2",
+    "explanation_prompt_version": "v2",
+    "provider_errors": [],
+    "configured_providers": [
+      "deepseek",
+      "sightengine"
+    ],
+    "risk_signals": {
+      "image_forensics": 0.99,
+      "claim_risk": 0.88,
+      "crossmodal": 0.0
+    },
+    "normalized_risk_weights": {
+      "image_forensics": 0.35294117647058826,
+      "claim_risk": 0.4117647058823529,
+      "crossmodal": 0.23529411764705885
+    },
+    "risk_overrides": [
+      "strong_forensic_floor"
+    ],
+    "latency_ms": 81503.79
+  }
+}

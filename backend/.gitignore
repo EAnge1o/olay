@@ -1,0 +1,8 @@
+# Never commit local secrets or runtime state.
+.env
+.env.*
+!.env.example
+storage/
+__pycache__/
+*.py[cod]
+.pytest_cache/

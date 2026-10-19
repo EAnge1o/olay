@@ -1,0 +1,40 @@
+Metadata-Version: 2.4
+Name: content-trust-engine
+Version: 0.1.0
+Summary: Explainable trust analysis module for marketing and social media content.
+Requires-Python: >=3.11
+Requires-Dist: pydantic<3,>=2
+Requires-Dist: openai<2,>=1
+Requires-Dist: httpx<1,>=0.27
+Requires-Dist: python-dotenv<2,>=1
+Provides-Extra: dev
+Requires-Dist: pytest>=8; extra == "dev"
+Provides-Extra: nfa-vit
+Requires-Dist: gradio-client<2,>=1.7; extra == "nfa-vit"
+Provides-Extra: nfa-vit-local
+Requires-Dist: torch<3,>=2.5; extra == "nfa-vit-local"
+Requires-Dist: numpy<2; extra == "nfa-vit-local"
+Requires-Dist: pillow<12,>=10; extra == "nfa-vit-local"
+Requires-Dist: einops==0.8.1; extra == "nfa-vit-local"
+Requires-Dist: huggingface_hub<2,>=0.30; extra == "nfa-vit-local"
+Requires-Dist: gradio<6,>=5; extra == "nfa-vit-local"
+Requires-Dist: gradio-client<2,>=1.7; extra == "nfa-vit-local"
+Provides-Extra: lota-local
+Requires-Dist: torch<3,>=2.5; extra == "lota-local"
+Requires-Dist: numpy<2; extra == "lota-local"
+Requires-Dist: pillow<12,>=10; extra == "lota-local"
+Requires-Dist: opencv-python-headless<5,>=4.8; extra == "lota-local"
+Provides-Extra: ferretnet-local
+Requires-Dist: torch<3,>=2.5; extra == "ferretnet-local"
+Requires-Dist: numpy<2; extra == "ferretnet-local"
+Requires-Dist: pillow<12,>=10; extra == "ferretnet-local"
+Provides-Extra: provenance
+Requires-Dist: c2pa-python<1,>=0.37; extra == "provenance"
+Requires-Dist: Pillow<13,>=10; extra == "provenance"
+Provides-Extra: trufor-local
+Requires-Dist: torch<3,>=2.5; extra == "trufor-local"
+Requires-Dist: numpy<2; extra == "trufor-local"
+Requires-Dist: pillow<13,>=10; extra == "trufor-local"
+Requires-Dist: yacs<1,>=0.1.8; extra == "trufor-local"
+Requires-Dist: timm<1,>=0.5.4; extra == "trufor-local"
+Requires-Dist: matplotlib<4,>=3.5; extra == "trufor-local"

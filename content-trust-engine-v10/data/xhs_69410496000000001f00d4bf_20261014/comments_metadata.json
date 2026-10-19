@@ -1,0 +1,10 @@
+{
+  "source_url": "https://www.xiaohongshu.com/explore/69410496000000001f00d4bf",
+  "retrieved_at": "2026-10-14",
+  "reported_total_comments": 50,
+  "collected_comments": 10,
+  "collection_scope": "Unauthenticated public preview only. The page exposed 10 comments and required login to view the remaining comments.",
+  "captured_fields": ["text", "published_at", "region"],
+  "not_captured": ["author identifiers", "individual like counts", "replies", "remaining 40 comments"],
+  "analysis_limitations": "Text patterns can indicate low-effort or promotional behavior but cannot prove that a comment is fabricated, paid, or written by a bot. Account-level and coordination analysis is unavailable from this sample."
+}

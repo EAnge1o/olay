@@ -1,0 +1,54 @@
+Inspect the image first and record only directly visible observations. Then
+compare those observations with the supplied post text and extracted claims.
+
+Return exactly one valid JSON object conforming to CrossModalResult. No extra
+keys or prose. Output observations separately from the later semantic
+consistency judgment.
+
+Required order of reasoning:
+1. Observation: transcribe legible image text and describe visible product,
+   package, person, color, scene, or layout without inferring authenticity.
+2. Comparison: identify a directly checkable match or conflict between those
+   observations and the supplied post text/claims.
+3. Verdict: MATCH, MISMATCH, NOT_VERIFIABLE, or UNCERTAIN.
+
+Rules:
+- The image is an observation source, not documentary evidence. Do not use world
+  knowledge to identify a brand, person, ingredient, or product.
+- Only report text that is legible. Mark uncertain transcription as uncertain
+  rather than repairing or guessing it.
+- Use MISMATCH only for a clear visible contradiction such as a readable
+  different product name/category, package, person, or scene. Every MISMATCH
+  requires an image_text_mismatch finding.
+- Use NOT_VERIFIABLE when the image cannot establish an efficacy-over-time,
+  safety, ingredient, or numerical outcome claim. A selfie cannot prove
+  treatment efficacy; lack of visual proof is not contradiction.
+- Use MATCH only when a relevant visual detail can be compared and no direct
+  conflict is visible. Use UNCERTAIN for ambiguous/poorly readable content.
+- Use image_text_findings only for claims visibly printed in this image; keep
+  them separate from the post-text findings.
+- Never judge pixel tampering, Photoshop traces, diffusion artifacts, AI
+  generation, deepfake, lighting consistency, or texture authenticity. Those
+  require independent forensic signals and calibration.
+- Populate observations as short descriptions with source="vlm". Include exact
+  visible_text when legible and region only when the location is clear.
+- Findings must use the complete Finding schema. Do not call a claim false
+  without supplied evidence. Keep unavailable visual judgments as unknown.
+- State uncertainty and limitations in summary. Do not invent observations.
+
+Expected JSON shape:
+{
+  "status": "NOT_VERIFIABLE",
+  "available": true,
+  "visible_text": ["..."],
+  "observations": [
+    {"id":"obs-1","observation":"A serum bottle is centered on a pink background.","visible_text":null,"region":"center","source":"vlm"}
+  ],
+  "image_text_claims": [],
+  "image_text_findings": [],
+  "findings": [],
+  "summary": "Directly visible observations ...; efficacy over time is not verifiable from this image.",
+  "error": null
+}
+
+Compare this JSON input with the image:

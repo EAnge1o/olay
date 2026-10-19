@@ -1,0 +1,5 @@
+{"id":"normal-subjective-ad","text":"这款面霜质地清爽，日常保湿使用感不错。","image":null,"expected_categories":[],"expected_review_priority":"low","notes":"正常主观描述，用于观察误报"}
+{"id":"absolute-efficacy","text":"7天彻底祛皱，100%有效，敏感肌绝对不会过敏。","image":null,"expected_categories":["exaggerated_claim"],"expected_review_priority":"review","notes":"绝对化、量化和安全承诺"}
+{"id":"authority-endorsement","text":"权威机构认证，这是医学级修复精华。","image":null,"expected_categories":["fake_endorsement_risk","exaggerated_claim"],"expected_review_priority":"review","notes":"背书与医疗化表达"}
+{"id":"unsupported-numeric-claim","text":"连续使用28天缩小毛孔40%。","image":null,"expected_categories":["unsupported_claim"],"expected_review_priority":"review","notes":"无 evidence 时应保持证据不足并转人工复核"}
+{"id":"evidence-contradiction","text":"7天淡纹80%。","image":null,"evidence_items":[{"id":"official-study-4w","source":"official study","text":"连续使用4周，平均改善18%。"}],"expected_categories":["contradicted_claim"],"expected_review_priority":"high","requires_providers":["deepseek"],"notes":"配置 DeepSeek 时检查数字与时间冲突；离线规则不会武断判假"}

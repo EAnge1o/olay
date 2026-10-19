@@ -1,0 +1,10 @@
+-r requirements.txt
+
+# --- Test / quality ---
+pytest>=8.2.0
+pytest-asyncio>=0.23.0
+ruff>=0.5.0
+
+# --- Optional: real image metadata probing (width/height/EXIF) ---
+# Files still work without it; the vision heuristics degrade gracefully.
+Pillow>=10.3.0

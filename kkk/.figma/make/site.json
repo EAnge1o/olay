@@ -1,0 +1,10 @@
+{
+  "description": "Identify AI-generated beauty product posts through multimodal analysis to ensure authentic content and enhance user trust in recommendations.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
