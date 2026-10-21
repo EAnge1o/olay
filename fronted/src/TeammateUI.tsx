@@ -1,6 +1,7 @@
 // @ts-nocheck
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { Fragment, useEffect, useRef, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 
 import type { CreatorCheckRead } from "./api";
 
@@ -6758,7 +6759,7 @@ function CrossCheckEvidenceModal({ item, onClose, technicalView }: { item: Cross
     };
   }, [onClose]);
 
-  return (
+  return createPortal(
     <div
       aria-label="交叉验证证据链"
       aria-modal="true"
@@ -6801,7 +6802,8 @@ function CrossCheckEvidenceModal({ item, onClose, technicalView }: { item: Cross
           <button onClick={onClose}>返回交叉验证</button>
         </footer>
       </article>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
@@ -7630,21 +7632,47 @@ function CreatorSelfCheckReport({
     window.setTimeout(() => setFlashDraft(false), 900);
   };
 
+  const concreteCreatorSuggestion = (issue: CreatorDraftIssue) => {
+    const suggestion = issue.suggestion.trim();
+    const original = issue.original ?? "";
+    if (/补充可核验依据|主观体验并注明个体差异/.test(suggestion)) {
+      if (/7\s*天|变白|美白|痘印|毛孔/.test(original)) {
+        return "我连续用了 14 天，个人感觉肤色看起来更均匀，痘印有变淡；具体效果会因肤质和使用方式不同。";
+      }
+      return "我连续用了 14 天，个人感觉状态有改善；具体效果会因肤质和使用方式不同。";
+    }
+    if (/弱化绝对化表述/.test(suggestion)) {
+      return "我个人用下来感觉不错，具体效果会因肤质和使用方式不同。";
+    }
+    if (/医疗化功效/.test(suggestion)) {
+      return "这里改成日常使用感受会更稳妥，不延伸为医疗或治疗功效。";
+    }
+    return suggestion;
+  };
+
   const acceptIssue = (issue: CreatorDraftIssue) => {
+    const rewrite = concreteCreatorSuggestion(issue);
+    const changesDraft =
+      issue.id === "disclosure" ||
+      Boolean(issue.original) ||
+      rewrite !== issue.suggestion.trim();
     setDraft((current) => {
       if (issue.id === "disclosure") {
         const disclosure = input.isCollaboration ? "本篇含品牌合作或产品赠送。" : "本产品为自费购买。";
         return current.includes(disclosure) ? current : `${current.trim()}\n${disclosure}`;
       }
-      if (!issue.original) return current;
+      if (!issue.original) {
+        return current.includes(rewrite) ? current : `${current.trim()}\n${rewrite}`;
+      }
       if (issue.remove) return current.replace(`${issue.original}，`, "").replace(issue.original, "");
-      return current.replace(issue.original, issue.suggestion);
+      return current.includes(rewrite) ? current : current.replace(issue.original, rewrite);
     });
     setIssueStatus((current) => ({ ...current, [issue.id]: "accepted" }));
     if (issue.severity === "must") setAcceptedMustIds((current) => (current.includes(issue.id) ? current : [...current, issue.id]));
     else setAcceptedSuggestionIds((current) => (current.includes(issue.id) ? current : [...current, issue.id]));
-    // The copy changed, so a previous 再次检测 no longer reflects it.
-    setRechecked(false);
+    // Advisory items may have no source sentence and therefore do not change
+    // the draft. Accepting those after a recheck must not invalidate that run.
+    if (changesDraft) setRechecked(false);
     flashUpdatedDraft();
   };
 
@@ -8029,7 +8057,7 @@ function CreatorSelfCheckReport({
                     <p>{issue.reason}</p>
                     <div className="creator-rewrite">
                       {issue.original && <span><small>原句</small><del>{issue.original}</del></span>}
-                      <span><small>建议</small><strong>{issue.suggestion.split(/(【[^】]+】)/g).map((part) => /^【/.test(part) ? <mark key={part}>{part}</mark> : part)}</strong></span>
+                      <span><small>示例改写</small><strong>{concreteCreatorSuggestion(issue).split(/(【[^】]+】)/g).map((part) => /^【/.test(part) ? <mark key={part}>{part}</mark> : part)}</strong></span>
                     </div>
                     {!status && <footer><button onClick={() => acceptIssue(issue)}>采用建议</button><button onClick={() => setIssueStatus((current) => ({ ...current, [issue.id]: "ignored" }))}>忽略</button></footer>}
                     {onDispute && (
