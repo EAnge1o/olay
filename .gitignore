@@ -32,3 +32,6 @@ Thumbs.db
 .playwright-cli/
 __pycache__/
 *.pyc
+
+# Allow env templates
+!.env.example
