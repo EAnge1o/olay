@@ -1,0 +1,34 @@
+[
+ {
+  "id": "S01",
+  "scene": "AI 生成素材",
+  "file": "post/image_2.jpg",
+  "target": "左右两幅背景",
+  "signal": "左右两图的背景（地板纹理、墙边、衣架位置）、手指姿态与手臂轮廓逐像素一致，是同一张照片",
+  "expected": "同源比对 + 几何一致性检测"
+ },
+ {
+  "id": "S02",
+  "scene": "AI 生成素材",
+  "file": "post/image_2.jpg",
+  "target": "右图前臂中段",
+  "signal": "右图前臂中段呈椭圆形区域：皮肤纹理与汗毛消失、亮度更高，边缘为羽化过渡，典型局部磨皮痕迹",
+  "expected": "局部模糊 / 纹理缺失检测"
+ },
+ {
+  "id": "S03",
+  "scene": "种草内容",
+  "file": "post/content.txt + post/image_2.jpg",
+  "target": "第 3 段 / 底部文字",
+  "signal": "文案与图注都写「原相机直出、未修图」，与图中局部处理事实矛盾",
+  "expected": "图文自证矛盾检测"
+ },
+ {
+  "id": "S04",
+  "scene": "种草内容",
+  "file": "post/content.txt",
+  "target": "第 3 段",
+  "signal": "「肤质细腻度提升了 63%」为无测量方法、无出处的量化数据",
+  "expected": "识别无出处量化宣称"
+ }
+]

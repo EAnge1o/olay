@@ -1,0 +1,143 @@
+Analyze beauty-product seeding and personal-sharing copy for atomic factual
+claims, evidence alignment, advertising wording risk, and localized text
+integrity cues.
+
+Language/version addendum v9:
+- The input JSON includes `locale`. Write all human-readable claim text fields,
+  observations, reasons, summaries, and recommended actions in that locale.
+- Preserve exact source language in the `text` field and quoted spans. For
+  locale `zh-CN`, use concise Simplified Chinese for analysis fields.
+- Treat the post as ordinary beauty seeding/personal sharing. Subjective
+  preference, texture, appearance, and personal experience are not problems.
+- Do not infer AI authorship or editing from polished grammar, generic wording,
+  missing personal details, or a style cue alone. Text style is only a weak
+  review signal and never proves provenance.
+- Keep observations limited to what the text literally says. Put interpretation
+  in `reason`, and include a benign alternative for every integrity cue.
+- When exact source spans are available, return zero-based half-open offsets
+  into the original `text` string for `start_char`/`end_char`. Do not estimate
+  offsets. If exact offsets cannot be located, leave both null.
+
+The caller validates the response against a strict Pydantic schema with extra
+fields forbidden. Return exactly one JSON object, with no Markdown or prose.
+Use only the exact field names and enum values listed below. Do not invent
+aliases such as `exact_source_text`, `claim_category`, or `verification_status`
+values outside the allowed list.
+
+The top-level object must use exactly these fields:
+{
+  "claims": [],
+  "findings": [],
+  "ai_text_signal": null,
+  "semantic_anomaly_score": null,
+  "style_anomalies": [],
+  "text_integrity": {
+    "status": "insufficient_context",
+    "signals": [],
+    "model_reviewed": true
+  }
+}
+
+For every claim, use exactly these fields:
+`id`, `text`, `claim_type`, `verification_status`, `risk_score`, `confidence`,
+`evidence_ids`, `observation`, `reason`, `subject`, `metric`, `value`, `unit`,
+`duration`, `population`, `method`, `comparator`, `evidence_required`, and
+`evidence_alignment`.
+The exact source span belongs in `text`. Do not use `exact_source_text`.
+
+Allowed `claim_type` values:
+`efficacy`, `numeric`, `time_bound`, `medical`, `safety`, `ingredient`,
+`endorsement`, `comparative`, `absolute`, `product_identity`, `other`.
+
+Allowed `verification_status` values are `supported`, `contradicted`,
+`insufficient_evidence`, or `null`. Do not use `unknown` for this field.
+`risk_score` is a number from 0 to 1; `confidence` is a number from 0 to 1 or
+null. Risk is wording/claim review risk, not the probability that the claim is
+false.
+
+For a subjective taste, preference, texture impression, or personal experience,
+set `evidence_required` to false, `verification_status` to null, and
+`evidence_alignment` to null. Do not flag ordinary subjective sharing as a
+factual problem.
+
+For an objective claim requiring evidence, `evidence_alignment` must be null
+only when the claim is not assessable as a factual claim; otherwise use exactly
+these fields:
+`status`, `product_formula`, `population`, `endpoint`, `method`, `duration`,
+`comparator`, `result`, `evidence_ids`, `reason`.
+
+Allowed evidence-alignment `status` values:
+`direct_evidence`, `indirect_evidence`, `related_only`, `not_matched`,
+`insufficient_evidence`.
+Allowed values for each alignment dimension
+(`product_formula`, `population`, `endpoint`, `method`, `duration`,
+`comparator`, `result`) are `matched`, `mismatch`, `unknown`, or
+`not_applicable`.
+
+For every finding, use exactly these fields:
+`id`, `category`, `verdict`, `severity`, `risk_score`, `signal_score`,
+`score_semantics`, `confidence`, `observation`, `reason`, `evidence_ids`,
+`source`, `recommended_action`.
+
+Allowed finding `category` values:
+`ai_generated_text`, `exaggerated_claim`, `unsupported_claim`,
+`contradicted_claim`, `semantic_anomaly`, `fake_endorsement_risk`,
+`ai_generated_image`, `localized_image_manipulation`, `image_text_mismatch`.
+For this text-only analysis, use only text-relevant categories; do not create
+image findings. Allowed `verdict` values are `supported`, `suspicious`,
+`contradicted`, `insufficient_evidence`, or `unknown`. Allowed `severity`
+values are `info`, `low`, `medium`, or `high`. Set `source` to `llm`.
+A finding with category `contradicted_claim` and verdict `contradicted` must
+cite at least one directly relevant `evidence_id`.
+
+`text_integrity` must use exactly `status`, `signals`, and `model_reviewed`.
+Allowed status values are `signals_found`, `no_clear_signal`, and
+`insufficient_context`. Each signal must use exactly these fields:
+`id`, `signal_type`, `span`, `related_span`, `start_char`, `end_char`,
+`related_start_char`, `related_end_char`, `observation`, `reason`,
+`benign_alternative`, `strength`, `source`.
+Allowed signal types are `style_shift`, `repetition`, `internal_contradiction`,
+and `abrupt_transition`; `strength` is `weak` or `moderate`; `source` is `llm`.
+Quote exact spans. If either start/end offset pair is provided, provide both
+values in that pair. Related offsets require a non-null `related_span`.
+These are review cues only, not proof of AI authorship or editing.
+
+Analysis rules:
+- Treat this as ordinary beauty seeding and personal sharing. Subjective taste,
+  preference, texture impressions, and personal experience are normal.
+- Do not infer AI authorship, AI editing, human originality, or text provenance
+  from a single finished text. Always set `ai_text_signal` to null and
+  `semantic_anomaly_score` to null. Do not use fluency, grammar, slogans,
+  repetition, or missing personal details as an AI probability.
+- Extract objective efficacy, numeric, time-bound, medical, safety, ingredient,
+  product-identity, comparative, and endorsement claims as atomic claims. Split
+  one sentence when it makes independently testable statements.
+- Use only supplied `evidence_items` to verify. Model memory, product
+  reputation, product-name matches, and planned trial endpoints are not
+  evidence.
+- Without directly relevant supplied evidence, use
+  `insufficient_evidence`; never infer falsity from missing evidence or search
+  results. A supported or contradicted claim must cite directly relevant
+  evidence IDs.
+- For a clinical-trial record, compare product/formula, population, endpoint,
+  method, duration, comparator, and reported result separately. Use `unknown`
+  for dimensions the evidence does not specify. A study with no posted outcome
+  cannot support an efficacy claim.
+- Use `contradicted` only when supplied evidence directly conflicts with the
+  same product/formula and materially matching population, endpoint, method,
+  and conditions. A different duration or number alone may indicate a mismatch;
+  if it does not directly test the claim, prefer `insufficient_evidence` and
+  explain the limitation.
+- Keep factual verification separate from marketing wording risk. Absolute,
+  medicalized, guaranteed, quantitative, or authority-backed wording may merit
+  advertising review without being proven false.
+- Use text-integrity signals only for a localized style shift, repetition,
+  internal contradiction, or abrupt transition. Quote the text and state a
+  benign alternative. Use `insufficient_context` when fewer than two meaningful
+  segments are available. `no_clear_signal` does not mean human-written.
+- Do not flag ordinary enthusiasm, generic marketing phrases, polished grammar,
+  absent typos, or lack of personal details alone.
+- The `findings` array contains claim/marketing findings. The caller adds
+  normalized text-integrity findings separately.
+
+Input JSON:

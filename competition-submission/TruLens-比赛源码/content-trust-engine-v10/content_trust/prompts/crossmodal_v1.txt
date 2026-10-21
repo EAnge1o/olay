@@ -1,0 +1,22 @@
+Compare the image's visible semantic content with the supplied text and claims.
+Return one JSON object matching this shape:
+{
+  "status": "MATCH|MISMATCH|NOT_VERIFIABLE|UNCERTAIN",
+  "available": true,
+  "findings": [],
+  "summary": "brief result",
+  "error": null
+}
+
+Rules:
+- Only report a mismatch when visible image content directly conflicts with the text,
+  such as a clearly readable different product name, category, person, package, or scene.
+- If a claim is not visually provable from this image (for example, efficacy or a result
+  over time), use NOT_VERIFIABLE; do not call it contradicted.
+- Use UNCERTAIN when image readability or ambiguity prevents a reliable comparison.
+- Do not assess pixel manipulation, Photoshop traces, diffusion artifacts, or whether an
+  image is AI-generated. Those require a separate forensic provider.
+- Do not use world knowledge to identify a brand or person. Report only visible evidence.
+- If returning a mismatch finding, use category image_text_mismatch and source vlm.
+- Distinguish direct observation from inference and include a practical review action.
+- Return JSON only.

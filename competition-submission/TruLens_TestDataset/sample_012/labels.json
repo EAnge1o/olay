@@ -1,0 +1,58 @@
+[
+ {
+  "id": "S01",
+  "scene": "种草内容",
+  "file": "post/content.txt",
+  "target": "第 1 条",
+  "signal": "「7 天白一个度」「比医美还明显」等无依据的绝对化功效宣称",
+  "expected": "识别夸大 / 绝对化功效"
+ },
+ {
+  "id": "S02",
+  "scene": "种草内容",
+  "file": "post/content.txt",
+  "target": "第 3 条",
+  "signal": "「孕妇、哺乳期都 100% 无刺激」绝对化安全宣称",
+  "expected": "识别高风险安全宣称"
+ },
+ {
+  "id": "S03",
+  "scene": "种草内容",
+  "file": "post/content.txt + post/image_2.jpg",
+  "target": "第 2 条 / 图 2 机构栏",
+  "signal": "正文称「协和皮肤科李主任」，图 2 写的是「国际皮肤健康研究院」，两处机构不一致，且后者并非医疗机构",
+  "expected": "识别专家背书前后矛盾"
+ },
+ {
+  "id": "S04",
+  "scene": "AI 生成素材",
+  "file": "post/image_2.jpg",
+  "target": "证号栏",
+  "signal": "执业证号「110100-2024-AB」含字母和短横线，与医师执业证书编码（15 位数字）格式不符",
+  "expected": "证件字段格式校验"
+ },
+ {
+  "id": "S05",
+  "scene": "AI 生成素材",
+  "file": "post/image_2.jpg",
+  "target": "照片区",
+  "signal": "专家照片位为灰色占位块，无真实人像，推荐卡为模板化绘制",
+  "expected": "识别模板化伪造凭证"
+ },
+ {
+  "id": "S06",
+  "scene": "种草内容",
+  "file": "post/content.txt",
+  "target": "第 5 条 + 末段",
+  "signal": "「本文无广」与「点击链接前 100 名立减 50 元」导购话术矛盾",
+  "expected": "识别软广伪装"
+ },
+ {
+  "id": "S07",
+  "scene": "种草内容",
+  "file": "post/content.txt",
+  "target": "全文",
+  "signal": "1–5 编号清单、每条长度接近、结尾固定导购句式，呈模板化 AI 文本特征",
+  "expected": "识别 AI 文本结构特征"
+ }
+]

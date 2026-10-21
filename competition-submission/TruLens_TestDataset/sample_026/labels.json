@@ -1,0 +1,34 @@
+[
+ {
+  "id": "S01",
+  "scene": "AI 生成素材",
+  "file": "post/image_1.jpg",
+  "target": "① ② 号标签",
+  "signal": "①② 标签文字为衬线体，③④ 为无衬线黑体，同一张图内标签字体不一致",
+  "expected": "图内字体一致性检测"
+ },
+ {
+  "id": "S02",
+  "scene": "AI 生成素材",
+  "file": "post/image_1.jpg",
+  "target": "① ② 号标签底色",
+  "signal": "①② 标签底色是平涂纯色，缺少 ③④ 标签上的压缩噪声与光照渐变",
+  "expected": "局部篡改 / 噪声一致性检测"
+ },
+ {
+  "id": "S03",
+  "scene": "种草内容",
+  "file": "post/content.txt",
+  "target": "正文第 1 段",
+  "signal": "文案称「包装原图」，并把篡改后的「7 天淡纹」「医用修护」当作包装标注的功效",
+  "expected": "图文自证矛盾检测"
+ },
+ {
+  "id": "S04",
+  "scene": "种草内容",
+  "file": "post/content.txt",
+  "target": "正文第 2 段",
+  "signal": "「医用级修护」属于化妆品违规医疗化用语",
+  "expected": "违规用语识别"
+ }
+]

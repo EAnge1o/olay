@@ -1,0 +1,40 @@
+# Build context is the olay/ folder (it holds both backend/ and
+# content-trust-engine-v10/). Docker reads this file from the context ROOT,
+# i.e. this file must live next to `backend/`.
+
+# --- never ship secrets ---
+.env
+**/.env
+**/.env.local
+
+# --- python caches / virtualenvs ---
+**/__pycache__/
+**/*.py[cod]
+**/*.egg-info/
+backend/.venv/
+.venv/
+**/.pytest_cache/
+**/.ruff_cache/
+
+# --- runtime data (uploads, sqlite files) ---
+backend/storage/
+backend/data/
+content-trust-engine-v10/data/
+content-trust-engine-v10/models/
+
+# --- source trees that the image does not need ---
+content-trust-engine-v10/tests/
+content-trust-engine-v10/scripts/
+content-trust-engine-v10/deploy/
+content-trust-engine-v10/demo/
+backend/tests/
+backend/scripts/
+backend/docs/
+backend/requirements-dev.txt
+
+# --- vcs / editor / OS ---
+.git/
+.gitignore
+**/.DS_Store
+**/.idea/
+**/.vscode/

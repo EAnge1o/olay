@@ -1,0 +1,26 @@
+[
+ {
+  "id": "S01",
+  "scene": "AI 生成素材",
+  "file": "post/image_1.jpg",
+  "target": "左右两幅",
+  "signal": "左右两图几何完全一致（手臂轮廓、手指位置、背景物体逐像素对齐），是同一张照片",
+  "expected": "同源比对 + 几何一致性检测"
+ },
+ {
+  "id": "S02",
+  "scene": "AI 生成素材",
+  "file": "post/image_1.jpg",
+  "target": "右图整体",
+  "signal": "右图背景墙面、地板与皮肤同步变亮变灰，说明是整图调色而非皮肤变化",
+  "expected": "全局调色检测"
+ },
+ {
+  "id": "S03",
+  "scene": "种草内容",
+  "file": "post/content.txt + post/image_1.jpg",
+  "target": "正文第 2 段 / 图注",
+  "signal": "「绝对没有调色」「未调色」与调色事实矛盾",
+  "expected": "图文自证矛盾检测"
+ }
+]

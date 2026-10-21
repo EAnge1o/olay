@@ -1,0 +1,19 @@
+# Optional: Applied-AI trust engine (content-trust-engine-v10) runtime deps.
+#
+# The backend runs fine WITHOUT this file — the built-in heuristics are the
+# fallback whenever `content_trust` is not importable.
+#
+# Docker:
+#   The default `engine` build target installs these plus the engine package
+#   copied from the build context. Nothing to do here.
+#
+# Local development (run from the backend/ directory):
+#     pip install -r requirements-engine.txt
+#     pip install -e ../content-trust-engine-v10
+#   then set TRUST_ENGINE_ENABLED=true in backend/.env.
+#
+# These are the engine's own runtime deps that the backend does not already
+# install; its pydantic/httpx requirements are covered by requirements.txt.
+
+openai>=1,<2
+python-dotenv>=1,<2

@@ -1,0 +1,86 @@
+Analyze beauty-product seeding/recommendation copy for atomic claims, evidence
+alignment, advertising wording risk, and localized text-integrity cues.
+
+Return exactly one valid JSON object conforming to TextAnalysisResult. Do not add
+markdown or prose outside JSON. The response must contain claims, findings,
+ai_text_signal=null, semantic_anomaly_score=null, style_anomalies, and
+text_integrity.
+
+For every claim, populate:
+- id, exact source text, claim_type, verification_status, risk_score,
+  confidence, evidence_ids, observation, reason;
+- subject, metric, value, unit, duration, population, method, comparator;
+- evidence_required;
+- evidence_alignment, either null for subjective/non-verifiable content or an
+  object with status, product_formula, population, endpoint, method, duration,
+  comparator, result, evidence_ids, and reason.
+
+`risk_score` (0 to 1) is a wording/claim review-risk signal, not the probability
+that the statement is false. `confidence` describes confidence in the analysis;
+it is separate from risk. A high-risk absolute promise can still have
+insufficient factual evidence and must not be labeled false for that reason.
+
+Allowed evidence_alignment.status values:
+direct_evidence, indirect_evidence, related_only, not_matched,
+insufficient_evidence. Each match dimension must be matched, mismatch,
+unknown, or not_applicable.
+
+Rules:
+- Treat this as ordinary beauty seeding and personal sharing. Subjective taste,
+  preference, texture impressions, and personal experience are normal. Do not
+  flag those as factual problems.
+- Do not infer AI authorship, AI editing, human originality, or text provenance
+  from a single finished text. Keep ai_text_signal null. Do not use fluency,
+  grammar, generic slogans, repetition, or missing personal details as an AI
+  probability.
+- Extract objective efficacy, numeric, time-bound, medical, safety, ingredient,
+  product-identity, comparative, and endorsement claims as atomic claims. Split
+  one sentence if it makes independently testable statements.
+- Set evidence_required=false for subjective impressions. Use null
+  verification_status and null evidence_alignment for these statements.
+- Use only supplied evidence_items to verify. Model memory, product reputation,
+  product-name matches, and planned trial endpoints are not evidence.
+- A supported or contradicted claim must cite directly relevant evidence IDs.
+  Without directly relevant evidence, use insufficient_evidence. Never treat
+  absence of a search result as proof of falsity or ineffectiveness.
+- A clinical-trial record mentioning a product name is a candidate only. Check
+  formula/product, population, endpoint, method, duration, comparator, and
+  reported result separately. Set each alignment field to unknown when the
+  supplied record does not say. A study with no posted outcome result cannot
+  support an efficacy statement.
+- Use contradicted only where the supplied evidence directly conflicts with
+  the same product/formula and materially matching population, endpoint, method,
+  and conditions. A difference in study duration or value can be a mismatch
+  signal, but if it does not directly test the claim, prefer insufficient
+  evidence and explain the gap.
+- Keep factual verification separate from marketing wording risk. Absolute,
+  medicalized, guaranteed, quantitative, or authority-backed wording can merit
+  advertising review without being proven false.
+- Use text_integrity only for localized style_shift, repetition,
+  internal_contradiction, or abrupt_transition signals. Quote two exact spans
+  from the supplied text, describe the visible contrast, and provide a benign
+  alternative. These are review cues only, not proof of authorship or editing.
+- Do not flag ordinary enthusiasm, generic marketing phrases, polished grammar,
+  absent typos, or lack of personal details alone.
+- semantic_anomaly_score must stay null; text integrity is not calibrated and
+  does not enter priority decisions. Findings contains claim/marketing findings;
+  normalized text-integrity findings are added separately by the caller.
+- Use weak text-integrity strength by default; moderate only for a clear,
+  directly quoted contrast. If fewer than two meaningful segments are present,
+  use insufficient_context. no_clear_signal does not mean human-written.
+
+Example evidence alignment for an unsupported duration-specific efficacy claim:
+{
+  "status": "insufficient_evidence",
+  "product_formula": "unknown",
+  "population": "unknown",
+  "endpoint": "matched",
+  "method": "unknown",
+  "duration": "mismatch",
+  "comparator": "unknown",
+  "result": "unknown",
+  "evidence_ids": ["study-1"],
+  "reason": "The record reports a related endpoint at a different time point; it does not directly test the claim."
+}
+
+Analyze this JSON input using only its text and evidence_items:

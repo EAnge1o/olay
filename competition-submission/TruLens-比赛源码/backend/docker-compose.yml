@@ -1,0 +1,77 @@
+# TruLens backend — app + PostgreSQL.
+#
+# NOTE — the build context is the PARENT folder (`olay/`), because the default
+# `engine` target bakes in the sibling `content-trust-engine-v10/` package and
+# Docker cannot COPY from outside the build context. Run compose from here:
+#
+#   docker compose up --build                       # dev: sqlite + engine baked in
+#   BUILD_TARGET=lean docker compose up --build     # backend only (no engine pkg)
+#   docker compose --profile postgres up --build    # prod-like: PostgreSQL
+#
+# For the PostgreSQL profile, set in .env:
+#   DATABASE_URL=postgresql+asyncpg://trulens:trulens@db:5432/trulens
+
+services:
+  api:
+    build:
+      context: ..
+      dockerfile: backend/Dockerfile
+      # "engine" bakes in the Applied-AI trust engine; BUILD_TARGET=lean builds
+      # a backend-only image that works even without the engine folder.
+      target: ${BUILD_TARGET:-engine}
+    image: trulens-api:latest
+    container_name: trulens-api
+    ports:
+      - "8000:8000"
+    environment:
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+      DEBUG: ${DEBUG:-true}
+      DATABASE_URL: ${DATABASE_URL:-sqlite+aiosqlite:///./storage/trulens.db}
+      STORAGE_DIR: ${STORAGE_DIR:-./storage/uploads}
+      LLM_PROVIDER: ${LLM_PROVIDER:-mock}
+      LLM_API_KEY: ${LLM_API_KEY:-}
+      LLM_BASE_URL: ${LLM_BASE_URL:-https://api.openai.com/v1}
+      LLM_MODEL: ${LLM_MODEL:-gpt-4o-mini}
+      ENABLE_LLM: ${ENABLE_LLM:-false}
+      # --- trust engine (already installed in the default image target) ---
+      # Defaults to true because the image exists to run it; an explicit
+      # TRUST_ENGINE_ENABLED in backend/.env still takes precedence.
+      TRUST_ENGINE_ENABLED: ${TRUST_ENGINE_ENABLED:-true}
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
+      DEEPSEEK_BASE_URL: ${DEEPSEEK_BASE_URL:-https://api.deepseek.com}
+      DEEPSEEK_MODEL: ${DEEPSEEK_MODEL:-deepseek-flash}
+      GLM_API_KEY: ${GLM_API_KEY:-}
+      GLM_BASE_URL: ${GLM_BASE_URL:-https://open.bigmodel.cn/api/paas/v4/}
+      GLM_MODEL: ${GLM_MODEL:-glm-4.6v-flash}
+      GLM_MAX_TOKENS: ${GLM_MAX_TOKENS:-4096}
+      GLM_IMAGE_URL_FORMAT: ${GLM_IMAGE_URL_FORMAT:-raw}
+    volumes:
+      - storage:/app/storage
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+        required: false
+
+  db:
+    image: postgres:16-alpine
+    container_name: trulens-db
+    profiles: ["postgres"]
+    environment:
+      POSTGRES_USER: trulens
+      POSTGRES_PASSWORD: trulens
+      POSTGRES_DB: trulens
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U trulens -d trulens"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  storage:
+  pgdata:

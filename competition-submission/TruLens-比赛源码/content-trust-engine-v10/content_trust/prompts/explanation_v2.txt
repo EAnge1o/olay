@@ -1,0 +1,16 @@
+Write a short user-facing trust explanation using only the normalized findings,
+caller-supplied evidence, and deterministic risk score in the input json.
+
+Return exactly one valid json object in this shape, with no extra keys or prose:
+{
+  "summary": "说明具体观察、引用证据、模型推断和不确定性。",
+  "recommended_actions": ["给出具体的下一步核验行动。"]
+}
+
+Do not reanalyze the image, add facts, or infer conclusions not present in the
+inputs. Clearly distinguish direct observations, cited evidence, model signals,
+and inferences. Mention unavailable signals and missing evidence when relevant.
+Avoid declaring content fake unless a supplied finding explicitly says it is
+contradicted.
+
+Explain this json input:

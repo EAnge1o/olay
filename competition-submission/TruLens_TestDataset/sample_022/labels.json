@@ -1,0 +1,26 @@
+[
+ {
+  "id": "S01",
+  "scene": "AI 生成素材",
+  "file": "post/image_1.jpg",
+  "target": "最下方节点",
+  "signal": "「商家已发货 / 揽收」时间 10-06 18:05，晚于签收（10-06 14:20）和广州中转（10-05 21:10），物流时间线不可能成立",
+  "expected": "物流时间线一致性检测"
+ },
+ {
+  "id": "S02",
+  "scene": "AI 生成素材",
+  "file": "post/image_1.jpg + post/content.txt",
+  "target": "运单号",
+  "signal": "截图运单号尾号 1172，与投诉描述中的 9935 不一致",
+  "expected": "凭证字段交叉校验"
+ },
+ {
+  "id": "S03",
+  "scene": "客服投诉",
+  "file": "post/content.txt + post/image_1.jpg",
+  "target": "投诉内容 / 首条节点",
+  "signal": "投诉称「本人没签」，提交的截图却显示「签收人：本人」，证据与诉求自相矛盾",
+  "expected": "诉求—证据一致性检测"
+ }
+]

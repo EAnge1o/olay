@@ -1,0 +1,34 @@
+[
+ {
+  "id": "S01",
+  "scene": "AI 生成素材",
+  "file": "post/image_1.jpg",
+  "target": "第 1、2 条消息",
+  "signal": "客服 10:05 的回复排在用户 10:24 的提问之后，时间线倒置",
+  "expected": "聊天时间线一致性检测"
+ },
+ {
+  "id": "S02",
+  "scene": "AI 生成素材",
+  "file": "post/image_1.jpg",
+  "target": "全图字体",
+  "signal": "客服气泡为宋体（衬线），用户气泡为黑体，同一设备截图不应出现两种系统字体",
+  "expected": "字体一致性检测"
+ },
+ {
+  "id": "S03",
+  "scene": "AI 生成素材",
+  "file": "post/image_1.jpg",
+  "target": "y≈820",
+  "signal": "截图上下两段背景色不同，存在水平拼接缝",
+  "expected": "拼接缝检测"
+ },
+ {
+  "id": "S04",
+  "scene": "客服投诉",
+  "file": "complaint.txt",
+  "target": "订单信息 + 最后一条",
+  "signal": "签收 10-10，售后期 7 天，10-13 仍在售后期内，客服「已超过售后期」与订单信息矛盾",
+  "expected": "规则与时间交叉校验"
+ }
+]

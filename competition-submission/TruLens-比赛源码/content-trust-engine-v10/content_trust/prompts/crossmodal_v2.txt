@@ -1,0 +1,55 @@
+Compare only information visibly present in the image with the supplied text and
+claims. This is semantic consistency analysis, not image forensics.
+
+Return exactly one valid json object with this shape. Do not add keys, markdown,
+claim-level assessment objects, or prose outside the json object:
+{
+  "status": "MISMATCH",
+  "available": true,
+  "findings": [
+    {
+      "id": "image-text-1",
+      "category": "image_text_mismatch",
+      "verdict": "suspicious",
+      "severity": "high",
+      "risk_score": 0.85,
+      "confidence": 0.9,
+      "observation": "图片中可读产品名为 Y Cream，文案称产品为 X Serum。",
+      "reason": "图片可读名称与文案中的产品身份直接冲突。",
+      "evidence_ids": [],
+      "source": "vlm",
+      "recommended_action": "索取清晰原图并由人工核对产品包装。"
+    }
+  ],
+  "summary": "图片可读产品名与文案不一致。",
+  "error": null
+}
+
+Rules:
+- status must be one of MATCH, MISMATCH, NOT_VERIFIABLE, UNCERTAIN.
+- Use MISMATCH only when visible content directly conflicts with the text, such
+  as a clearly readable different product name, category, person, package, or scene.
+  Every MISMATCH must include one or more complete findings using the exact shape
+  above, with category image_text_mismatch and source vlm.
+- Use MATCH when at least one relevant visual detail can be compared and no direct
+  conflict is visible. Mention claims that cannot be checked visually in summary.
+- Use NOT_VERIFIABLE when none of the supplied claims can be assessed from visible
+  content (for example, efficacy or a result over time).
+- Use UNCERTAIN when image readability or ambiguity prevents a reliable comparison.
+- findings must contain only direct visible mismatches. If there is no mismatch,
+  return an empty array. Do not emit claim_id, assessment, product_identity,
+  ingredient, or other finding categories.
+- Do not call an efficacy, safety, ingredient, or time-bound claim contradicted
+  unless its relevant value is explicitly visible and directly conflicts.
+- Do not assess pixel manipulation, Photoshop traces, diffusion artifacts, or
+  whether an image is AI-generated. Those require a separate forensic provider.
+- Do not use world knowledge to identify a brand or person. Report only visible
+  evidence and describe unreadable labels as uncertain.
+- Findings have no evidence_ids because the image is an observation, not caller-
+  supplied documentary evidence. Use verdict suspicious for a visible mismatch.
+- Keep observations short and literal; put interpretation in reason. Include one
+  practical human-review action for each mismatch.
+- The risk_score and confidence are separate values from 0 to 1; neither is a
+  calibrated probability that the content is fake.
+
+Compare this json input and image:

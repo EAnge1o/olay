@@ -1,0 +1,17 @@
+# --- Web framework ---
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.0
+python-multipart>=0.0.9        # multipart/form-data (file & form upload)
+
+# --- Validation / settings ---
+pydantic>=2.7.0
+pydantic-settings>=2.3.0
+
+# --- Persistence ---
+# [asyncio] pulls in greenlet, required by SQLAlchemy's async extension.
+SQLAlchemy[asyncio]>=2.0.30
+aiosqlite>=0.20.0              # async SQLite driver (development)
+asyncpg>=0.29.0                # async PostgreSQL driver (production)
+
+# --- Outbound HTTP (LLM providers) ---
+httpx>=0.27.0

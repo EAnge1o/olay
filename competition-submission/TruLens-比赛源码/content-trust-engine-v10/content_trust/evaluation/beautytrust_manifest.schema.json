@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:content-trust:beautytrust-manifest:v1",
+  "title": "BeautyTrust image evaluation manifest row",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "image_path",
+    "sha256",
+    "split",
+    "group_ids",
+    "labels",
+    "ground_truth_source",
+    "beauty_context"
+  ],
+  "properties": {
+    "id": { "type": "string", "minLength": 1 },
+    "image_path": { "type": "string", "minLength": 1 },
+    "sha256": { "type": "string", "pattern": "^[a-fA-F0-9]{64}$" },
+    "split": { "enum": ["train", "calibration", "test"] },
+    "group_ids": {
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "anyOf": [
+        { "required": ["post_id"] },
+        { "required": ["creator_id"] },
+        { "required": ["source_id"] },
+        { "required": ["generation_pipeline_id"] }
+      ],
+      "properties": {
+        "post_id": { "type": ["string", "null"] },
+        "creator_id": { "type": ["string", "null"] },
+        "source_id": { "type": ["string", "null"] },
+        "generation_pipeline_id": { "type": ["string", "null"] }
+      }
+    },
+    "labels": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["origin_class", "ai_generated", "manipulated"],
+      "properties": {
+        "origin_class": {
+          "enum": [
+            "camera_original",
+            "light_retouch",
+            "beauty_filter",
+            "ai_local_edit",
+            "composite",
+            "fully_synthetic",
+            "unknown"
+          ]
+        },
+        "ai_generated": { "type": ["boolean", "null"] },
+        "manipulated": { "type": ["boolean", "null"] },
+        "edited_regions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["label"],
+            "properties": {
+              "label": { "type": "string" },
+              "bbox_xyxy_normalized": {
+                "type": "array",
+                "items": { "type": "number", "minimum": 0, "maximum": 1 },
+                "minItems": 4,
+                "maxItems": 4
+              },
+              "mask_path": { "type": ["string", "null"] }
+            }
+          }
+        }
+      }
+    },
+    "ground_truth_source": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "original_capture_or_edit_log",
+          "creator_confirmed",
+          "c2pa_verified",
+          "controlled_generation_record",
+          "independent_annotator_consensus",
+          "unknown"
+        ]
+      },
+      "minItems": 1
+    },
+    "annotator_count": { "type": ["integer", "null"], "minimum": 0 },
+    "beauty_context": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "face_or_skin",
+          "product_packshot",
+          "swatch",
+          "before_after",
+          "packaging_text",
+          "social_screenshot",
+          "other"
+        ]
+      }
+    },
+    "source_license": { "type": ["string", "null"] },
+    "notes": { "type": "string" }
+  }
+}

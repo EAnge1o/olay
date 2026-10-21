@@ -1,0 +1,34 @@
+[
+ {
+  "id": "S01",
+  "scene": "种草内容",
+  "file": "post/content.txt + post/image_2.jpg",
+  "target": "正文第 1、3 段 / 图 2",
+  "signal": "声称「自费、不是广告」，却附带店铺专属折扣口令「YUEYAN50」",
+  "expected": "识别软广伪装"
+ },
+ {
+  "id": "S02",
+  "scene": "评论区",
+  "file": "comments.txt",
+  "target": "[03]",
+  "signal": "店铺客服账号在评论区感谢作者并引导用口令下单",
+  "expected": "跨账号商业关联识别"
+ },
+ {
+  "id": "S03",
+  "scene": "种草内容",
+  "file": "account.txt",
+  "target": "简介 + 近 30 天",
+  "signal": "简介写「合作 VX」，近 30 天 6 篇笔记附同一店铺口令",
+  "expected": "账号层商业合作识别"
+ },
+ {
+  "id": "S04",
+  "scene": "评论区",
+  "file": "comments.txt",
+  "target": "[04][05]",
+  "signal": "真实用户已质疑「自费分享还有专属口令」",
+  "expected": "提取用户质疑线索"
+ }
+]

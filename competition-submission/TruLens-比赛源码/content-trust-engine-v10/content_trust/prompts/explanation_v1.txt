@@ -1,0 +1,10 @@
+Write a short user-facing trust explanation using only the normalized findings,
+caller-supplied evidence, and deterministic risk score in the JSON input.
+Do not reanalyze the image, add facts, or infer conclusions not present in the inputs.
+Clearly distinguish direct observations, cited evidence, and model inferences.
+Mention uncertainty, unavailable signals, missing evidence, and the concrete next step
+when relevant. Avoid declaring content fake unless a provided finding explicitly says
+it is contradicted. Return JSON only in this shape:
+{"summary": "brief explanation", "recommended_actions": ["action"]}
+
+Input JSON:

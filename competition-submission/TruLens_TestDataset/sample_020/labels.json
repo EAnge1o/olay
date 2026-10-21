@@ -1,0 +1,42 @@
+[
+ {
+  "id": "S01",
+  "scene": "评论区",
+  "file": "comments.txt",
+  "target": "[03]–[08]",
+  "signal": "6 条差评由默认昵称新号在 22:41:05–22:44:10（约 3 分钟）内连续发布",
+  "expected": "时间聚集 + 账号特征检测"
+ },
+ {
+  "id": "S02",
+  "scene": "AI 生成素材",
+  "file": "comment_images/c_03.jpg / c_04.jpg / c_06.jpg",
+  "target": "全图",
+  "signal": "3 张「过敏图」为同一张照片的裁切、缩放与镜像版本（背景、手臂轮廓一致）",
+  "expected": "同源 / 镜像复用检测"
+ },
+ {
+  "id": "S03",
+  "scene": "AI 生成素材",
+  "file": "comment_images/c_03.jpg",
+  "target": "前臂中段红斑",
+  "signal": "红斑为规则椭圆、边缘均匀羽化、色相单一且无皮肤纹理变化，与真实炎症表现不符，疑似后期着色",
+  "expected": "局部着色 / 合成痕迹检测"
+ },
+ {
+  "id": "S04",
+  "scene": "评论区",
+  "file": "comments.txt",
+  "target": "[05]",
+  "signal": "批号「LR2026X」不符合常见批号格式，无法溯源",
+  "expected": "凭证字段格式校验"
+ },
+ {
+  "id": "S05",
+  "scene": "评论区",
+  "file": "comments.txt",
+  "target": "[09][10]",
+  "signal": "真实用户已指出「同一张图」和「三无」说法不成立",
+  "expected": "提取真实用户的反证线索"
+ }
+]

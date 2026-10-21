@@ -1,0 +1,34 @@
+[
+ {
+  "id": "S01",
+  "scene": "AI 生成素材",
+  "file": "post/image_1.jpg",
+  "target": "红色贴标区域",
+  "signal": "贴标边缘锐利、无阴影，且不随罐体弧面和拍摄角度发生透视形变，与周围光照不一致",
+  "expected": "拼接 / 光照一致性检测"
+ },
+ {
+  "id": "S02",
+  "scene": "AI 生成素材",
+  "file": "post/image_1.jpg",
+  "target": "红色贴标区域",
+  "signal": "贴标区域的 JPEG 压缩痕迹与背景不同（误差水平分析会看到明显差异块）",
+  "expected": "ELA / 双重压缩检测"
+ },
+ {
+  "id": "S03",
+  "scene": "种草内容",
+  "file": "post/content.txt",
+  "target": "正文第 1 段",
+  "signal": "「械字号」属于医疗器械备案类别，与面霜（化妆品）的类别矛盾",
+  "expected": "品类资质常识校验"
+ },
+ {
+  "id": "S04",
+  "scene": "种草内容",
+  "file": "post/content.txt",
+  "target": "正文第 2 段",
+  "signal": "「术后修复可用」「医院专供」「私信拿货」属于违规医疗化宣传 + 私域交易",
+  "expected": "违规宣传与交易风险识别"
+ }
+]

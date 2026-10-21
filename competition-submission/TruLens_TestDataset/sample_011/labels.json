@@ -1,0 +1,178 @@
+[
+  {
+    "id": "S01",
+    "scene": "种草内容",
+    "file": "post/content.txt",
+    "target": "第二节",
+    "signal": "无出处量化数据（28 天淡纹 89.6% / 屏障修护率 97.3%）",
+    "expected": "识别无出处的量化功效宣称"
+  },
+  {
+    "id": "S02",
+    "scene": "种草内容",
+    "file": "post/content.txt",
+    "target": "第五节 + 第九节",
+    "signal": "声明数据来自详情页，却又写自己连用 28 天",
+    "expected": "识别「亲测」与「数据来源」冲突"
+  },
+  {
+    "id": "S03",
+    "scene": "种草内容",
+    "file": "post/content.txt",
+    "target": "第二节",
+    "signal": "绝对化安全性宣称（敏感肌、孕妇、哺乳期可用）",
+    "expected": "识别高风险安全宣称"
+  },
+  {
+    "id": "S04",
+    "scene": "种草内容",
+    "file": "post/content.txt",
+    "target": "全文",
+    "signal": "一~九 编号清单、段长均匀、无口语与 emoji",
+    "expected": "识别 AI 文本结构特征"
+  },
+  {
+    "id": "S05",
+    "scene": "种草内容",
+    "file": "post/content.txt",
+    "target": "第九节",
+    "signal": "「无广、纯自费」与单一品牌强推矛盾",
+    "expected": "识别软广伪装"
+  },
+  {
+    "id": "S06",
+    "scene": "种草内容",
+    "file": "post/content.txt",
+    "target": "末行话题标签",
+    "signal": "14 个标签堆砌，含弱相关流量词",
+    "expected": "识别标签堆砌"
+  },
+  {
+    "id": "S07",
+    "scene": "种草内容",
+    "file": "post/content.txt",
+    "target": "第一节",
+    "signal": "名为「怎么选」实为单一品牌全线种草",
+    "expected": "识别测评框架失真"
+  },
+  {
+    "id": "S08",
+    "scene": "图片",
+    "file": "post/image_6.jpg",
+    "target": "左右两幅",
+    "signal": "同一张照片仅调色/锐化，伪造成「28 天前后」",
+    "expected": "同源比对 + 几何一致性检测"
+  },
+  {
+    "id": "S09",
+    "scene": "图片",
+    "file": "post/image_6.jpg",
+    "target": "底部文字",
+    "signal": "「未修图」与调色事实矛盾",
+    "expected": "图文自证矛盾检测"
+  },
+  {
+    "id": "S10",
+    "scene": "图片",
+    "file": "post/image_7.jpg",
+    "target": "y≈700 拼接缝 / 全图",
+    "signal": "上下背景色不同；客服宋体、用户黑体",
+    "expected": "拼接缝与字体一致性检测"
+  },
+  {
+    "id": "S11",
+    "scene": "图片",
+    "file": "post/image_7.jpg",
+    "target": "第 1、2 条消息",
+    "signal": "09:12 的提问排在 08:47 的回复之前",
+    "expected": "聊天时间线一致性检测"
+  },
+  {
+    "id": "S12",
+    "scene": "图片",
+    "file": "post/image_8.jpg",
+    "target": "订单号与评价时间",
+    "signal": "评价时间 10-08 早于订单日期 10-09",
+    "expected": "凭证字段交叉校验"
+  },
+  {
+    "id": "S13",
+    "scene": "图片",
+    "file": "post/image_8.jpg",
+    "target": "头像与晒图区",
+    "signal": "头像为纯色占位；三张晒图完全相同",
+    "expected": "占位图与重复图检测"
+  },
+  {
+    "id": "S14",
+    "scene": "图片",
+    "file": "post/image_9.jpg",
+    "target": "柱状图区",
+    "signal": "5.0% 的柱（84px）低于 2.0% 的柱（186px）",
+    "expected": "图表数值与几何一致性检测"
+  },
+  {
+    "id": "S15",
+    "scene": "图片",
+    "file": "post/image_9.jpg",
+    "target": "成分表",
+    "signal": "列有「香精」，与正文「无香精」矛盾",
+    "expected": "成分表与正文交叉核对"
+  },
+  {
+    "id": "S16",
+    "scene": "图片",
+    "file": "post/image_9.jpg",
+    "target": "备案号",
+    "signal": "「国妆特字」用于普通化妆品属类别错误",
+    "expected": "备案号格式校验"
+  },
+  {
+    "id": "S17",
+    "scene": "评论区",
+    "file": "comments.txt",
+    "target": "[14]-[20]",
+    "signal": "7 条好评集中在约 11 秒内，其中 3 条完全重复",
+    "expected": "时间聚集 + 文本相似度检测"
+  },
+  {
+    "id": "S18",
+    "scene": "评论区",
+    "file": "comments.txt",
+    "target": "[09]-[13]",
+    "signal": "5 条仅含产品名的刷词评论",
+    "expected": "关键词刷评检测"
+  },
+  {
+    "id": "S19",
+    "scene": "评论区",
+    "file": "comments.txt",
+    "target": "[02][04][07]",
+    "signal": "客服账号（工号 KF8821）在评论区回应质疑",
+    "expected": "跨文件身份关联"
+  },
+  {
+    "id": "S20",
+    "scene": "商品评论",
+    "file": "reviews.txt",
+    "target": "统计段 + [09][10]",
+    "signal": "4.9 分与 1 星 67 条矛盾；差评与投诉同源",
+    "expected": "评分分布一致性检测"
+  },
+  {
+    "id": "S21",
+    "scene": "客服投诉",
+    "file": "complaint.txt",
+    "target": "对话与订单号",
+    "signal": "工号查无；订单号日期晚于首次沟通",
+    "expected": "凭证字段交叉校验"
+  },
+  {
+    "id": "S22",
+    "scene": "评论区",
+    "file": "comments.txt",
+    "target": "[02][07]",
+    "signal": "「截图是拼接排版问题」「图表是示意图」自认后期制作",
+    "expected": "语义自证检测"
+  }
+]

@@ -1,0 +1,3 @@
+# Xiaohongshu link ingestion uses xhs/XhsExtractor/Crawler.py.
+# The crawler signs into a real Chromium via DrissionPage, so Chrome must be present.
+DrissionPage>=4.1

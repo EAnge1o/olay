@@ -1,0 +1,26 @@
+[
+ {
+  "id": "S01",
+  "scene": "评论区",
+  "file": "comments.txt",
+  "target": "[04]–[15]",
+  "signal": "12 条评论在 20:15:00–20:15:22 内每 2 秒发布 1 条",
+  "expected": "时间聚集检测"
+ },
+ {
+  "id": "S02",
+  "scene": "评论区",
+  "file": "comments.txt",
+  "target": "[04]–[15]",
+  "signal": "少数几种短句循环出现（「欧莱雅玻色因yyds！！」出现 5 次），无任何使用细节",
+  "expected": "文本重复检测"
+ },
+ {
+  "id": "S03",
+  "scene": "评论区",
+  "file": "comments.txt",
+  "target": "[04]–[15] 昵称/地区",
+  "signal": "全部为「用户 + 5 位数字」默认昵称，地区为空",
+  "expected": "账号特征检测"
+ }
+]
