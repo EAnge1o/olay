@@ -1,0 +1,5231 @@
+{
+  "sample_id": "sample_013",
+  "manifest": {
+    "sample_id": "sample_013",
+    "场景": "AI 生成素材",
+    "是否伪造": "是",
+    "难度": "中",
+    "伪造类型": "同源照片局部磨皮提亮，冒充使用前后对比",
+    "标注疑点数": "4",
+    "风险等级": "高",
+    "图片数": "2"
+  },
+  "input_mapping": {
+    "comments": false,
+    "reviews": false,
+    "complaint": false,
+    "account": false,
+    "content_text": "标题：手臂都能用的黑精华面膜？21 天对比给你们看😭\n\n正文：\n姐妹们我真的哭死，本来只是敷脸剩的精华舍不得扔，顺手抹在手臂上，结果坚持了 21 天！！\n图 1 是我用的这款黑精华面膜（YOUTH CODE），一盒五片，敷完的精华液超级多。\n图 2 左边是第一天拍的，右边是第 21 天，同一个位置原相机直出，没 P 没滤镜！！毛孔真的细了好多，肤质细腻度提升了 63%，手臂都比以前滑。\n不说了，已经囤了三盒🥹\n\n#欧莱雅 #黑精华 #面膜 #身体护理 #好物分享",
+    "submitted_text": "标题：手臂都能用的黑精华面膜？21 天对比给你们看😭\n\n正文：\n姐妹们我真的哭死，本来只是敷脸剩的精华舍不得扔，顺手抹在手臂上，结果坚持了 21 天！！\n图 1 是我用的这款黑精华面膜（YOUTH CODE），一盒五片，敷完的精华液超级多。\n图 2 左边是第一天拍的，右边是第 21 天，同一个位置原相机直出，没 P 没滤镜！！毛孔真的细了好多，肤质细腻度提升了 63%，手臂都比以前滑。\n不说了，已经囤了三盒🥹\n\n#欧莱雅 #黑精华 #面膜 #身体护理 #好物分享",
+    "images_available": [
+      "post\\image_1.jpg",
+      "post\\image_2.jpg"
+    ],
+    "images_submitted": [
+      "post\\image_1.jpg"
+    ],
+    "comment_images_available": [],
+    "comment_images_submitted": [],
+    "comments_submitted": [],
+    "account_submitted": null,
+    "labels": [
+      {
+        "id": "S01",
+        "scene": "AI 生成素材",
+        "file": "post/image_2.jpg",
+        "target": "左右两幅背景",
+        "signal": "左右两图的背景（地板纹理、墙边、衣架位置）、手指姿态与手臂轮廓逐像素一致，是同一张照片",
+        "expected": "同源比对 + 几何一致性检测"
+      },
+      {
+        "id": "S02",
+        "scene": "AI 生成素材",
+        "file": "post/image_2.jpg",
+        "target": "右图前臂中段",
+        "signal": "右图前臂中段呈椭圆形区域：皮肤纹理与汗毛消失、亮度更高，边缘为羽化过渡，典型局部磨皮痕迹",
+        "expected": "局部模糊 / 纹理缺失检测"
+      },
+      {
+        "id": "S03",
+        "scene": "种草内容",
+        "file": "post/content.txt + post/image_2.jpg",
+        "target": "第 3 段 / 底部文字",
+        "signal": "文案与图注都写「原相机直出、未修图」，与图中局部处理事实矛盾",
+        "expected": "图文自证矛盾检测"
+      },
+      {
+        "id": "S04",
+        "scene": "种草内容",
+        "file": "post/content.txt",
+        "target": "第 3 段",
+        "signal": "「肤质细腻度提升了 63%」为无测量方法、无出处的量化数据",
+        "expected": "识别无出处量化宣称"
+      }
+    ]
+  },
+  "attempts": [
+    {
+      "attempt": 1,
+      "upload": {
+        "request": {
+          "text_chars": 233,
+          "comments_count": 0,
+          "account_posts": 0,
+          "image_submitted": [
+            "post\\image_1.jpg"
+          ],
+          "images_available": [
+            "post\\image_1.jpg",
+            "post\\image_2.jpg"
+          ],
+          "comment_images_available": [],
+          "comment_images_submitted": []
+        },
+        "http_status": 201,
+        "response": {
+          "task_id": "d62fd718e89a41fca45be6242059d7ca",
+          "sample_id": "c701c686b42e41e09eae0a75394ca234",
+          "status": "pending",
+          "comment_count": 0,
+          "text_length": 233,
+          "has_image": true,
+          "account_post_count": 0,
+          "source_url": null
+        }
+      },
+      "poll": {
+        "final": {
+          "task_id": "d62fd718e89a41fca45be6242059d7ca",
+          "sample_id": "c701c686b42e41e09eae0a75394ca234",
+          "status": "completed",
+          "progress": 100,
+          "requested_agents": [
+            "account",
+            "image",
+            "comment",
+            "text"
+          ],
+          "error_message": null,
+          "created_at": "2026-10-20T14:58:46.016379+00:00",
+          "started_at": "2026-10-20T14:58:46.060698+00:00",
+          "finished_at": "2026-10-20T14:59:44.864289+00:00",
+          "report_ready": true,
+          "agents": [
+            {
+              "agent": "account",
+              "code": "T",
+              "label": "账号可信度",
+              "status": "completed",
+              "assessed": false,
+              "risk_level": null,
+              "risk_score": null,
+              "trust_level": null,
+              "trust_score": null,
+              "trust_label": null,
+              "duration_ms": 58733,
+              "error_message": null
+            },
+            {
+              "agent": "image",
+              "code": "R",
+              "label": "图片真实性",
+              "status": "completed",
+              "assessed": true,
+              "risk_level": "low",
+              "risk_score": 0.0,
+              "trust_level": "high",
+              "trust_score": 100.0,
+              "trust_label": "高可信",
+              "duration_ms": 58733,
+              "error_message": null
+            },
+            {
+              "agent": "comment",
+              "code": "U",
+              "label": "评论区真实性",
+              "status": "completed",
+              "assessed": false,
+              "risk_level": null,
+              "risk_score": null,
+              "trust_level": null,
+              "trust_score": null,
+              "trust_label": null,
+              "duration_ms": 58733,
+              "error_message": null
+            },
+            {
+              "agent": "text",
+              "code": "S",
+              "label": "文案真实性",
+              "status": "completed",
+              "assessed": true,
+              "risk_level": "high",
+              "risk_score": 60.0,
+              "trust_level": "low",
+              "trust_score": 40.0,
+              "trust_label": "低可信",
+              "duration_ms": 58733,
+              "error_message": null
+            }
+          ]
+        },
+        "snapshots": [
+          {
+            "at_s": 0.024,
+            "http_status": 200,
+            "status": {
+              "task_id": "d62fd718e89a41fca45be6242059d7ca",
+              "sample_id": "c701c686b42e41e09eae0a75394ca234",
+              "status": "pending",
+              "progress": 0,
+              "requested_agents": [
+                "account",
+                "image",
+                "comment",
+                "text"
+              ],
+              "error_message": null,
+              "created_at": "2026-10-20T14:58:46.016379+00:00",
+              "started_at": null,
+              "finished_at": null,
+              "report_ready": false,
+              "agents": []
+            }
+          },
+          {
+            "at_s": 1.54,
+            "http_status": 200,
+            "status": {
+              "task_id": "d62fd718e89a41fca45be6242059d7ca",
+              "sample_id": "c701c686b42e41e09eae0a75394ca234",
+              "status": "running",
+              "progress": 10,
+              "requested_agents": [
+                "account",
+                "image",
+                "comment",
+                "text"
+              ],
+              "error_message": null,
+              "created_at": "2026-10-20T14:58:46.016379+00:00",
+              "started_at": "2026-10-20T14:58:46.060698+00:00",
+              "finished_at": null,
+              "report_ready": false,
+              "agents": [
+                {
+                  "agent": "account",
+                  "code": "T",
+                  "label": "账号可信度",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "image",
+                  "code": "R",
+                  "label": "图片真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "comment",
+                  "code": "U",
+                  "label": "评论区真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "text",
+                  "code": "S",
+                  "label": "文案真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                }
+              ]
+            }
+          },
+          {
+            "at_s": 3.056,
+            "http_status": 200,
+            "status": {
+              "task_id": "d62fd718e89a41fca45be6242059d7ca",
+              "sample_id": "c701c686b42e41e09eae0a75394ca234",
+              "status": "running",
+              "progress": 10,
+              "requested_agents": [
+                "account",
+                "image",
+                "comment",
+                "text"
+              ],
+              "error_message": null,
+              "created_at": "2026-10-20T14:58:46.016379+00:00",
+              "started_at": "2026-10-20T14:58:46.060698+00:00",
+              "finished_at": null,
+              "report_ready": false,
+              "agents": [
+                {
+                  "agent": "account",
+                  "code": "T",
+                  "label": "账号可信度",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "image",
+                  "code": "R",
+                  "label": "图片真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "comment",
+                  "code": "U",
+                  "label": "评论区真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "text",
+                  "code": "S",
+                  "label": "文案真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                }
+              ]
+            }
+          },
+          {
+            "at_s": 4.573,
+            "http_status": 200,
+            "status": {
+              "task_id": "d62fd718e89a41fca45be6242059d7ca",
+              "sample_id": "c701c686b42e41e09eae0a75394ca234",
+              "status": "running",
+              "progress": 10,
+              "requested_agents": [
+                "account",
+                "image",
+                "comment",
+                "text"
+              ],
+              "error_message": null,
+              "created_at": "2026-10-20T14:58:46.016379+00:00",
+              "started_at": "2026-10-20T14:58:46.060698+00:00",
+              "finished_at": null,
+              "report_ready": false,
+              "agents": [
+                {
+                  "agent": "account",
+                  "code": "T",
+                  "label": "账号可信度",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "image",
+                  "code": "R",
+                  "label": "图片真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "comment",
+                  "code": "U",
+                  "label": "评论区真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "text",
+                  "code": "S",
+                  "label": "文案真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                }
+              ]
+            }
+          },
+          {
+            "at_s": 6.087,
+            "http_status": 200,
+            "status": {
+              "task_id": "d62fd718e89a41fca45be6242059d7ca",
+              "sample_id": "c701c686b42e41e09eae0a75394ca234",
+              "status": "running",
+              "progress": 10,
+              "requested_agents": [
+                "account",
+                "image",
+                "comment",
+                "text"
+              ],
+              "error_message": null,
+              "created_at": "2026-10-20T14:58:46.016379+00:00",
+              "started_at": "2026-10-20T14:58:46.060698+00:00",
+              "finished_at": null,
+              "report_ready": false,
+              "agents": [
+                {
+                  "agent": "account",
+                  "code": "T",
+                  "label": "账号可信度",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "image",
+                  "code": "R",
+                  "label": "图片真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "comment",
+                  "code": "U",
+                  "label": "评论区真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "text",
+                  "code": "S",
+                  "label": "文案真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                }
+              ]
+            }
+          },
+          {
+            "at_s": 7.604,
+            "http_status": 200,
+            "status": {
+              "task_id": "d62fd718e89a41fca45be6242059d7ca",
+              "sample_id": "c701c686b42e41e09eae0a75394ca234",
+              "status": "running",
+              "progress": 10,
+              "requested_agents": [
+                "account",
+                "image",
+                "comment",
+                "text"
+              ],
+              "error_message": null,
+              "created_at": "2026-10-20T14:58:46.016379+00:00",
+              "started_at": "2026-10-20T14:58:46.060698+00:00",
+              "finished_at": null,
+              "report_ready": false,
+              "agents": [
+                {
+                  "agent": "account",
+                  "code": "T",
+                  "label": "账号可信度",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "image",
+                  "code": "R",
+                  "label": "图片真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "comment",
+                  "code": "U",
+                  "label": "评论区真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "text",
+                  "code": "S",
+                  "label": "文案真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                }
+              ]
+            }
+          },
+          {
+            "at_s": 9.12,
+            "http_status": 200,
+            "status": {
+              "task_id": "d62fd718e89a41fca45be6242059d7ca",
+              "sample_id": "c701c686b42e41e09eae0a75394ca234",
+              "status": "running",
+              "progress": 10,
+              "requested_agents": [
+                "account",
+                "image",
+                "comment",
+                "text"
+              ],
+              "error_message": null,
+              "created_at": "2026-10-20T14:58:46.016379+00:00",
+              "started_at": "2026-10-20T14:58:46.060698+00:00",
+              "finished_at": null,
+              "report_ready": false,
+              "agents": [
+                {
+                  "agent": "account",
+                  "code": "T",
+                  "label": "账号可信度",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "image",
+                  "code": "R",
+                  "label": "图片真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "comment",
+                  "code": "U",
+                  "label": "评论区真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "text",
+                  "code": "S",
+                  "label": "文案真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                }
+              ]
+            }
+          },
+          {
+            "at_s": 10.637,
+            "http_status": 200,
+            "status": {
+              "task_id": "d62fd718e89a41fca45be6242059d7ca",
+              "sample_id": "c701c686b42e41e09eae0a75394ca234",
+              "status": "running",
+              "progress": 10,
+              "requested_agents": [
+                "account",
+                "image",
+                "comment",
+                "text"
+              ],
+              "error_message": null,
+              "created_at": "2026-10-20T14:58:46.016379+00:00",
+              "started_at": "2026-10-20T14:58:46.060698+00:00",
+              "finished_at": null,
+              "report_ready": false,
+              "agents": [
+                {
+                  "agent": "account",
+                  "code": "T",
+                  "label": "账号可信度",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "image",
+                  "code": "R",
+                  "label": "图片真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "comment",
+                  "code": "U",
+                  "label": "评论区真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "text",
+                  "code": "S",
+                  "label": "文案真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                }
+              ]
+            }
+          },
+          {
+            "at_s": 12.153,
+            "http_status": 200,
+            "status": {
+              "task_id": "d62fd718e89a41fca45be6242059d7ca",
+              "sample_id": "c701c686b42e41e09eae0a75394ca234",
+              "status": "running",
+              "progress": 10,
+              "requested_agents": [
+                "account",
+                "image",
+                "comment",
+                "text"
+              ],
+              "error_message": null,
+              "created_at": "2026-10-20T14:58:46.016379+00:00",
+              "started_at": "2026-10-20T14:58:46.060698+00:00",
+              "finished_at": null,
+              "report_ready": false,
+              "agents": [
+                {
+                  "agent": "account",
+                  "code": "T",
+                  "label": "账号可信度",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "image",
+                  "code": "R",
+                  "label": "图片真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "comment",
+                  "code": "U",
+                  "label": "评论区真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "text",
+                  "code": "S",
+                  "label": "文案真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                }
+              ]
+            }
+          },
+          {
+            "at_s": 13.67,
+            "http_status": 200,
+            "status": {
+              "task_id": "d62fd718e89a41fca45be6242059d7ca",
+              "sample_id": "c701c686b42e41e09eae0a75394ca234",
+              "status": "running",
+              "progress": 10,
+              "requested_agents": [
+                "account",
+                "image",
+                "comment",
+                "text"
+              ],
+              "error_message": null,
+              "created_at": "2026-10-20T14:58:46.016379+00:00",
+              "started_at": "2026-10-20T14:58:46.060698+00:00",
+              "finished_at": null,
+              "report_ready": false,
+              "agents": [
+                {
+                  "agent": "account",
+                  "code": "T",
+                  "label": "账号可信度",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "image",
+                  "code": "R",
+                  "label": "图片真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "comment",
+                  "code": "U",
+                  "label": "评论区真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "text",
+                  "code": "S",
+                  "label": "文案真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                }
+              ]
+            }
+          },
+          {
+            "at_s": 15.185,
+            "http_status": 200,
+            "status": {
+              "task_id": "d62fd718e89a41fca45be6242059d7ca",
+              "sample_id": "c701c686b42e41e09eae0a75394ca234",
+              "status": "running",
+              "progress": 10,
+              "requested_agents": [
+                "account",
+                "image",
+                "comment",
+                "text"
+              ],
+              "error_message": null,
+              "created_at": "2026-10-20T14:58:46.016379+00:00",
+              "started_at": "2026-10-20T14:58:46.060698+00:00",
+              "finished_at": null,
+              "report_ready": false,
+              "agents": [
+                {
+                  "agent": "account",
+                  "code": "T",
+                  "label": "账号可信度",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "image",
+                  "code": "R",
+                  "label": "图片真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "comment",
+                  "code": "U",
+                  "label": "评论区真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "text",
+                  "code": "S",
+                  "label": "文案真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                }
+              ]
+            }
+          },
+          {
+            "at_s": 16.703,
+            "http_status": 200,
+            "status": {
+              "task_id": "d62fd718e89a41fca45be6242059d7ca",
+              "sample_id": "c701c686b42e41e09eae0a75394ca234",
+              "status": "running",
+              "progress": 10,
+              "requested_agents": [
+                "account",
+                "image",
+                "comment",
+                "text"
+              ],
+              "error_message": null,
+              "created_at": "2026-10-20T14:58:46.016379+00:00",
+              "started_at": "2026-10-20T14:58:46.060698+00:00",
+              "finished_at": null,
+              "report_ready": false,
+              "agents": [
+                {
+                  "agent": "account",
+                  "code": "T",
+                  "label": "账号可信度",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "image",
+                  "code": "R",
+                  "label": "图片真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "comment",
+                  "code": "U",
+                  "label": "评论区真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "text",
+                  "code": "S",
+                  "label": "文案真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                }
+              ]
+            }
+          },
+          {
+            "at_s": 18.219,
+            "http_status": 200,
+            "status": {
+              "task_id": "d62fd718e89a41fca45be6242059d7ca",
+              "sample_id": "c701c686b42e41e09eae0a75394ca234",
+              "status": "running",
+              "progress": 10,
+              "requested_agents": [
+                "account",
+                "image",
+                "comment",
+                "text"
+              ],
+              "error_message": null,
+              "created_at": "2026-10-20T14:58:46.016379+00:00",
+              "started_at": "2026-10-20T14:58:46.060698+00:00",
+              "finished_at": null,
+              "report_ready": false,
+              "agents": [
+                {
+                  "agent": "account",
+                  "code": "T",
+                  "label": "账号可信度",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "image",
+                  "code": "R",
+                  "label": "图片真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "comment",
+                  "code": "U",
+                  "label": "评论区真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "text",
+                  "code": "S",
+                  "label": "文案真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                }
+              ]
+            }
+          },
+          {
+            "at_s": 19.734,
+            "http_status": 200,
+            "status": {
+              "task_id": "d62fd718e89a41fca45be6242059d7ca",
+              "sample_id": "c701c686b42e41e09eae0a75394ca234",
+              "status": "running",
+              "progress": 10,
+              "requested_agents": [
+                "account",
+                "image",
+                "comment",
+                "text"
+              ],
+              "error_message": null,
+              "created_at": "2026-10-20T14:58:46.016379+00:00",
+              "started_at": "2026-10-20T14:58:46.060698+00:00",
+              "finished_at": null,
+              "report_ready": false,
+              "agents": [
+                {
+                  "agent": "account",
+                  "code": "T",
+                  "label": "账号可信度",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "image",
+                  "code": "R",
+                  "label": "图片真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "comment",
+                  "code": "U",
+                  "label": "评论区真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "text",
+                  "code": "S",
+                  "label": "文案真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                }
+              ]
+            }
+          },
+          {
+            "at_s": 21.251,
+            "http_status": 200,
+            "status": {
+              "task_id": "d62fd718e89a41fca45be6242059d7ca",
+              "sample_id": "c701c686b42e41e09eae0a75394ca234",
+              "status": "running",
+              "progress": 10,
+              "requested_agents": [
+                "account",
+                "image",
+                "comment",
+                "text"
+              ],
+              "error_message": null,
+              "created_at": "2026-10-20T14:58:46.016379+00:00",
+              "started_at": "2026-10-20T14:58:46.060698+00:00",
+              "finished_at": null,
+              "report_ready": false,
+              "agents": [
+                {
+                  "agent": "account",
+                  "code": "T",
+                  "label": "账号可信度",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "image",
+                  "code": "R",
+                  "label": "图片真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "comment",
+                  "code": "U",
+                  "label": "评论区真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "text",
+                  "code": "S",
+                  "label": "文案真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                }
+              ]
+            }
+          },
+          {
+            "at_s": 22.769,
+            "http_status": 200,
+            "status": {
+              "task_id": "d62fd718e89a41fca45be6242059d7ca",
+              "sample_id": "c701c686b42e41e09eae0a75394ca234",
+              "status": "running",
+              "progress": 10,
+              "requested_agents": [
+                "account",
+                "image",
+                "comment",
+                "text"
+              ],
+              "error_message": null,
+              "created_at": "2026-10-20T14:58:46.016379+00:00",
+              "started_at": "2026-10-20T14:58:46.060698+00:00",
+              "finished_at": null,
+              "report_ready": false,
+              "agents": [
+                {
+                  "agent": "account",
+                  "code": "T",
+                  "label": "账号可信度",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "image",
+                  "code": "R",
+                  "label": "图片真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "comment",
+                  "code": "U",
+                  "label": "评论区真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "text",
+                  "code": "S",
+                  "label": "文案真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                }
+              ]
+            }
+          },
+          {
+            "at_s": 24.293,
+            "http_status": 200,
+            "status": {
+              "task_id": "d62fd718e89a41fca45be6242059d7ca",
+              "sample_id": "c701c686b42e41e09eae0a75394ca234",
+              "status": "running",
+              "progress": 10,
+              "requested_agents": [
+                "account",
+                "image",
+                "comment",
+                "text"
+              ],
+              "error_message": null,
+              "created_at": "2026-10-20T14:58:46.016379+00:00",
+              "started_at": "2026-10-20T14:58:46.060698+00:00",
+              "finished_at": null,
+              "report_ready": false,
+              "agents": [
+                {
+                  "agent": "account",
+                  "code": "T",
+                  "label": "账号可信度",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "image",
+                  "code": "R",
+                  "label": "图片真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "comment",
+                  "code": "U",
+                  "label": "评论区真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "text",
+                  "code": "S",
+                  "label": "文案真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                }
+              ]
+            }
+          },
+          {
+            "at_s": 25.811,
+            "http_status": 200,
+            "status": {
+              "task_id": "d62fd718e89a41fca45be6242059d7ca",
+              "sample_id": "c701c686b42e41e09eae0a75394ca234",
+              "status": "running",
+              "progress": 10,
+              "requested_agents": [
+                "account",
+                "image",
+                "comment",
+                "text"
+              ],
+              "error_message": null,
+              "created_at": "2026-10-20T14:58:46.016379+00:00",
+              "started_at": "2026-10-20T14:58:46.060698+00:00",
+              "finished_at": null,
+              "report_ready": false,
+              "agents": [
+                {
+                  "agent": "account",
+                  "code": "T",
+                  "label": "账号可信度",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "image",
+                  "code": "R",
+                  "label": "图片真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "comment",
+                  "code": "U",
+                  "label": "评论区真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "text",
+                  "code": "S",
+                  "label": "文案真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                }
+              ]
+            }
+          },
+          {
+            "at_s": 27.33,
+            "http_status": 200,
+            "status": {
+              "task_id": "d62fd718e89a41fca45be6242059d7ca",
+              "sample_id": "c701c686b42e41e09eae0a75394ca234",
+              "status": "running",
+              "progress": 10,
+              "requested_agents": [
+                "account",
+                "image",
+                "comment",
+                "text"
+              ],
+              "error_message": null,
+              "created_at": "2026-10-20T14:58:46.016379+00:00",
+              "started_at": "2026-10-20T14:58:46.060698+00:00",
+              "finished_at": null,
+              "report_ready": false,
+              "agents": [
+                {
+                  "agent": "account",
+                  "code": "T",
+                  "label": "账号可信度",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "image",
+                  "code": "R",
+                  "label": "图片真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "comment",
+                  "code": "U",
+                  "label": "评论区真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "text",
+                  "code": "S",
+                  "label": "文案真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                }
+              ]
+            }
+          },
+          {
+            "at_s": 28.845,
+            "http_status": 200,
+            "status": {
+              "task_id": "d62fd718e89a41fca45be6242059d7ca",
+              "sample_id": "c701c686b42e41e09eae0a75394ca234",
+              "status": "running",
+              "progress": 10,
+              "requested_agents": [
+                "account",
+                "image",
+                "comment",
+                "text"
+              ],
+              "error_message": null,
+              "created_at": "2026-10-20T14:58:46.016379+00:00",
+              "started_at": "2026-10-20T14:58:46.060698+00:00",
+              "finished_at": null,
+              "report_ready": false,
+              "agents": [
+                {
+                  "agent": "account",
+                  "code": "T",
+                  "label": "账号可信度",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "image",
+                  "code": "R",
+                  "label": "图片真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "comment",
+                  "code": "U",
+                  "label": "评论区真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "text",
+                  "code": "S",
+                  "label": "文案真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                }
+              ]
+            }
+          },
+          {
+            "at_s": 30.36,
+            "http_status": 200,
+            "status": {
+              "task_id": "d62fd718e89a41fca45be6242059d7ca",
+              "sample_id": "c701c686b42e41e09eae0a75394ca234",
+              "status": "running",
+              "progress": 10,
+              "requested_agents": [
+                "account",
+                "image",
+                "comment",
+                "text"
+              ],
+              "error_message": null,
+              "created_at": "2026-10-20T14:58:46.016379+00:00",
+              "started_at": "2026-10-20T14:58:46.060698+00:00",
+              "finished_at": null,
+              "report_ready": false,
+              "agents": [
+                {
+                  "agent": "account",
+                  "code": "T",
+                  "label": "账号可信度",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "image",
+                  "code": "R",
+                  "label": "图片真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "comment",
+                  "code": "U",
+                  "label": "评论区真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "text",
+                  "code": "S",
+                  "label": "文案真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                }
+              ]
+            }
+          },
+          {
+            "at_s": 31.876,
+            "http_status": 200,
+            "status": {
+              "task_id": "d62fd718e89a41fca45be6242059d7ca",
+              "sample_id": "c701c686b42e41e09eae0a75394ca234",
+              "status": "running",
+              "progress": 10,
+              "requested_agents": [
+                "account",
+                "image",
+                "comment",
+                "text"
+              ],
+              "error_message": null,
+              "created_at": "2026-10-20T14:58:46.016379+00:00",
+              "started_at": "2026-10-20T14:58:46.060698+00:00",
+              "finished_at": null,
+              "report_ready": false,
+              "agents": [
+                {
+                  "agent": "account",
+                  "code": "T",
+                  "label": "账号可信度",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "image",
+                  "code": "R",
+                  "label": "图片真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "comment",
+                  "code": "U",
+                  "label": "评论区真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "text",
+                  "code": "S",
+                  "label": "文案真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                }
+              ]
+            }
+          },
+          {
+            "at_s": 33.392,
+            "http_status": 200,
+            "status": {
+              "task_id": "d62fd718e89a41fca45be6242059d7ca",
+              "sample_id": "c701c686b42e41e09eae0a75394ca234",
+              "status": "running",
+              "progress": 10,
+              "requested_agents": [
+                "account",
+                "image",
+                "comment",
+                "text"
+              ],
+              "error_message": null,
+              "created_at": "2026-10-20T14:58:46.016379+00:00",
+              "started_at": "2026-10-20T14:58:46.060698+00:00",
+              "finished_at": null,
+              "report_ready": false,
+              "agents": [
+                {
+                  "agent": "account",
+                  "code": "T",
+                  "label": "账号可信度",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "image",
+                  "code": "R",
+                  "label": "图片真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "comment",
+                  "code": "U",
+                  "label": "评论区真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "text",
+                  "code": "S",
+                  "label": "文案真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                }
+              ]
+            }
+          },
+          {
+            "at_s": 34.908,
+            "http_status": 200,
+            "status": {
+              "task_id": "d62fd718e89a41fca45be6242059d7ca",
+              "sample_id": "c701c686b42e41e09eae0a75394ca234",
+              "status": "running",
+              "progress": 10,
+              "requested_agents": [
+                "account",
+                "image",
+                "comment",
+                "text"
+              ],
+              "error_message": null,
+              "created_at": "2026-10-20T14:58:46.016379+00:00",
+              "started_at": "2026-10-20T14:58:46.060698+00:00",
+              "finished_at": null,
+              "report_ready": false,
+              "agents": [
+                {
+                  "agent": "account",
+                  "code": "T",
+                  "label": "账号可信度",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "image",
+                  "code": "R",
+                  "label": "图片真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "comment",
+                  "code": "U",
+                  "label": "评论区真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "text",
+                  "code": "S",
+                  "label": "文案真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                }
+              ]
+            }
+          },
+          {
+            "at_s": 36.425,
+            "http_status": 200,
+            "status": {
+              "task_id": "d62fd718e89a41fca45be6242059d7ca",
+              "sample_id": "c701c686b42e41e09eae0a75394ca234",
+              "status": "running",
+              "progress": 10,
+              "requested_agents": [
+                "account",
+                "image",
+                "comment",
+                "text"
+              ],
+              "error_message": null,
+              "created_at": "2026-10-20T14:58:46.016379+00:00",
+              "started_at": "2026-10-20T14:58:46.060698+00:00",
+              "finished_at": null,
+              "report_ready": false,
+              "agents": [
+                {
+                  "agent": "account",
+                  "code": "T",
+                  "label": "账号可信度",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "image",
+                  "code": "R",
+                  "label": "图片真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "comment",
+                  "code": "U",
+                  "label": "评论区真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "text",
+                  "code": "S",
+                  "label": "文案真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                }
+              ]
+            }
+          },
+          {
+            "at_s": 37.941,
+            "http_status": 200,
+            "status": {
+              "task_id": "d62fd718e89a41fca45be6242059d7ca",
+              "sample_id": "c701c686b42e41e09eae0a75394ca234",
+              "status": "running",
+              "progress": 10,
+              "requested_agents": [
+                "account",
+                "image",
+                "comment",
+                "text"
+              ],
+              "error_message": null,
+              "created_at": "2026-10-20T14:58:46.016379+00:00",
+              "started_at": "2026-10-20T14:58:46.060698+00:00",
+              "finished_at": null,
+              "report_ready": false,
+              "agents": [
+                {
+                  "agent": "account",
+                  "code": "T",
+                  "label": "账号可信度",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "image",
+                  "code": "R",
+                  "label": "图片真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "comment",
+                  "code": "U",
+                  "label": "评论区真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "text",
+                  "code": "S",
+                  "label": "文案真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                }
+              ]
+            }
+          },
+          {
+            "at_s": 39.457,
+            "http_status": 200,
+            "status": {
+              "task_id": "d62fd718e89a41fca45be6242059d7ca",
+              "sample_id": "c701c686b42e41e09eae0a75394ca234",
+              "status": "running",
+              "progress": 10,
+              "requested_agents": [
+                "account",
+                "image",
+                "comment",
+                "text"
+              ],
+              "error_message": null,
+              "created_at": "2026-10-20T14:58:46.016379+00:00",
+              "started_at": "2026-10-20T14:58:46.060698+00:00",
+              "finished_at": null,
+              "report_ready": false,
+              "agents": [
+                {
+                  "agent": "account",
+                  "code": "T",
+                  "label": "账号可信度",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "image",
+                  "code": "R",
+                  "label": "图片真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "comment",
+                  "code": "U",
+                  "label": "评论区真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "text",
+                  "code": "S",
+                  "label": "文案真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                }
+              ]
+            }
+          },
+          {
+            "at_s": 40.971,
+            "http_status": 200,
+            "status": {
+              "task_id": "d62fd718e89a41fca45be6242059d7ca",
+              "sample_id": "c701c686b42e41e09eae0a75394ca234",
+              "status": "running",
+              "progress": 10,
+              "requested_agents": [
+                "account",
+                "image",
+                "comment",
+                "text"
+              ],
+              "error_message": null,
+              "created_at": "2026-10-20T14:58:46.016379+00:00",
+              "started_at": "2026-10-20T14:58:46.060698+00:00",
+              "finished_at": null,
+              "report_ready": false,
+              "agents": [
+                {
+                  "agent": "account",
+                  "code": "T",
+                  "label": "账号可信度",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "image",
+                  "code": "R",
+                  "label": "图片真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "comment",
+                  "code": "U",
+                  "label": "评论区真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "text",
+                  "code": "S",
+                  "label": "文案真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                }
+              ]
+            }
+          },
+          {
+            "at_s": 42.485,
+            "http_status": 200,
+            "status": {
+              "task_id": "d62fd718e89a41fca45be6242059d7ca",
+              "sample_id": "c701c686b42e41e09eae0a75394ca234",
+              "status": "running",
+              "progress": 10,
+              "requested_agents": [
+                "account",
+                "image",
+                "comment",
+                "text"
+              ],
+              "error_message": null,
+              "created_at": "2026-10-20T14:58:46.016379+00:00",
+              "started_at": "2026-10-20T14:58:46.060698+00:00",
+              "finished_at": null,
+              "report_ready": false,
+              "agents": [
+                {
+                  "agent": "account",
+                  "code": "T",
+                  "label": "账号可信度",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "image",
+                  "code": "R",
+                  "label": "图片真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "comment",
+                  "code": "U",
+                  "label": "评论区真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "text",
+                  "code": "S",
+                  "label": "文案真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                }
+              ]
+            }
+          },
+          {
+            "at_s": 44.001,
+            "http_status": 200,
+            "status": {
+              "task_id": "d62fd718e89a41fca45be6242059d7ca",
+              "sample_id": "c701c686b42e41e09eae0a75394ca234",
+              "status": "running",
+              "progress": 10,
+              "requested_agents": [
+                "account",
+                "image",
+                "comment",
+                "text"
+              ],
+              "error_message": null,
+              "created_at": "2026-10-20T14:58:46.016379+00:00",
+              "started_at": "2026-10-20T14:58:46.060698+00:00",
+              "finished_at": null,
+              "report_ready": false,
+              "agents": [
+                {
+                  "agent": "account",
+                  "code": "T",
+                  "label": "账号可信度",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "image",
+                  "code": "R",
+                  "label": "图片真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "comment",
+                  "code": "U",
+                  "label": "评论区真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "text",
+                  "code": "S",
+                  "label": "文案真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                }
+              ]
+            }
+          },
+          {
+            "at_s": 45.517,
+            "http_status": 200,
+            "status": {
+              "task_id": "d62fd718e89a41fca45be6242059d7ca",
+              "sample_id": "c701c686b42e41e09eae0a75394ca234",
+              "status": "running",
+              "progress": 10,
+              "requested_agents": [
+                "account",
+                "image",
+                "comment",
+                "text"
+              ],
+              "error_message": null,
+              "created_at": "2026-10-20T14:58:46.016379+00:00",
+              "started_at": "2026-10-20T14:58:46.060698+00:00",
+              "finished_at": null,
+              "report_ready": false,
+              "agents": [
+                {
+                  "agent": "account",
+                  "code": "T",
+                  "label": "账号可信度",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "image",
+                  "code": "R",
+                  "label": "图片真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "comment",
+                  "code": "U",
+                  "label": "评论区真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "text",
+                  "code": "S",
+                  "label": "文案真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                }
+              ]
+            }
+          },
+          {
+            "at_s": 47.032,
+            "http_status": 200,
+            "status": {
+              "task_id": "d62fd718e89a41fca45be6242059d7ca",
+              "sample_id": "c701c686b42e41e09eae0a75394ca234",
+              "status": "running",
+              "progress": 10,
+              "requested_agents": [
+                "account",
+                "image",
+                "comment",
+                "text"
+              ],
+              "error_message": null,
+              "created_at": "2026-10-20T14:58:46.016379+00:00",
+              "started_at": "2026-10-20T14:58:46.060698+00:00",
+              "finished_at": null,
+              "report_ready": false,
+              "agents": [
+                {
+                  "agent": "account",
+                  "code": "T",
+                  "label": "账号可信度",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "image",
+                  "code": "R",
+                  "label": "图片真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "comment",
+                  "code": "U",
+                  "label": "评论区真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "text",
+                  "code": "S",
+                  "label": "文案真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                }
+              ]
+            }
+          },
+          {
+            "at_s": 48.55,
+            "http_status": 200,
+            "status": {
+              "task_id": "d62fd718e89a41fca45be6242059d7ca",
+              "sample_id": "c701c686b42e41e09eae0a75394ca234",
+              "status": "running",
+              "progress": 10,
+              "requested_agents": [
+                "account",
+                "image",
+                "comment",
+                "text"
+              ],
+              "error_message": null,
+              "created_at": "2026-10-20T14:58:46.016379+00:00",
+              "started_at": "2026-10-20T14:58:46.060698+00:00",
+              "finished_at": null,
+              "report_ready": false,
+              "agents": [
+                {
+                  "agent": "account",
+                  "code": "T",
+                  "label": "账号可信度",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "image",
+                  "code": "R",
+                  "label": "图片真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "comment",
+                  "code": "U",
+                  "label": "评论区真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "text",
+                  "code": "S",
+                  "label": "文案真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                }
+              ]
+            }
+          },
+          {
+            "at_s": 50.064,
+            "http_status": 200,
+            "status": {
+              "task_id": "d62fd718e89a41fca45be6242059d7ca",
+              "sample_id": "c701c686b42e41e09eae0a75394ca234",
+              "status": "running",
+              "progress": 10,
+              "requested_agents": [
+                "account",
+                "image",
+                "comment",
+                "text"
+              ],
+              "error_message": null,
+              "created_at": "2026-10-20T14:58:46.016379+00:00",
+              "started_at": "2026-10-20T14:58:46.060698+00:00",
+              "finished_at": null,
+              "report_ready": false,
+              "agents": [
+                {
+                  "agent": "account",
+                  "code": "T",
+                  "label": "账号可信度",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "image",
+                  "code": "R",
+                  "label": "图片真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "comment",
+                  "code": "U",
+                  "label": "评论区真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "text",
+                  "code": "S",
+                  "label": "文案真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                }
+              ]
+            }
+          },
+          {
+            "at_s": 51.581,
+            "http_status": 200,
+            "status": {
+              "task_id": "d62fd718e89a41fca45be6242059d7ca",
+              "sample_id": "c701c686b42e41e09eae0a75394ca234",
+              "status": "running",
+              "progress": 10,
+              "requested_agents": [
+                "account",
+                "image",
+                "comment",
+                "text"
+              ],
+              "error_message": null,
+              "created_at": "2026-10-20T14:58:46.016379+00:00",
+              "started_at": "2026-10-20T14:58:46.060698+00:00",
+              "finished_at": null,
+              "report_ready": false,
+              "agents": [
+                {
+                  "agent": "account",
+                  "code": "T",
+                  "label": "账号可信度",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "image",
+                  "code": "R",
+                  "label": "图片真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "comment",
+                  "code": "U",
+                  "label": "评论区真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "text",
+                  "code": "S",
+                  "label": "文案真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                }
+              ]
+            }
+          },
+          {
+            "at_s": 53.096,
+            "http_status": 200,
+            "status": {
+              "task_id": "d62fd718e89a41fca45be6242059d7ca",
+              "sample_id": "c701c686b42e41e09eae0a75394ca234",
+              "status": "running",
+              "progress": 10,
+              "requested_agents": [
+                "account",
+                "image",
+                "comment",
+                "text"
+              ],
+              "error_message": null,
+              "created_at": "2026-10-20T14:58:46.016379+00:00",
+              "started_at": "2026-10-20T14:58:46.060698+00:00",
+              "finished_at": null,
+              "report_ready": false,
+              "agents": [
+                {
+                  "agent": "account",
+                  "code": "T",
+                  "label": "账号可信度",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "image",
+                  "code": "R",
+                  "label": "图片真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "comment",
+                  "code": "U",
+                  "label": "评论区真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "text",
+                  "code": "S",
+                  "label": "文案真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                }
+              ]
+            }
+          },
+          {
+            "at_s": 54.611,
+            "http_status": 200,
+            "status": {
+              "task_id": "d62fd718e89a41fca45be6242059d7ca",
+              "sample_id": "c701c686b42e41e09eae0a75394ca234",
+              "status": "running",
+              "progress": 10,
+              "requested_agents": [
+                "account",
+                "image",
+                "comment",
+                "text"
+              ],
+              "error_message": null,
+              "created_at": "2026-10-20T14:58:46.016379+00:00",
+              "started_at": "2026-10-20T14:58:46.060698+00:00",
+              "finished_at": null,
+              "report_ready": false,
+              "agents": [
+                {
+                  "agent": "account",
+                  "code": "T",
+                  "label": "账号可信度",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "image",
+                  "code": "R",
+                  "label": "图片真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "comment",
+                  "code": "U",
+                  "label": "评论区真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "text",
+                  "code": "S",
+                  "label": "文案真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                }
+              ]
+            }
+          },
+          {
+            "at_s": 56.126,
+            "http_status": 200,
+            "status": {
+              "task_id": "d62fd718e89a41fca45be6242059d7ca",
+              "sample_id": "c701c686b42e41e09eae0a75394ca234",
+              "status": "running",
+              "progress": 10,
+              "requested_agents": [
+                "account",
+                "image",
+                "comment",
+                "text"
+              ],
+              "error_message": null,
+              "created_at": "2026-10-20T14:58:46.016379+00:00",
+              "started_at": "2026-10-20T14:58:46.060698+00:00",
+              "finished_at": null,
+              "report_ready": false,
+              "agents": [
+                {
+                  "agent": "account",
+                  "code": "T",
+                  "label": "账号可信度",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "image",
+                  "code": "R",
+                  "label": "图片真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "comment",
+                  "code": "U",
+                  "label": "评论区真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "text",
+                  "code": "S",
+                  "label": "文案真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                }
+              ]
+            }
+          },
+          {
+            "at_s": 57.644,
+            "http_status": 200,
+            "status": {
+              "task_id": "d62fd718e89a41fca45be6242059d7ca",
+              "sample_id": "c701c686b42e41e09eae0a75394ca234",
+              "status": "running",
+              "progress": 10,
+              "requested_agents": [
+                "account",
+                "image",
+                "comment",
+                "text"
+              ],
+              "error_message": null,
+              "created_at": "2026-10-20T14:58:46.016379+00:00",
+              "started_at": "2026-10-20T14:58:46.060698+00:00",
+              "finished_at": null,
+              "report_ready": false,
+              "agents": [
+                {
+                  "agent": "account",
+                  "code": "T",
+                  "label": "账号可信度",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "image",
+                  "code": "R",
+                  "label": "图片真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "comment",
+                  "code": "U",
+                  "label": "评论区真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                },
+                {
+                  "agent": "text",
+                  "code": "S",
+                  "label": "文案真实性",
+                  "status": "pending",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": null,
+                  "error_message": null
+                }
+              ]
+            }
+          },
+          {
+            "at_s": 59.159,
+            "http_status": 200,
+            "status": {
+              "task_id": "d62fd718e89a41fca45be6242059d7ca",
+              "sample_id": "c701c686b42e41e09eae0a75394ca234",
+              "status": "completed",
+              "progress": 100,
+              "requested_agents": [
+                "account",
+                "image",
+                "comment",
+                "text"
+              ],
+              "error_message": null,
+              "created_at": "2026-10-20T14:58:46.016379+00:00",
+              "started_at": "2026-10-20T14:58:46.060698+00:00",
+              "finished_at": "2026-10-20T14:59:44.864289+00:00",
+              "report_ready": true,
+              "agents": [
+                {
+                  "agent": "account",
+                  "code": "T",
+                  "label": "账号可信度",
+                  "status": "completed",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": 58733,
+                  "error_message": null
+                },
+                {
+                  "agent": "image",
+                  "code": "R",
+                  "label": "图片真实性",
+                  "status": "completed",
+                  "assessed": true,
+                  "risk_level": "low",
+                  "risk_score": 0.0,
+                  "trust_level": "high",
+                  "trust_score": 100.0,
+                  "trust_label": "高可信",
+                  "duration_ms": 58733,
+                  "error_message": null
+                },
+                {
+                  "agent": "comment",
+                  "code": "U",
+                  "label": "评论区真实性",
+                  "status": "completed",
+                  "assessed": false,
+                  "risk_level": null,
+                  "risk_score": null,
+                  "trust_level": null,
+                  "trust_score": null,
+                  "trust_label": null,
+                  "duration_ms": 58733,
+                  "error_message": null
+                },
+                {
+                  "agent": "text",
+                  "code": "S",
+                  "label": "文案真实性",
+                  "status": "completed",
+                  "assessed": true,
+                  "risk_level": "high",
+                  "risk_score": 60.0,
+                  "trust_level": "low",
+                  "trust_score": 40.0,
+                  "trust_label": "低可信",
+                  "duration_ms": 58733,
+                  "error_message": null
+                }
+              ]
+            }
+          }
+        ],
+        "elapsed_s": 59.159
+      },
+      "report": {
+        "http_status": 200,
+        "response": {
+          "id": "d5eddcec79024251b2a47ec7eb1191f7",
+          "task_id": "d62fd718e89a41fca45be6242059d7ca",
+          "overall_score": 32.31,
+          "trust_score": 67.7,
+          "risk_level": "medium",
+          "trust_level": "medium",
+          "trust_label": "存疑",
+          "summary": "综合风险分 32.3/100（中风险）。已评估维度：图片 0.0分、文案 60.0分。；主要依据：文本给出“肤质细腻度提升了 63%”的具体数值，但未说明测量仪器、指标定义或数据来源。；文本称“毛孔真的细了好多”“手臂都比以前滑”，以 21 天前后对比作为功效依据，但未提供可核实的检测数据。；标题称“手臂都能用的黑精华面膜”，将面部产品扩展至手臂使用场景。 分数是内部风险聚合，不是真假概率。",
+          "evidence": [
+            {
+              "source": "text",
+              "type": "unsupported_claim",
+              "evidence": "文本给出“肤质细腻度提升了 63%”的具体数值，但未说明测量仪器、指标定义或数据来源。",
+              "confidence": 0.6,
+              "severity": "medium",
+              "reason": "带精确百分比的功效说法容易被视为可验证结论，但缺少证据支撑，存在广告合规风险。"
+            },
+            {
+              "source": "text",
+              "type": "unsupported_claim",
+              "evidence": "文本称“毛孔真的细了好多”“手臂都比以前滑”，以 21 天前后对比作为功效依据，但未提供可核实的检测数据。",
+              "confidence": 0.5,
+              "severity": "medium",
+              "reason": "功效性结论仅依赖个人拍照对比，缺少客观测量，属于证据不足的宣称。"
+            },
+            {
+              "source": "image",
+              "type": "engine_evidence",
+              "evidence": "已运行图片语义分析；未生成可报告的具体风险 finding。",
+              "confidence": 0.6,
+              "severity": "low",
+              "reason": "来自引擎证据集，未细分为具体风险类别。"
+            },
+            {
+              "source": "text",
+              "type": "exaggerated_claim",
+              "evidence": "标题称“手臂都能用的黑精华面膜”，将面部产品扩展至手臂使用场景。",
+              "confidence": 0.4,
+              "severity": "low",
+              "reason": "产品适用范围若无依据，可能构成夸大或超范围宣称，但需结合产品说明判断。"
+            }
+          ],
+          "recommendations": [
+            "补充检测方法、样本量和数据来源，或删除具体百分比，改为主观感受表述。",
+            "改为主观体验描述，或补充可核实的功效测试依据并注明个体差异。",
+            "核实产品使用说明，若未标注身体适用，应避免暗示可用于手臂。",
+            "内容可信度较高，建议保持真实使用细节与合规披露。"
+          ],
+          "dimension_scores": {
+            "image": 0.0,
+            "text": 60.0
+          },
+          "dimensions": [
+            {
+              "key": "account",
+              "code": "T",
+              "label": "账号可信度",
+              "question": "这个账号长期可靠吗？",
+              "input_label": "账号主页",
+              "assessed": false,
+              "trust_score": null,
+              "risk_score": null,
+              "risk_level": null,
+              "trust_level": null,
+              "trust_label": null,
+              "summary": "引擎未对该维度产出结果（缺少对应输入或维度未启用）。",
+              "evidence": [],
+              "limitations": []
+            },
+            {
+              "key": "image",
+              "code": "R",
+              "label": "图片真实性",
+              "question": "这张图是真的吗？",
+              "input_label": "图片",
+              "assessed": true,
+              "trust_score": 100.0,
+              "risk_score": 0.0,
+              "risk_level": "low",
+              "trust_level": "high",
+              "trust_label": "高可信",
+              "summary": "图片维度风险分 0.0/100（低风险）；已运行图片语义分析；未生成可报告的具体风险 finding。",
+              "evidence": [
+                {
+                  "source": "image",
+                  "type": "engine_evidence",
+                  "evidence": "已运行图片语义分析；未生成可报告的具体风险 finding。",
+                  "confidence": 0.6,
+                  "severity": "low",
+                  "reason": "来自引擎证据集，未细分为具体风险类别。"
+                }
+              ],
+              "limitations": [
+                "视觉语义线索不能替代像素级鉴伪；模型分数不是 AI 生成概率。"
+              ]
+            },
+            {
+              "key": "comment",
+              "code": "U",
+              "label": "评论区真实性",
+              "question": "评论是真人说的吗？",
+              "input_label": "评论",
+              "assessed": false,
+              "trust_score": null,
+              "risk_score": null,
+              "risk_level": null,
+              "trust_level": null,
+              "trust_label": null,
+              "summary": "引擎未对该维度产出结果（缺少对应输入或维度未启用）。",
+              "evidence": [],
+              "limitations": []
+            },
+            {
+              "key": "text",
+              "code": "S",
+              "label": "文案真实性",
+              "question": "这段话是体验，还是写好的脚本？",
+              "input_label": "文案",
+              "assessed": true,
+              "trust_score": 40.0,
+              "risk_score": 60.0,
+              "risk_level": "high",
+              "trust_level": "low",
+              "trust_label": "低可信",
+              "summary": "文案维度风险分 60.0/100（高风险）；文本给出“肤质细腻度提升了 63%”的具体数值，但未说明测量仪器、指标定义或数据来源。",
+              "evidence": [
+                {
+                  "source": "text",
+                  "type": "unsupported_claim",
+                  "evidence": "文本给出“肤质细腻度提升了 63%”的具体数值，但未说明测量仪器、指标定义或数据来源。",
+                  "confidence": 0.6,
+                  "severity": "medium",
+                  "reason": "带精确百分比的功效说法容易被视为可验证结论，但缺少证据支撑，存在广告合规风险。"
+                },
+                {
+                  "source": "text",
+                  "type": "unsupported_claim",
+                  "evidence": "文本称“毛孔真的细了好多”“手臂都比以前滑”，以 21 天前后对比作为功效依据，但未提供可核实的检测数据。",
+                  "confidence": 0.5,
+                  "severity": "medium",
+                  "reason": "功效性结论仅依赖个人拍照对比，缺少客观测量，属于证据不足的宣称。"
+                },
+                {
+                  "source": "text",
+                  "type": "exaggerated_claim",
+                  "evidence": "标题称“手臂都能用的黑精华面膜”，将面部产品扩展至手臂使用场景。",
+                  "confidence": 0.4,
+                  "severity": "low",
+                  "reason": "产品适用范围若无依据，可能构成夸大或超范围宣称，但需结合产品说明判断。"
+                }
+              ],
+              "limitations": [
+                "文案风险分不是文案为假的概率；证据不足不等于虚假。"
+              ]
+            }
+          ],
+          "cross_checks": [
+            {
+              "id": "t-r",
+              "from_code": "T",
+              "to_code": "R",
+              "left": "账号材料",
+              "right": "图片材料",
+              "conclusion": "缺少账号材料，当前无法比对",
+              "state": "unverified",
+              "dimension": "账号 × 图片",
+              "detail": "本次报告未完成账号材料维度评估，因此不生成该组合的方向性结论。",
+              "confidence": null,
+              "method": "rule",
+              "label": "等待材料"
+            },
+            {
+              "id": "t-u",
+              "from_code": "T",
+              "to_code": "U",
+              "left": "账号材料",
+              "right": "评论材料",
+              "conclusion": "缺少账号材料、评论材料，当前无法比对",
+              "state": "unverified",
+              "dimension": "账号 × 评论",
+              "detail": "本次报告未完成账号材料、评论材料维度评估，因此不生成该组合的方向性结论。",
+              "confidence": null,
+              "method": "rule",
+              "label": "等待材料"
+            },
+            {
+              "id": "t-s",
+              "from_code": "T",
+              "to_code": "S",
+              "left": "账号材料",
+              "right": "文案材料",
+              "conclusion": "缺少账号材料，当前无法比对",
+              "state": "unverified",
+              "dimension": "账号 × 文案",
+              "detail": "本次报告未完成账号材料维度评估，因此不生成该组合的方向性结论。",
+              "confidence": null,
+              "method": "rule",
+              "label": "等待材料"
+            },
+            {
+              "id": "r-u",
+              "from_code": "R",
+              "to_code": "U",
+              "left": "图片材料",
+              "right": "评论材料",
+              "conclusion": "缺少评论材料，当前无法比对",
+              "state": "unverified",
+              "dimension": "图片 × 评论",
+              "detail": "本次报告未完成评论材料维度评估，因此不生成该组合的方向性结论。",
+              "confidence": null,
+              "method": "rule",
+              "label": "等待材料"
+            },
+            {
+              "id": "r-s",
+              "from_code": "R",
+              "to_code": "S",
+              "left": "图片真实性：100 / 100",
+              "right": "文案真实性：40 / 100",
+              "conclusion": "两个维度的可信方向不一致",
+              "state": "conflict",
+              "dimension": "图片 × 文案",
+              "detail": "本次报告显示图片可信度 100，文案可信度 40，分差 60。该关系基于分数、风险等级和 4 条证据计算，不替代进一步的人工事实核验。",
+              "confidence": "中",
+              "method": "llm",
+              "label": "实时比对"
+            },
+            {
+              "id": "u-s",
+              "from_code": "U",
+              "to_code": "S",
+              "left": "评论材料",
+              "right": "文案材料",
+              "conclusion": "缺少评论材料，当前无法比对",
+              "state": "unverified",
+              "dimension": "评论 × 文案",
+              "detail": "本次报告未完成评论材料维度评估，因此不生成该组合的方向性结论。",
+              "confidence": null,
+              "method": "rule",
+              "label": "等待材料"
+            }
+          ],
+          "decision": {
+            "tier": "verify",
+            "label": "提示 · 补充核验",
+            "headline": "最需要留意的维度：S · 文案真实性。",
+            "advice": [
+              {
+                "perspective": "consumer",
+                "priority": "重点",
+                "title": "补充检测方法、样本量和数据来源，或删除具体百分比，改为主观感受表述。",
+                "basis": "来自本次报告的后端建议。",
+                "action": null
+              },
+              {
+                "perspective": "consumer",
+                "priority": "建议",
+                "title": "改为主观体验描述，或补充可核实的功效测试依据并注明个体差异。",
+                "basis": "来自本次报告的后端建议。",
+                "action": null
+              },
+              {
+                "perspective": "consumer",
+                "priority": "建议",
+                "title": "核实产品使用说明，若未标注身体适用，应避免暗示可用于手臂。",
+                "basis": "来自本次报告的后端建议。",
+                "action": null
+              },
+              {
+                "perspective": "consumer",
+                "priority": "建议",
+                "title": "内容可信度较高，建议保持真实使用细节与合规披露。",
+                "basis": "来自本次报告的后端建议。",
+                "action": null
+              },
+              {
+                "perspective": "creator",
+                "priority": "重点",
+                "title": "补充检测方法、样本量和数据来源，或删除具体百分比，改为主观感受表述。",
+                "basis": "文案真实性风险分 60.0/100。",
+                "action": null
+              },
+              {
+                "perspective": "platform",
+                "priority": "建议",
+                "title": "建议加提示标注并补充材料后复核。",
+                "basis": "当前分级：提示 · 补充核验。",
+                "action": null
+              },
+              {
+                "perspective": "brand",
+                "priority": "重点",
+                "title": "合作前索取原始素材和功效依据。",
+                "basis": "文案真实性风险分 60.0/100。",
+                "action": null
+              }
+            ],
+            "limitations": [
+              "视觉语义线索不能替代像素级鉴伪；模型分数不是 AI 生成概率。",
+              "文案风险分不是文案为假的概率；证据不足不等于虚假。"
+            ]
+          },
+          "confidence": {
+            "level": "medium",
+            "label": "中",
+            "bars": 2,
+            "assessed_count": 2,
+            "evidence_count": 4,
+            "cross_check_count": 1,
+            "missing_materials": [
+              "账号材料",
+              "评论材料"
+            ]
+          },
+          "assessed_dimensions": [
+            "image",
+            "text"
+          ],
+          "generated_at": "2026-10-20T14:59:44.864212+00:00",
+          "created_at": "2026-10-20T14:59:44.868482+00:00"
+        }
+      },
+      "engine_trace": {
+        "http_status": 200,
+        "response": {
+          "id": "c9354ecd64f64a848fbd1c8aa4ea116b",
+          "task_id": "d62fd718e89a41fca45be6242059d7ca",
+          "backend": "trust_engine",
+          "engine_schema_version": "2.1",
+          "overall_score": 32.31,
+          "overall_risk_level": "medium",
+          "visible_roles": [
+            {
+              "role": "text",
+              "provider": "deepseek",
+              "model": "deepseek-flash",
+              "prompt_version": "v10",
+              "status": "completed",
+              "summary": "DeepSeek 完成文案与 claim 分析，提取 9 条 claim。 AI 文风疑似度 0.20/1.00（未校准分数）。",
+              "error_code": null,
+              "evidence_chain_ids": [
+                "text-c1",
+                "text-c2",
+                "text-c3",
+                "text-c4",
+                "text-c5",
+                "text-c6",
+                "text-c7",
+                "text-c8",
+                "text-c9",
+                "text-ai-cue-1",
+                "text-ai-cue-2",
+                "text-ai-style-signal",
+                "text-finding-f1",
+                "text-finding-f2",
+                "text-finding-f3"
+              ]
+            },
+            {
+              "role": "comment",
+              "provider": "deepseek",
+              "model": "deepseek-flash",
+              "prompt_version": "v3",
+              "status": "skipped",
+              "summary": "未提供评论，跳过评论角色。",
+              "error_code": null,
+              "evidence_chain_ids": []
+            },
+            {
+              "role": "account",
+              "provider": "deepseek",
+              "model": "deepseek-flash",
+              "prompt_version": "v1",
+              "status": "skipped",
+              "summary": "未提供账号历史，跳过账号角色。",
+              "error_code": null,
+              "evidence_chain_ids": []
+            },
+            {
+              "role": "image",
+              "provider": "glm_vision",
+              "model": "glm-5.3-flashx",
+              "prompt_version": "glm_v1",
+              "status": "completed",
+              "summary": "GLM 完成 1 张图片的视觉语义/图文一致性分析。",
+              "error_code": null,
+              "evidence_chain_ids": [
+                "image-observation-image-1-obs-1",
+                "image-observation-image-1-obs-2",
+                "image-observation-image-1-obs-3",
+                "image-observation-image-1-obs-4",
+                "image-observation-image-1-obs-5",
+                "image-observation-image-1-obs-6",
+                "image-observation-image-1-obs-7",
+                "image-observation-image-1-obs-8",
+                "image-visible-text-image-1-1",
+                "image-visible-text-image-1-2",
+                "image-visible-text-image-1-5",
+                "image-visible-text-image-1-6",
+                "image-text-claim-image-1-itc-1",
+                "image-text-claim-image-1-itc-2",
+                "image-provenance-image-1"
+              ]
+            }
+          ],
+          "evidence_chain": [
+            {
+              "id": "text-c1",
+              "dimension": "text",
+              "source_kind": "text",
+              "source_id": "post_text",
+              "excerpt": "手臂都能用的黑精华面膜",
+              "explanation": "属于产品适用范围/使用方式的客观说法，未提供任何证据，无法核实。",
+              "start_char": 3,
+              "end_char": 14,
+              "image_id": null,
+              "claim_id": "c1",
+              "finding_id": null,
+              "related_ids": [],
+              "bbox": null
+            },
+            {
+              "id": "text-c2",
+              "dimension": "text",
+              "source_kind": "text",
+              "source_id": "post_text",
+              "excerpt": "坚持了 21 天",
+              "explanation": "属于个人使用经历的陈述，作为主观分享处理。",
+              "start_char": 66,
+              "end_char": 74,
+              "image_id": null,
+              "claim_id": "c2",
+              "finding_id": null,
+              "related_ids": [],
+              "bbox": null
+            },
+            {
+              "id": "text-c3",
+              "dimension": "text",
+              "source_kind": "text",
+              "source_id": "post_text",
+              "excerpt": "一盒五片",
+              "explanation": "属于产品规格的客观数量说法，未提供证据核实。",
+              "start_char": 105,
+              "end_char": 109,
+              "image_id": null,
+              "claim_id": "c3",
+              "finding_id": null,
+              "related_ids": [],
+              "bbox": null
+            },
+            {
+              "id": "text-c4",
+              "dimension": "text",
+              "source_kind": "text",
+              "source_id": "post_text",
+              "excerpt": "敷完的精华液超级多",
+              "explanation": "属于个人使用感受和质地印象，作为主观分享处理。",
+              "start_char": 110,
+              "end_char": 119,
+              "image_id": null,
+              "claim_id": "c4",
+              "finding_id": null,
+              "related_ids": [],
+              "bbox": null
+            },
+            {
+              "id": "text-c5",
+              "dimension": "text",
+              "source_kind": "text",
+              "source_id": "post_text",
+              "excerpt": "同一个位置原相机直出，没 P 没滤镜",
+              "explanation": "属于对拍摄方式的个人陈述，文本层面无法核实，作为主观分享处理。",
+              "start_char": 144,
+              "end_char": 162,
+              "image_id": null,
+              "claim_id": "c5",
+              "finding_id": null,
+              "related_ids": [],
+              "bbox": null
+            },
+            {
+              "id": "text-c6",
+              "dimension": "text",
+              "source_kind": "text",
+              "source_id": "post_text",
+              "excerpt": "毛孔真的细了好多",
+              "explanation": "属于功效性客观说法，未提供可用证据，无法核实。",
+              "start_char": 164,
+              "end_char": 172,
+              "image_id": null,
+              "claim_id": "c6",
+              "finding_id": null,
+              "related_ids": [],
+              "bbox": null
+            },
+            {
+              "id": "text-c7",
+              "dimension": "text",
+              "source_kind": "text",
+              "source_id": "post_text",
+              "excerpt": "肤质细腻度提升了 63%",
+              "explanation": "属于带具体数值的功效性说法，未说明测量方法和依据，缺少证据核实。",
+              "start_char": 173,
+              "end_char": 185,
+              "image_id": null,
+              "claim_id": "c7",
+              "finding_id": null,
+              "related_ids": [],
+              "bbox": null
+            },
+            {
+              "id": "text-c8",
+              "dimension": "text",
+              "source_kind": "text",
+              "source_id": "post_text",
+              "excerpt": "手臂都比以前滑",
+              "explanation": "属于功效性说法，未提供证据，无法核实。",
+              "start_char": 186,
+              "end_char": 193,
+              "image_id": null,
+              "claim_id": "c8",
+              "finding_id": null,
+              "related_ids": [],
+              "bbox": null
+            },
+            {
+              "id": "text-c9",
+              "dimension": "text",
+              "source_kind": "text",
+              "source_id": "post_text",
+              "excerpt": "已经囤了三盒",
+              "explanation": "属于个人购买和分享行为，作为主观陈述处理。",
+              "start_char": 199,
+              "end_char": 205,
+              "image_id": null,
+              "claim_id": "c9",
+              "finding_id": null,
+              "related_ids": [],
+              "bbox": null
+            },
+            {
+              "id": "text-ai-cue-1",
+              "dimension": "text",
+              "source_kind": "text",
+              "source_id": "post_text",
+              "excerpt": "姐妹们我真的哭死",
+              "explanation": "“姐妹们我真的哭死”为常见社交平台口语化开场，属于普通种草文案风格",
+              "start_char": 32,
+              "end_char": 40,
+              "image_id": null,
+              "claim_id": null,
+              "finding_id": null,
+              "related_ids": [],
+              "bbox": null
+            },
+            {
+              "id": "text-ai-cue-2",
+              "dimension": "text",
+              "source_kind": "text",
+              "source_id": "post_text",
+              "excerpt": "没 P 没滤镜！！",
+              "explanation": "“没 P 没滤镜！！”使用连用感叹号强化语气，属于常见个人分享表达",
+              "start_char": 155,
+              "end_char": 164,
+              "image_id": null,
+              "claim_id": null,
+              "finding_id": null,
+              "related_ids": [],
+              "bbox": null
+            },
+            {
+              "id": "text-ai-style-signal",
+              "dimension": "text",
+              "source_kind": "text",
+              "source_id": "post_text",
+              "excerpt": "“姐妹们我真的哭死”为常见社交平台口语化开场，属于普通种草文案风格；“没 P 没滤镜！！”使用连用感叹号强化语气，属于常见个人分享表达",
+              "explanation": "来源：deepseek_style_review；分数：0.20/1.00；语义：uncalibrated style-suspicion score; not a calibrated probability",
+              "start_char": null,
+              "end_char": null,
+              "image_id": null,
+              "claim_id": null,
+              "finding_id": null,
+              "related_ids": [
+                "text-ai-cue-1",
+                "text-ai-cue-2"
+              ],
+              "bbox": null
+            },
+            {
+              "id": "text-finding-f1",
+              "dimension": "text",
+              "source_kind": "text",
+              "source_id": "post_text",
+              "excerpt": "肤质细腻度提升了 63%",
+              "explanation": "带精确百分比的功效说法容易被视为可验证结论，但缺少证据支撑，存在广告合规风险。",
+              "start_char": 173,
+              "end_char": 185,
+              "image_id": null,
+              "claim_id": null,
+              "finding_id": "f1",
+              "related_ids": [
+                "text-c7"
+              ],
+              "bbox": null
+            },
+            {
+              "id": "text-finding-f2",
+              "dimension": "text",
+              "source_kind": "text",
+              "source_id": "post_text",
+              "excerpt": "毛孔真的细了好多",
+              "explanation": "功效性结论仅依赖个人拍照对比，缺少客观测量，属于证据不足的宣称。",
+              "start_char": 164,
+              "end_char": 172,
+              "image_id": null,
+              "claim_id": null,
+              "finding_id": "f2",
+              "related_ids": [
+                "text-c6"
+              ],
+              "bbox": null
+            },
+            {
+              "id": "text-finding-f3",
+              "dimension": "text",
+              "source_kind": "text",
+              "source_id": "post_text",
+              "excerpt": "手臂都能用的黑精华面膜",
+              "explanation": "产品适用范围若无依据，可能构成夸大或超范围宣称，但需结合产品说明判断。",
+              "start_char": 3,
+              "end_char": 14,
+              "image_id": null,
+              "claim_id": null,
+              "finding_id": "f3",
+              "related_ids": [
+                "text-c1"
+              ],
+              "bbox": null
+            },
+            {
+              "id": "image-observation-image-1-obs-1",
+              "dimension": "image",
+              "source_kind": "image",
+              "source_id": "image-1",
+              "excerpt": "画面中央一只手举着一片深紫黑色的面膜独立包装袋，占画面主体；包装形态完整，无明显破损或文字变形。",
+              "explanation": "画面中央一只手举着一片深紫黑色的面膜独立包装袋，占画面主体；包装形态完整，无明显破损或文字变形。；区域：画面中央；来源：Qwen 视觉观察。",
+              "start_char": null,
+              "end_char": null,
+              "image_id": "image-1",
+              "claim_id": null,
+              "finding_id": null,
+              "related_ids": [],
+              "bbox": null
+            },
+            {
+              "id": "image-observation-image-1-obs-2",
+              "dimension": "image",
+              "source_kind": "image",
+              "source_id": "image-1",
+              "excerpt": "L'ORÉAL® PARIS",
+              "explanation": "包装袋上部以白色字体印有品牌文字，清晰可辨。；区域：包装袋上部；来源：Qwen 视觉观察。",
+              "start_char": null,
+              "end_char": null,
+              "image_id": "image-1",
+              "claim_id": null,
+              "finding_id": null,
+              "related_ids": [],
+              "bbox": null
+            },
+            {
+              "id": "image-observation-image-1-obs-3",
+              "dimension": "image",
+              "source_kind": "image",
+              "source_id": "image-1",
+              "excerpt": "按压注入鲜活成分",
+              "explanation": "品牌文字下方印有“按压注入鲜活成分”字样及一排箭头形符号，清晰可辨。；区域：包装袋中部偏上；来源：Qwen 视觉观察。",
+              "start_char": null,
+              "end_char": null,
+              "image_id": "image-1",
+              "claim_id": null,
+              "finding_id": null,
+              "related_ids": [],
+              "bbox": null
+            },
+            {
+              "id": "image-observation-image-1-obs-4",
+              "dimension": "image",
+              "source_kind": "image",
+              "source_id": "image-1",
+              "excerpt": "YOUTH CODE",
+              "explanation": "包装袋中部印有“YOUTH CODE”字样，其下方有一排蓝、绿、黄、橙、粉等彩色小方块图案。；区域：包装袋中部；来源：Qwen 视觉观察。",
+              "start_char": null,
+              "end_char": null,
+              "image_id": "image-1",
+              "claim_id": null,
+              "finding_id": null,
+              "related_ids": [],
+              "bbox": null
+            },
+            {
+              "id": "image-observation-image-1-obs-5",
+              "dimension": "image",
+              "source_kind": "image",
+              "source_id": "image-1",
+              "excerpt": "FRESH MIX ADVANCED SKIN CULTIVATING ESSENCE MASK 欧莱雅青春密码活肌精华鲜注面膜",
+              "explanation": "包装袋下部印有较小的英文与中文产品名，字体偏小但可辨认。；区域：包装袋下部；来源：Qwen 视觉观察。",
+              "start_char": null,
+              "end_char": null,
+              "image_id": "image-1",
+              "claim_id": null,
+              "finding_id": null,
+              "related_ids": [],
+              "bbox": null
+            },
+            {
+              "id": "image-observation-image-1-obs-6",
+              "dimension": "image",
+              "source_kind": "image",
+              "source_id": "image-1",
+              "excerpt": "背景为室内环境：木纹地板、右侧白色墙面或门板、左上方金属质感表面（疑似冰箱或门），画面中除持袋的手外无其他人物或产品。",
+              "explanation": "背景为室内环境：木纹地板、右侧白色墙面或门板、左上方金属质感表面（疑似冰箱或门），画面中除持袋的手外无其他人物或产品。；区域：背景；来源：Qwen 视觉观察。",
+              "start_char": null,
+              "end_char": null,
+              "image_id": "image-1",
+              "claim_id": null,
+              "finding_id": null,
+              "related_ids": [],
+              "bbox": null
+            },
+            {
+              "id": "image-observation-image-1-obs-7",
+              "dimension": "image",
+              "source_kind": "image",
+              "source_id": "image-1",
+              "excerpt": "本图仅展示面膜包装本身，画面中不存在文案所述“图 2”的手臂第一天与第 21 天对比内容，也无任何使用效果画面。",
+              "explanation": "本图仅展示面膜包装本身，画面中不存在文案所述“图 2”的手臂第一天与第 21 天对比内容，也无任何使用效果画面。；区域：整图；来源：Qwen 视觉观察。",
+              "start_char": null,
+              "end_char": null,
+              "image_id": "image-1",
+              "claim_id": null,
+              "finding_id": null,
+              "related_ids": [],
+              "bbox": null
+            },
+            {
+              "id": "image-observation-image-1-obs-8",
+              "dimension": "image",
+              "source_kind": "image",
+              "source_id": "image-1",
+              "excerpt": "未发现可具体指认的视觉异常：手部结构正常，包装文字无局部严重变形，无明显拼接边界或矛盾遮挡反射。",
+              "explanation": "未发现可具体指认的视觉异常：手部结构正常，包装文字无局部严重变形，无明显拼接边界或矛盾遮挡反射。；区域：整图；来源：Qwen 视觉观察。",
+              "start_char": null,
+              "end_char": null,
+              "image_id": "image-1",
+              "claim_id": null,
+              "finding_id": null,
+              "related_ids": [],
+              "bbox": null
+            },
+            {
+              "id": "image-visible-text-image-1-1",
+              "dimension": "image",
+              "source_kind": "image",
+              "source_id": "image-1",
+              "excerpt": "L'ORÉAL®",
+              "explanation": "Qwen 从图片中读取到的可见文字；未据此单独验证其事实性。",
+              "start_char": null,
+              "end_char": null,
+              "image_id": "image-1",
+              "claim_id": null,
+              "finding_id": null,
+              "related_ids": [],
+              "bbox": null
+            },
+            {
+              "id": "image-visible-text-image-1-2",
+              "dimension": "image",
+              "source_kind": "image",
+              "source_id": "image-1",
+              "excerpt": "PARIS",
+              "explanation": "Qwen 从图片中读取到的可见文字；未据此单独验证其事实性。",
+              "start_char": null,
+              "end_char": null,
+              "image_id": "image-1",
+              "claim_id": null,
+              "finding_id": null,
+              "related_ids": [],
+              "bbox": null
+            },
+            {
+              "id": "image-visible-text-image-1-5",
+              "dimension": "image",
+              "source_kind": "image",
+              "source_id": "image-1",
+              "excerpt": "FRESH MIX ADVANCED SKIN CULTIVATING ESSENCE MASK",
+              "explanation": "Qwen 从图片中读取到的可见文字；未据此单独验证其事实性。",
+              "start_char": null,
+              "end_char": null,
+              "image_id": "image-1",
+              "claim_id": null,
+              "finding_id": null,
+              "related_ids": [],
+              "bbox": null
+            },
+            {
+              "id": "image-visible-text-image-1-6",
+              "dimension": "image",
+              "source_kind": "image",
+              "source_id": "image-1",
+              "excerpt": "欧莱雅青春密码活肌精华鲜注面膜",
+              "explanation": "Qwen 从图片中读取到的可见文字；未据此单独验证其事实性。",
+              "start_char": null,
+              "end_char": null,
+              "image_id": "image-1",
+              "claim_id": null,
+              "finding_id": null,
+              "related_ids": [],
+              "bbox": null
+            },
+            {
+              "id": "image-text-claim-image-1-itc-1",
+              "dimension": "image",
+              "source_kind": "image",
+              "source_id": "image-1",
+              "excerpt": "FRESH MIX ADVANCED SKIN CULTIVATING ESSENCE MASK 欧莱雅青春密码活肌精华鲜注面膜",
+              "explanation": "属于包装上的产品身份信息；输入中无产品注册或规格类证据，无法据此核实，但不与文案冲突。",
+              "start_char": null,
+              "end_char": null,
+              "image_id": "image-1",
+              "claim_id": null,
+              "finding_id": null,
+              "related_ids": [],
+              "bbox": null
+            },
+            {
+              "id": "image-text-claim-image-1-itc-2",
+              "dimension": "image",
+              "source_kind": "image",
+              "source_id": "image-1",
+              "excerpt": "按压注入鲜活成分",
+              "explanation": "属于包装上的成分/机制类营销表述，静态图与现有输入均无法核实其真实性，也不足以判定为虚假。",
+              "start_char": null,
+              "end_char": null,
+              "image_id": "image-1",
+              "claim_id": null,
+              "finding_id": null,
+              "related_ids": [],
+              "bbox": null
+            },
+            {
+              "id": "image-provenance-image-1",
+              "dimension": "image",
+              "source_kind": "image",
+              "source_id": "image-1",
+              "excerpt": "C2PA 状态：unavailable",
+              "explanation": "本地文件元数据观察；C2PA/EXIF 信息只提供来源线索，不能单独证明图片真实或被篡改。",
+              "start_char": null,
+              "end_char": null,
+              "image_id": "image-1",
+              "claim_id": null,
+              "finding_id": null,
+              "related_ids": [],
+              "bbox": null
+            }
+          ],
+          "major_evidence": [
+            "文本给出“肤质细腻度提升了 63%”的具体数值，但未说明测量仪器、指标定义或数据来源。",
+            "文本称“毛孔真的细了好多”“手臂都比以前滑”，以 21 天前后对比作为功效依据，但未提供可核实的检测数据。",
+            "标题称“手臂都能用的黑精华面膜”，将面部产品扩展至手臂使用场景。"
+          ],
+          "limitations": [
+            "人工复核优先级是分流建议，不是真假结论或校准概率。",
+            "未提供外部证据；事实性 claim 不应据此判为虚假。",
+            "本次未运行独立像素级图像取证模型；Qwen 的图像结论是语义视觉线索，不能证明 AI 生成或局部篡改。",
+            "C2PA manifest 或 EXIF 缺失按中性处理；有效 provenance 也只记录来源声明，不证明文案功效或背书真实。",
+            "文本完整性结果只表示文风、重复或内部一致性线索；单篇最终文本不能证明 AI 生成或后期编辑。确认拼接/改写需要原稿、版本记录或可核验来源。",
+            "DeepSeek AI 文风疑似度是未校准的风格信号，不是作者来源概率；它不参与整体风险评分。",
+            "视觉语义线索不能替代像素级鉴伪；模型分数不是 AI 生成概率。",
+            "文案风险分不是文案为假的概率；证据不足不等于虚假。"
+          ],
+          "dimension_assessments": [
+            {
+              "dimension": "image",
+              "status": "assessed",
+              "score": 0.0,
+              "risk_level": "low",
+              "configured_weight": 0.3,
+              "normalized_weight": 0.461538,
+              "summary": "图片维度风险分 0.0/100（低风险）；已运行图片语义分析；未生成可报告的具体风险 finding。",
+              "evidence": [
+                "已运行图片语义分析；未生成可报告的具体风险 finding。"
+              ],
+              "limitations": [
+                "视觉语义线索不能替代像素级鉴伪；模型分数不是 AI 生成概率。"
+              ]
+            },
+            {
+              "dimension": "text",
+              "status": "assessed",
+              "score": 60.0,
+              "risk_level": "high",
+              "configured_weight": 0.35,
+              "normalized_weight": 0.538462,
+              "summary": "文案维度风险分 60.0/100（高风险）；文本给出“肤质细腻度提升了 63%”的具体数值，但未说明测量仪器、指标定义或数据来源。",
+              "evidence": [
+                "文本给出“肤质细腻度提升了 63%”的具体数值，但未说明测量仪器、指标定义或数据来源。",
+                "文本称“毛孔真的细了好多”“手臂都比以前滑”，以 21 天前后对比作为功效依据，但未提供可核实的检测数据。",
+                "标题称“手臂都能用的黑精华面膜”，将面部产品扩展至手臂使用场景。"
+              ],
+              "limitations": [
+                "文案风险分不是文案为假的概率；证据不足不等于虚假。"
+              ]
+            }
+          ],
+          "provider_errors": [],
+          "model_metadata": {
+            "dimension_weights": {
+              "image": 0.3,
+              "text": 0.35,
+              "comment": 0.2,
+              "account": 0.15
+            },
+            "normalized_weights": {
+              "image": 0.461538,
+              "text": 0.538462
+            },
+            "risk_score_semantics": "internal risk aggregation; not a calibrated probability that the content or account is fake",
+            "claim_prompt_version": "v10",
+            "explanation_prompt_version": "v10",
+            "deepseek_model": "deepseek-flash",
+            "deepseek_reasoning_effort": "none",
+            "qwen_vision_model": "glm-5.3-flashx",
+            "role_provider_map": {
+              "text": "deepseek",
+              "comment": "deepseek",
+              "account": "deepseek",
+              "image": "glm_vision"
+            },
+            "role_statuses": {
+              "text": "completed",
+              "comment": "skipped",
+              "account": "skipped",
+              "image": "completed"
+            },
+            "evidence_chain_item_count": 30,
+            "ai_text_signal_semantics": "uncalibrated DeepSeek style-suspicion score; not an authorship probability",
+            "screenshot_prompt_version": "glm_screenshot_v1",
+            "account_prompt_version": "v1",
+            "follow_up_prompt_version": "v1",
+            "post_fetcher_configured": false,
+            "provider_errors": [],
+            "latency_ms": 58732.8,
+            "vision_provider": "glm_vision",
+            "vision_model": "glm-5.3-flashx"
+          },
+          "evidence_count": 30,
+          "latency_ms": 58733,
+          "created_at": "2026-10-20T14:59:44.851593+00:00"
+        }
+      },
+      "sample_api": {
+        "http_status": 200,
+        "response": {
+          "id": "c701c686b42e41e09eae0a75394ca234",
+          "text_content": "标题：手臂都能用的黑精华面膜？21 天对比给你们看😭\n\n正文：\n姐妹们我真的哭死，本来只是敷脸剩的精华舍不得扔，顺手抹在手臂上，结果坚持了 21 天！！\n图 1 是我用的这款黑精华面膜（YOUTH CODE），一盒五片，敷完的精华液超级多。\n图 2 左边是第一天拍的，右边是第 21 天，同一个位置原相机直出，没 P 没滤镜！！毛孔真的细了好多，肤质细腻度提升了 63%，手臂都比以前滑。\n不说了，已经囤了三盒🥹\n\n#欧莱雅 #黑精华 #面膜 #身体护理 #好物分享",
+          "text_length": 233,
+          "comment_count": 0,
+          "comments": [],
+          "account": null,
+          "image": {
+            "filename": "image_1.jpg",
+            "content_type": "image/jpeg",
+            "size": 132846,
+            "width": 720,
+            "height": 1776,
+            "has_exif": false,
+            "sha256": "d3193f5ccf6ff6da8e308b95cc9a06dedc317ad1cc25d7dad32a3512a28c673e",
+            "url": "/api/samples/c701c686b42e41e09eae0a75394ca234/image"
+          },
+          "source": "eval",
+          "created_at": "2026-10-20T14:58:46.010549+00:00"
+        }
+      }
+    }
+  ],
+  "success": true,
+  "failure_reason": null,
+  "task_id": "d62fd718e89a41fca45be6242059d7ca",
+  "sample_id_api": "c701c686b42e41e09eae0a75394ca234",
+  "report": {
+    "id": "d5eddcec79024251b2a47ec7eb1191f7",
+    "task_id": "d62fd718e89a41fca45be6242059d7ca",
+    "overall_score": 32.31,
+    "trust_score": 67.7,
+    "risk_level": "medium",
+    "trust_level": "medium",
+    "trust_label": "存疑",
+    "summary": "综合风险分 32.3/100（中风险）。已评估维度：图片 0.0分、文案 60.0分。；主要依据：文本给出“肤质细腻度提升了 63%”的具体数值，但未说明测量仪器、指标定义或数据来源。；文本称“毛孔真的细了好多”“手臂都比以前滑”，以 21 天前后对比作为功效依据，但未提供可核实的检测数据。；标题称“手臂都能用的黑精华面膜”，将面部产品扩展至手臂使用场景。 分数是内部风险聚合，不是真假概率。",
+    "evidence": [
+      {
+        "source": "text",
+        "type": "unsupported_claim",
+        "evidence": "文本给出“肤质细腻度提升了 63%”的具体数值，但未说明测量仪器、指标定义或数据来源。",
+        "confidence": 0.6,
+        "severity": "medium",
+        "reason": "带精确百分比的功效说法容易被视为可验证结论，但缺少证据支撑，存在广告合规风险。"
+      },
+      {
+        "source": "text",
+        "type": "unsupported_claim",
+        "evidence": "文本称“毛孔真的细了好多”“手臂都比以前滑”，以 21 天前后对比作为功效依据，但未提供可核实的检测数据。",
+        "confidence": 0.5,
+        "severity": "medium",
+        "reason": "功效性结论仅依赖个人拍照对比，缺少客观测量，属于证据不足的宣称。"
+      },
+      {
+        "source": "image",
+        "type": "engine_evidence",
+        "evidence": "已运行图片语义分析；未生成可报告的具体风险 finding。",
+        "confidence": 0.6,
+        "severity": "low",
+        "reason": "来自引擎证据集，未细分为具体风险类别。"
+      },
+      {
+        "source": "text",
+        "type": "exaggerated_claim",
+        "evidence": "标题称“手臂都能用的黑精华面膜”，将面部产品扩展至手臂使用场景。",
+        "confidence": 0.4,
+        "severity": "low",
+        "reason": "产品适用范围若无依据，可能构成夸大或超范围宣称，但需结合产品说明判断。"
+      }
+    ],
+    "recommendations": [
+      "补充检测方法、样本量和数据来源，或删除具体百分比，改为主观感受表述。",
+      "改为主观体验描述，或补充可核实的功效测试依据并注明个体差异。",
+      "核实产品使用说明，若未标注身体适用，应避免暗示可用于手臂。",
+      "内容可信度较高，建议保持真实使用细节与合规披露。"
+    ],
+    "dimension_scores": {
+      "image": 0.0,
+      "text": 60.0
+    },
+    "dimensions": [
+      {
+        "key": "account",
+        "code": "T",
+        "label": "账号可信度",
+        "question": "这个账号长期可靠吗？",
+        "input_label": "账号主页",
+        "assessed": false,
+        "trust_score": null,
+        "risk_score": null,
+        "risk_level": null,
+        "trust_level": null,
+        "trust_label": null,
+        "summary": "引擎未对该维度产出结果（缺少对应输入或维度未启用）。",
+        "evidence": [],
+        "limitations": []
+      },
+      {
+        "key": "image",
+        "code": "R",
+        "label": "图片真实性",
+        "question": "这张图是真的吗？",
+        "input_label": "图片",
+        "assessed": true,
+        "trust_score": 100.0,
+        "risk_score": 0.0,
+        "risk_level": "low",
+        "trust_level": "high",
+        "trust_label": "高可信",
+        "summary": "图片维度风险分 0.0/100（低风险）；已运行图片语义分析；未生成可报告的具体风险 finding。",
+        "evidence": [
+          {
+            "source": "image",
+            "type": "engine_evidence",
+            "evidence": "已运行图片语义分析；未生成可报告的具体风险 finding。",
+            "confidence": 0.6,
+            "severity": "low",
+            "reason": "来自引擎证据集，未细分为具体风险类别。"
+          }
+        ],
+        "limitations": [
+          "视觉语义线索不能替代像素级鉴伪；模型分数不是 AI 生成概率。"
+        ]
+      },
+      {
+        "key": "comment",
+        "code": "U",
+        "label": "评论区真实性",
+        "question": "评论是真人说的吗？",
+        "input_label": "评论",
+        "assessed": false,
+        "trust_score": null,
+        "risk_score": null,
+        "risk_level": null,
+        "trust_level": null,
+        "trust_label": null,
+        "summary": "引擎未对该维度产出结果（缺少对应输入或维度未启用）。",
+        "evidence": [],
+        "limitations": []
+      },
+      {
+        "key": "text",
+        "code": "S",
+        "label": "文案真实性",
+        "question": "这段话是体验，还是写好的脚本？",
+        "input_label": "文案",
+        "assessed": true,
+        "trust_score": 40.0,
+        "risk_score": 60.0,
+        "risk_level": "high",
+        "trust_level": "low",
+        "trust_label": "低可信",
+        "summary": "文案维度风险分 60.0/100（高风险）；文本给出“肤质细腻度提升了 63%”的具体数值，但未说明测量仪器、指标定义或数据来源。",
+        "evidence": [
+          {
+            "source": "text",
+            "type": "unsupported_claim",
+            "evidence": "文本给出“肤质细腻度提升了 63%”的具体数值，但未说明测量仪器、指标定义或数据来源。",
+            "confidence": 0.6,
+            "severity": "medium",
+            "reason": "带精确百分比的功效说法容易被视为可验证结论，但缺少证据支撑，存在广告合规风险。"
+          },
+          {
+            "source": "text",
+            "type": "unsupported_claim",
+            "evidence": "文本称“毛孔真的细了好多”“手臂都比以前滑”，以 21 天前后对比作为功效依据，但未提供可核实的检测数据。",
+            "confidence": 0.5,
+            "severity": "medium",
+            "reason": "功效性结论仅依赖个人拍照对比，缺少客观测量，属于证据不足的宣称。"
+          },
+          {
+            "source": "text",
+            "type": "exaggerated_claim",
+            "evidence": "标题称“手臂都能用的黑精华面膜”，将面部产品扩展至手臂使用场景。",
+            "confidence": 0.4,
+            "severity": "low",
+            "reason": "产品适用范围若无依据，可能构成夸大或超范围宣称，但需结合产品说明判断。"
+          }
+        ],
+        "limitations": [
+          "文案风险分不是文案为假的概率；证据不足不等于虚假。"
+        ]
+      }
+    ],
+    "cross_checks": [
+      {
+        "id": "t-r",
+        "from_code": "T",
+        "to_code": "R",
+        "left": "账号材料",
+        "right": "图片材料",
+        "conclusion": "缺少账号材料，当前无法比对",
+        "state": "unverified",
+        "dimension": "账号 × 图片",
+        "detail": "本次报告未完成账号材料维度评估，因此不生成该组合的方向性结论。",
+        "confidence": null,
+        "method": "rule",
+        "label": "等待材料"
+      },
+      {
+        "id": "t-u",
+        "from_code": "T",
+        "to_code": "U",
+        "left": "账号材料",
+        "right": "评论材料",
+        "conclusion": "缺少账号材料、评论材料，当前无法比对",
+        "state": "unverified",
+        "dimension": "账号 × 评论",
+        "detail": "本次报告未完成账号材料、评论材料维度评估，因此不生成该组合的方向性结论。",
+        "confidence": null,
+        "method": "rule",
+        "label": "等待材料"
+      },
+      {
+        "id": "t-s",
+        "from_code": "T",
+        "to_code": "S",
+        "left": "账号材料",
+        "right": "文案材料",
+        "conclusion": "缺少账号材料，当前无法比对",
+        "state": "unverified",
+        "dimension": "账号 × 文案",
+        "detail": "本次报告未完成账号材料维度评估，因此不生成该组合的方向性结论。",
+        "confidence": null,
+        "method": "rule",
+        "label": "等待材料"
+      },
+      {
+        "id": "r-u",
+        "from_code": "R",
+        "to_code": "U",
+        "left": "图片材料",
+        "right": "评论材料",
+        "conclusion": "缺少评论材料，当前无法比对",
+        "state": "unverified",
+        "dimension": "图片 × 评论",
+        "detail": "本次报告未完成评论材料维度评估，因此不生成该组合的方向性结论。",
+        "confidence": null,
+        "method": "rule",
+        "label": "等待材料"
+      },
+      {
+        "id": "r-s",
+        "from_code": "R",
+        "to_code": "S",
+        "left": "图片真实性：100 / 100",
+        "right": "文案真实性：40 / 100",
+        "conclusion": "两个维度的可信方向不一致",
+        "state": "conflict",
+        "dimension": "图片 × 文案",
+        "detail": "本次报告显示图片可信度 100，文案可信度 40，分差 60。该关系基于分数、风险等级和 4 条证据计算，不替代进一步的人工事实核验。",
+        "confidence": "中",
+        "method": "llm",
+        "label": "实时比对"
+      },
+      {
+        "id": "u-s",
+        "from_code": "U",
+        "to_code": "S",
+        "left": "评论材料",
+        "right": "文案材料",
+        "conclusion": "缺少评论材料，当前无法比对",
+        "state": "unverified",
+        "dimension": "评论 × 文案",
+        "detail": "本次报告未完成评论材料维度评估，因此不生成该组合的方向性结论。",
+        "confidence": null,
+        "method": "rule",
+        "label": "等待材料"
+      }
+    ],
+    "decision": {
+      "tier": "verify",
+      "label": "提示 · 补充核验",
+      "headline": "最需要留意的维度：S · 文案真实性。",
+      "advice": [
+        {
+          "perspective": "consumer",
+          "priority": "重点",
+          "title": "补充检测方法、样本量和数据来源，或删除具体百分比，改为主观感受表述。",
+          "basis": "来自本次报告的后端建议。",
+          "action": null
+        },
+        {
+          "perspective": "consumer",
+          "priority": "建议",
+          "title": "改为主观体验描述，或补充可核实的功效测试依据并注明个体差异。",
+          "basis": "来自本次报告的后端建议。",
+          "action": null
+        },
+        {
+          "perspective": "consumer",
+          "priority": "建议",
+          "title": "核实产品使用说明，若未标注身体适用，应避免暗示可用于手臂。",
+          "basis": "来自本次报告的后端建议。",
+          "action": null
+        },
+        {
+          "perspective": "consumer",
+          "priority": "建议",
+          "title": "内容可信度较高，建议保持真实使用细节与合规披露。",
+          "basis": "来自本次报告的后端建议。",
+          "action": null
+        },
+        {
+          "perspective": "creator",
+          "priority": "重点",
+          "title": "补充检测方法、样本量和数据来源，或删除具体百分比，改为主观感受表述。",
+          "basis": "文案真实性风险分 60.0/100。",
+          "action": null
+        },
+        {
+          "perspective": "platform",
+          "priority": "建议",
+          "title": "建议加提示标注并补充材料后复核。",
+          "basis": "当前分级：提示 · 补充核验。",
+          "action": null
+        },
+        {
+          "perspective": "brand",
+          "priority": "重点",
+          "title": "合作前索取原始素材和功效依据。",
+          "basis": "文案真实性风险分 60.0/100。",
+          "action": null
+        }
+      ],
+      "limitations": [
+        "视觉语义线索不能替代像素级鉴伪；模型分数不是 AI 生成概率。",
+        "文案风险分不是文案为假的概率；证据不足不等于虚假。"
+      ]
+    },
+    "confidence": {
+      "level": "medium",
+      "label": "中",
+      "bars": 2,
+      "assessed_count": 2,
+      "evidence_count": 4,
+      "cross_check_count": 1,
+      "missing_materials": [
+        "账号材料",
+        "评论材料"
+      ]
+    },
+    "assessed_dimensions": [
+      "image",
+      "text"
+    ],
+    "generated_at": "2026-10-20T14:59:44.864212+00:00",
+    "created_at": "2026-10-20T14:59:44.868482+00:00"
+  },
+  "engine_trace": {
+    "id": "c9354ecd64f64a848fbd1c8aa4ea116b",
+    "task_id": "d62fd718e89a41fca45be6242059d7ca",
+    "backend": "trust_engine",
+    "engine_schema_version": "2.1",
+    "overall_score": 32.31,
+    "overall_risk_level": "medium",
+    "visible_roles": [
+      {
+        "role": "text",
+        "provider": "deepseek",
+        "model": "deepseek-flash",
+        "prompt_version": "v10",
+        "status": "completed",
+        "summary": "DeepSeek 完成文案与 claim 分析，提取 9 条 claim。 AI 文风疑似度 0.20/1.00（未校准分数）。",
+        "error_code": null,
+        "evidence_chain_ids": [
+          "text-c1",
+          "text-c2",
+          "text-c3",
+          "text-c4",
+          "text-c5",
+          "text-c6",
+          "text-c7",
+          "text-c8",
+          "text-c9",
+          "text-ai-cue-1",
+          "text-ai-cue-2",
+          "text-ai-style-signal",
+          "text-finding-f1",
+          "text-finding-f2",
+          "text-finding-f3"
+        ]
+      },
+      {
+        "role": "comment",
+        "provider": "deepseek",
+        "model": "deepseek-flash",
+        "prompt_version": "v3",
+        "status": "skipped",
+        "summary": "未提供评论，跳过评论角色。",
+        "error_code": null,
+        "evidence_chain_ids": []
+      },
+      {
+        "role": "account",
+        "provider": "deepseek",
+        "model": "deepseek-flash",
+        "prompt_version": "v1",
+        "status": "skipped",
+        "summary": "未提供账号历史，跳过账号角色。",
+        "error_code": null,
+        "evidence_chain_ids": []
+      },
+      {
+        "role": "image",
+        "provider": "glm_vision",
+        "model": "glm-5.3-flashx",
+        "prompt_version": "glm_v1",
+        "status": "completed",
+        "summary": "GLM 完成 1 张图片的视觉语义/图文一致性分析。",
+        "error_code": null,
+        "evidence_chain_ids": [
+          "image-observation-image-1-obs-1",
+          "image-observation-image-1-obs-2",
+          "image-observation-image-1-obs-3",
+          "image-observation-image-1-obs-4",
+          "image-observation-image-1-obs-5",
+          "image-observation-image-1-obs-6",
+          "image-observation-image-1-obs-7",
+          "image-observation-image-1-obs-8",
+          "image-visible-text-image-1-1",
+          "image-visible-text-image-1-2",
+          "image-visible-text-image-1-5",
+          "image-visible-text-image-1-6",
+          "image-text-claim-image-1-itc-1",
+          "image-text-claim-image-1-itc-2",
+          "image-provenance-image-1"
+        ]
+      }
+    ],
+    "evidence_chain": [
+      {
+        "id": "text-c1",
+        "dimension": "text",
+        "source_kind": "text",
+        "source_id": "post_text",
+        "excerpt": "手臂都能用的黑精华面膜",
+        "explanation": "属于产品适用范围/使用方式的客观说法，未提供任何证据，无法核实。",
+        "start_char": 3,
+        "end_char": 14,
+        "image_id": null,
+        "claim_id": "c1",
+        "finding_id": null,
+        "related_ids": [],
+        "bbox": null
+      },
+      {
+        "id": "text-c2",
+        "dimension": "text",
+        "source_kind": "text",
+        "source_id": "post_text",
+        "excerpt": "坚持了 21 天",
+        "explanation": "属于个人使用经历的陈述，作为主观分享处理。",
+        "start_char": 66,
+        "end_char": 74,
+        "image_id": null,
+        "claim_id": "c2",
+        "finding_id": null,
+        "related_ids": [],
+        "bbox": null
+      },
+      {
+        "id": "text-c3",
+        "dimension": "text",
+        "source_kind": "text",
+        "source_id": "post_text",
+        "excerpt": "一盒五片",
+        "explanation": "属于产品规格的客观数量说法，未提供证据核实。",
+        "start_char": 105,
+        "end_char": 109,
+        "image_id": null,
+        "claim_id": "c3",
+        "finding_id": null,
+        "related_ids": [],
+        "bbox": null
+      },
+      {
+        "id": "text-c4",
+        "dimension": "text",
+        "source_kind": "text",
+        "source_id": "post_text",
+        "excerpt": "敷完的精华液超级多",
+        "explanation": "属于个人使用感受和质地印象，作为主观分享处理。",
+        "start_char": 110,
+        "end_char": 119,
+        "image_id": null,
+        "claim_id": "c4",
+        "finding_id": null,
+        "related_ids": [],
+        "bbox": null
+      },
+      {
+        "id": "text-c5",
+        "dimension": "text",
+        "source_kind": "text",
+        "source_id": "post_text",
+        "excerpt": "同一个位置原相机直出，没 P 没滤镜",
+        "explanation": "属于对拍摄方式的个人陈述，文本层面无法核实，作为主观分享处理。",
+        "start_char": 144,
+        "end_char": 162,
+        "image_id": null,
+        "claim_id": "c5",
+        "finding_id": null,
+        "related_ids": [],
+        "bbox": null
+      },
+      {
+        "id": "text-c6",
+        "dimension": "text",
+        "source_kind": "text",
+        "source_id": "post_text",
+        "excerpt": "毛孔真的细了好多",
+        "explanation": "属于功效性客观说法，未提供可用证据，无法核实。",
+        "start_char": 164,
+        "end_char": 172,
+        "image_id": null,
+        "claim_id": "c6",
+        "finding_id": null,
+        "related_ids": [],
+        "bbox": null
+      },
+      {
+        "id": "text-c7",
+        "dimension": "text",
+        "source_kind": "text",
+        "source_id": "post_text",
+        "excerpt": "肤质细腻度提升了 63%",
+        "explanation": "属于带具体数值的功效性说法，未说明测量方法和依据，缺少证据核实。",
+        "start_char": 173,
+        "end_char": 185,
+        "image_id": null,
+        "claim_id": "c7",
+        "finding_id": null,
+        "related_ids": [],
+        "bbox": null
+      },
+      {
+        "id": "text-c8",
+        "dimension": "text",
+        "source_kind": "text",
+        "source_id": "post_text",
+        "excerpt": "手臂都比以前滑",
+        "explanation": "属于功效性说法，未提供证据，无法核实。",
+        "start_char": 186,
+        "end_char": 193,
+        "image_id": null,
+        "claim_id": "c8",
+        "finding_id": null,
+        "related_ids": [],
+        "bbox": null
+      },
+      {
+        "id": "text-c9",
+        "dimension": "text",
+        "source_kind": "text",
+        "source_id": "post_text",
+        "excerpt": "已经囤了三盒",
+        "explanation": "属于个人购买和分享行为，作为主观陈述处理。",
+        "start_char": 199,
+        "end_char": 205,
+        "image_id": null,
+        "claim_id": "c9",
+        "finding_id": null,
+        "related_ids": [],
+        "bbox": null
+      },
+      {
+        "id": "text-ai-cue-1",
+        "dimension": "text",
+        "source_kind": "text",
+        "source_id": "post_text",
+        "excerpt": "姐妹们我真的哭死",
+        "explanation": "“姐妹们我真的哭死”为常见社交平台口语化开场，属于普通种草文案风格",
+        "start_char": 32,
+        "end_char": 40,
+        "image_id": null,
+        "claim_id": null,
+        "finding_id": null,
+        "related_ids": [],
+        "bbox": null
+      },
+      {
+        "id": "text-ai-cue-2",
+        "dimension": "text",
+        "source_kind": "text",
+        "source_id": "post_text",
+        "excerpt": "没 P 没滤镜！！",
+        "explanation": "“没 P 没滤镜！！”使用连用感叹号强化语气，属于常见个人分享表达",
+        "start_char": 155,
+        "end_char": 164,
+        "image_id": null,
+        "claim_id": null,
+        "finding_id": null,
+        "related_ids": [],
+        "bbox": null
+      },
+      {
+        "id": "text-ai-style-signal",
+        "dimension": "text",
+        "source_kind": "text",
+        "source_id": "post_text",
+        "excerpt": "“姐妹们我真的哭死”为常见社交平台口语化开场，属于普通种草文案风格；“没 P 没滤镜！！”使用连用感叹号强化语气，属于常见个人分享表达",
+        "explanation": "来源：deepseek_style_review；分数：0.20/1.00；语义：uncalibrated style-suspicion score; not a calibrated probability",
+        "start_char": null,
+        "end_char": null,
+        "image_id": null,
+        "claim_id": null,
+        "finding_id": null,
+        "related_ids": [
+          "text-ai-cue-1",
+          "text-ai-cue-2"
+        ],
+        "bbox": null
+      },
+      {
+        "id": "text-finding-f1",
+        "dimension": "text",
+        "source_kind": "text",
+        "source_id": "post_text",
+        "excerpt": "肤质细腻度提升了 63%",
+        "explanation": "带精确百分比的功效说法容易被视为可验证结论，但缺少证据支撑，存在广告合规风险。",
+        "start_char": 173,
+        "end_char": 185,
+        "image_id": null,
+        "claim_id": null,
+        "finding_id": "f1",
+        "related_ids": [
+          "text-c7"
+        ],
+        "bbox": null
+      },
+      {
+        "id": "text-finding-f2",
+        "dimension": "text",
+        "source_kind": "text",
+        "source_id": "post_text",
+        "excerpt": "毛孔真的细了好多",
+        "explanation": "功效性结论仅依赖个人拍照对比，缺少客观测量，属于证据不足的宣称。",
+        "start_char": 164,
+        "end_char": 172,
+        "image_id": null,
+        "claim_id": null,
+        "finding_id": "f2",
+        "related_ids": [
+          "text-c6"
+        ],
+        "bbox": null
+      },
+      {
+        "id": "text-finding-f3",
+        "dimension": "text",
+        "source_kind": "text",
+        "source_id": "post_text",
+        "excerpt": "手臂都能用的黑精华面膜",
+        "explanation": "产品适用范围若无依据，可能构成夸大或超范围宣称，但需结合产品说明判断。",
+        "start_char": 3,
+        "end_char": 14,
+        "image_id": null,
+        "claim_id": null,
+        "finding_id": "f3",
+        "related_ids": [
+          "text-c1"
+        ],
+        "bbox": null
+      },
+      {
+        "id": "image-observation-image-1-obs-1",
+        "dimension": "image",
+        "source_kind": "image",
+        "source_id": "image-1",
+        "excerpt": "画面中央一只手举着一片深紫黑色的面膜独立包装袋，占画面主体；包装形态完整，无明显破损或文字变形。",
+        "explanation": "画面中央一只手举着一片深紫黑色的面膜独立包装袋，占画面主体；包装形态完整，无明显破损或文字变形。；区域：画面中央；来源：Qwen 视觉观察。",
+        "start_char": null,
+        "end_char": null,
+        "image_id": "image-1",
+        "claim_id": null,
+        "finding_id": null,
+        "related_ids": [],
+        "bbox": null
+      },
+      {
+        "id": "image-observation-image-1-obs-2",
+        "dimension": "image",
+        "source_kind": "image",
+        "source_id": "image-1",
+        "excerpt": "L'ORÉAL® PARIS",
+        "explanation": "包装袋上部以白色字体印有品牌文字，清晰可辨。；区域：包装袋上部；来源：Qwen 视觉观察。",
+        "start_char": null,
+        "end_char": null,
+        "image_id": "image-1",
+        "claim_id": null,
+        "finding_id": null,
+        "related_ids": [],
+        "bbox": null
+      },
+      {
+        "id": "image-observation-image-1-obs-3",
+        "dimension": "image",
+        "source_kind": "image",
+        "source_id": "image-1",
+        "excerpt": "按压注入鲜活成分",
+        "explanation": "品牌文字下方印有“按压注入鲜活成分”字样及一排箭头形符号，清晰可辨。；区域：包装袋中部偏上；来源：Qwen 视觉观察。",
+        "start_char": null,
+        "end_char": null,
+        "image_id": "image-1",
+        "claim_id": null,
+        "finding_id": null,
+        "related_ids": [],
+        "bbox": null
+      },
+      {
+        "id": "image-observation-image-1-obs-4",
+        "dimension": "image",
+        "source_kind": "image",
+        "source_id": "image-1",
+        "excerpt": "YOUTH CODE",
+        "explanation": "包装袋中部印有“YOUTH CODE”字样，其下方有一排蓝、绿、黄、橙、粉等彩色小方块图案。；区域：包装袋中部；来源：Qwen 视觉观察。",
+        "start_char": null,
+        "end_char": null,
+        "image_id": "image-1",
+        "claim_id": null,
+        "finding_id": null,
+        "related_ids": [],
+        "bbox": null
+      },
+      {
+        "id": "image-observation-image-1-obs-5",
+        "dimension": "image",
+        "source_kind": "image",
+        "source_id": "image-1",
+        "excerpt": "FRESH MIX ADVANCED SKIN CULTIVATING ESSENCE MASK 欧莱雅青春密码活肌精华鲜注面膜",
+        "explanation": "包装袋下部印有较小的英文与中文产品名，字体偏小但可辨认。；区域：包装袋下部；来源：Qwen 视觉观察。",
+        "start_char": null,
+        "end_char": null,
+        "image_id": "image-1",
+        "claim_id": null,
+        "finding_id": null,
+        "related_ids": [],
+        "bbox": null
+      },
+      {
+        "id": "image-observation-image-1-obs-6",
+        "dimension": "image",
+        "source_kind": "image",
+        "source_id": "image-1",
+        "excerpt": "背景为室内环境：木纹地板、右侧白色墙面或门板、左上方金属质感表面（疑似冰箱或门），画面中除持袋的手外无其他人物或产品。",
+        "explanation": "背景为室内环境：木纹地板、右侧白色墙面或门板、左上方金属质感表面（疑似冰箱或门），画面中除持袋的手外无其他人物或产品。；区域：背景；来源：Qwen 视觉观察。",
+        "start_char": null,
+        "end_char": null,
+        "image_id": "image-1",
+        "claim_id": null,
+        "finding_id": null,
+        "related_ids": [],
+        "bbox": null
+      },
+      {
+        "id": "image-observation-image-1-obs-7",
+        "dimension": "image",
+        "source_kind": "image",
+        "source_id": "image-1",
+        "excerpt": "本图仅展示面膜包装本身，画面中不存在文案所述“图 2”的手臂第一天与第 21 天对比内容，也无任何使用效果画面。",
+        "explanation": "本图仅展示面膜包装本身，画面中不存在文案所述“图 2”的手臂第一天与第 21 天对比内容，也无任何使用效果画面。；区域：整图；来源：Qwen 视觉观察。",
+        "start_char": null,
+        "end_char": null,
+        "image_id": "image-1",
+        "claim_id": null,
+        "finding_id": null,
+        "related_ids": [],
+        "bbox": null
+      },
+      {
+        "id": "image-observation-image-1-obs-8",
+        "dimension": "image",
+        "source_kind": "image",
+        "source_id": "image-1",
+        "excerpt": "未发现可具体指认的视觉异常：手部结构正常，包装文字无局部严重变形，无明显拼接边界或矛盾遮挡反射。",
+        "explanation": "未发现可具体指认的视觉异常：手部结构正常，包装文字无局部严重变形，无明显拼接边界或矛盾遮挡反射。；区域：整图；来源：Qwen 视觉观察。",
+        "start_char": null,
+        "end_char": null,
+        "image_id": "image-1",
+        "claim_id": null,
+        "finding_id": null,
+        "related_ids": [],
+        "bbox": null
+      },
+      {
+        "id": "image-visible-text-image-1-1",
+        "dimension": "image",
+        "source_kind": "image",
+        "source_id": "image-1",
+        "excerpt": "L'ORÉAL®",
+        "explanation": "Qwen 从图片中读取到的可见文字；未据此单独验证其事实性。",
+        "start_char": null,
+        "end_char": null,
+        "image_id": "image-1",
+        "claim_id": null,
+        "finding_id": null,
+        "related_ids": [],
+        "bbox": null
+      },
+      {
+        "id": "image-visible-text-image-1-2",
+        "dimension": "image",
+        "source_kind": "image",
+        "source_id": "image-1",
+        "excerpt": "PARIS",
+        "explanation": "Qwen 从图片中读取到的可见文字；未据此单独验证其事实性。",
+        "start_char": null,
+        "end_char": null,
+        "image_id": "image-1",
+        "claim_id": null,
+        "finding_id": null,
+        "related_ids": [],
+        "bbox": null
+      },
+      {
+        "id": "image-visible-text-image-1-5",
+        "dimension": "image",
+        "source_kind": "image",
+        "source_id": "image-1",
+        "excerpt": "FRESH MIX ADVANCED SKIN CULTIVATING ESSENCE MASK",
+        "explanation": "Qwen 从图片中读取到的可见文字；未据此单独验证其事实性。",
+        "start_char": null,
+        "end_char": null,
+        "image_id": "image-1",
+        "claim_id": null,
+        "finding_id": null,
+        "related_ids": [],
+        "bbox": null
+      },
+      {
+        "id": "image-visible-text-image-1-6",
+        "dimension": "image",
+        "source_kind": "image",
+        "source_id": "image-1",
+        "excerpt": "欧莱雅青春密码活肌精华鲜注面膜",
+        "explanation": "Qwen 从图片中读取到的可见文字；未据此单独验证其事实性。",
+        "start_char": null,
+        "end_char": null,
+        "image_id": "image-1",
+        "claim_id": null,
+        "finding_id": null,
+        "related_ids": [],
+        "bbox": null
+      },
+      {
+        "id": "image-text-claim-image-1-itc-1",
+        "dimension": "image",
+        "source_kind": "image",
+        "source_id": "image-1",
+        "excerpt": "FRESH MIX ADVANCED SKIN CULTIVATING ESSENCE MASK 欧莱雅青春密码活肌精华鲜注面膜",
+        "explanation": "属于包装上的产品身份信息；输入中无产品注册或规格类证据，无法据此核实，但不与文案冲突。",
+        "start_char": null,
+        "end_char": null,
+        "image_id": "image-1",
+        "claim_id": null,
+        "finding_id": null,
+        "related_ids": [],
+        "bbox": null
+      },
+      {
+        "id": "image-text-claim-image-1-itc-2",
+        "dimension": "image",
+        "source_kind": "image",
+        "source_id": "image-1",
+        "excerpt": "按压注入鲜活成分",
+        "explanation": "属于包装上的成分/机制类营销表述，静态图与现有输入均无法核实其真实性，也不足以判定为虚假。",
+        "start_char": null,
+        "end_char": null,
+        "image_id": "image-1",
+        "claim_id": null,
+        "finding_id": null,
+        "related_ids": [],
+        "bbox": null
+      },
+      {
+        "id": "image-provenance-image-1",
+        "dimension": "image",
+        "source_kind": "image",
+        "source_id": "image-1",
+        "excerpt": "C2PA 状态：unavailable",
+        "explanation": "本地文件元数据观察；C2PA/EXIF 信息只提供来源线索，不能单独证明图片真实或被篡改。",
+        "start_char": null,
+        "end_char": null,
+        "image_id": "image-1",
+        "claim_id": null,
+        "finding_id": null,
+        "related_ids": [],
+        "bbox": null
+      }
+    ],
+    "major_evidence": [
+      "文本给出“肤质细腻度提升了 63%”的具体数值，但未说明测量仪器、指标定义或数据来源。",
+      "文本称“毛孔真的细了好多”“手臂都比以前滑”，以 21 天前后对比作为功效依据，但未提供可核实的检测数据。",
+      "标题称“手臂都能用的黑精华面膜”，将面部产品扩展至手臂使用场景。"
+    ],
+    "limitations": [
+      "人工复核优先级是分流建议，不是真假结论或校准概率。",
+      "未提供外部证据；事实性 claim 不应据此判为虚假。",
+      "本次未运行独立像素级图像取证模型；Qwen 的图像结论是语义视觉线索，不能证明 AI 生成或局部篡改。",
+      "C2PA manifest 或 EXIF 缺失按中性处理；有效 provenance 也只记录来源声明，不证明文案功效或背书真实。",
+      "文本完整性结果只表示文风、重复或内部一致性线索；单篇最终文本不能证明 AI 生成或后期编辑。确认拼接/改写需要原稿、版本记录或可核验来源。",
+      "DeepSeek AI 文风疑似度是未校准的风格信号，不是作者来源概率；它不参与整体风险评分。",
+      "视觉语义线索不能替代像素级鉴伪；模型分数不是 AI 生成概率。",
+      "文案风险分不是文案为假的概率；证据不足不等于虚假。"
+    ],
+    "dimension_assessments": [
+      {
+        "dimension": "image",
+        "status": "assessed",
+        "score": 0.0,
+        "risk_level": "low",
+        "configured_weight": 0.3,
+        "normalized_weight": 0.461538,
+        "summary": "图片维度风险分 0.0/100（低风险）；已运行图片语义分析；未生成可报告的具体风险 finding。",
+        "evidence": [
+          "已运行图片语义分析；未生成可报告的具体风险 finding。"
+        ],
+        "limitations": [
+          "视觉语义线索不能替代像素级鉴伪；模型分数不是 AI 生成概率。"
+        ]
+      },
+      {
+        "dimension": "text",
+        "status": "assessed",
+        "score": 60.0,
+        "risk_level": "high",
+        "configured_weight": 0.35,
+        "normalized_weight": 0.538462,
+        "summary": "文案维度风险分 60.0/100（高风险）；文本给出“肤质细腻度提升了 63%”的具体数值，但未说明测量仪器、指标定义或数据来源。",
+        "evidence": [
+          "文本给出“肤质细腻度提升了 63%”的具体数值，但未说明测量仪器、指标定义或数据来源。",
+          "文本称“毛孔真的细了好多”“手臂都比以前滑”，以 21 天前后对比作为功效依据，但未提供可核实的检测数据。",
+          "标题称“手臂都能用的黑精华面膜”，将面部产品扩展至手臂使用场景。"
+        ],
+        "limitations": [
+          "文案风险分不是文案为假的概率；证据不足不等于虚假。"
+        ]
+      }
+    ],
+    "provider_errors": [],
+    "model_metadata": {
+      "dimension_weights": {
+        "image": 0.3,
+        "text": 0.35,
+        "comment": 0.2,
+        "account": 0.15
+      },
+      "normalized_weights": {
+        "image": 0.461538,
+        "text": 0.538462
+      },
+      "risk_score_semantics": "internal risk aggregation; not a calibrated probability that the content or account is fake",
+      "claim_prompt_version": "v10",
+      "explanation_prompt_version": "v10",
+      "deepseek_model": "deepseek-flash",
+      "deepseek_reasoning_effort": "none",
+      "qwen_vision_model": "glm-5.3-flashx",
+      "role_provider_map": {
+        "text": "deepseek",
+        "comment": "deepseek",
+        "account": "deepseek",
+        "image": "glm_vision"
+      },
+      "role_statuses": {
+        "text": "completed",
+        "comment": "skipped",
+        "account": "skipped",
+        "image": "completed"
+      },
+      "evidence_chain_item_count": 30,
+      "ai_text_signal_semantics": "uncalibrated DeepSeek style-suspicion score; not an authorship probability",
+      "screenshot_prompt_version": "glm_screenshot_v1",
+      "account_prompt_version": "v1",
+      "follow_up_prompt_version": "v1",
+      "post_fetcher_configured": false,
+      "provider_errors": [],
+      "latency_ms": 58732.8,
+      "vision_provider": "glm_vision",
+      "vision_model": "glm-5.3-flashx"
+    },
+    "evidence_count": 30,
+    "latency_ms": 58733,
+    "created_at": "2026-10-20T14:59:44.851593+00:00"
+  },
+  "elapsed_seconds": 59.229
+}

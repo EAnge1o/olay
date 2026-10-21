@@ -1,0 +1,2 @@
+﻿sample_id,scenario,is_fake,difficulty,expected_risk,failed,failure_reason,trust_score,risk_score,risk_level,risk_level_zh,T_trust_score,R_trust_score,U_trust_score,S_trust_score,conflict_count,corroborated_count,doubtful_count,consistent_count,unverified_count,prediction_correct,elapsed_seconds,task_id,images_available,images_submitted,comment_images_available,comment_images_submitted,comments_submitted,account_posts_submitted
+sample_029,种草内容,否,对照,低,否,,87.7,12.35,low,低风险,,100.0,100.0,70.0,0,3,0,0,3,是,51.886,f0d8fb4fbe1d4fe9a0f85c69f5d64e67,1,1,0,0,6,0
