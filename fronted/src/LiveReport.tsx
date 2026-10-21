@@ -72,6 +72,7 @@ export function LiveReportView({
     : getLiveCrossCheckItems(report);
   const [confidenceOpen, setConfidenceOpen] = useState(false);
   const [activeReportSection, setActiveReportSection] = useState("forensics-section");
+  const [evidenceCode, setEvidenceCode] = useState<DimensionCode | null>(null);
   const [trace, setTrace] = useState<SampleTraceRead | null>(null);
   const [traceLoading, setTraceLoading] = useState(false);
   const nothingAssessed = report.assessed_dimensions.length === 0;
@@ -264,9 +265,12 @@ export function LiveReportView({
               const dimension = byCode.get(code);
               const assessed = Boolean(dimension?.assessed && dimension.trust_score != null);
               return (
-                <div
+                <button
+                  type="button"
                   className={`unified-dimension-row ${assessed ? "" : "missing"}`}
+                  disabled={!assessed}
                   key={code}
+                  onClick={() => setEvidenceCode(code)}
                   title={dimension?.question}
                 >
                   <span className={`report-dimension-badge badge-${code.toLowerCase()}`}>{code}</span>
@@ -290,7 +294,7 @@ export function LiveReportView({
                       <small className="live-dim-limit">局限：{dimension.limitations.join(" ")}</small>
                     ) : null}
                   </div>
-                </div>
+                </button>
               );
             })}
           </div>
@@ -417,6 +421,83 @@ export function LiveReportView({
       <p className="method-note">
         本报告由 TruLens 根据当前可用信号生成；未提供的模态不参与判断，AI 结论不构成医疗或购买建议。
       </p>
+
+      {evidenceCode && byCode.get(evidenceCode) ? (
+        <div
+          aria-label={`${CODE_FALLBACK_LABEL[evidenceCode]}证据链`}
+          aria-modal="true"
+          className={`report-evidence-backdrop evidence-${evidenceCode.toLowerCase()}`}
+          role="dialog"
+        >
+          <article className="report-evidence-modal">
+            <header className="report-evidence-header">
+              <div>
+                <span className={`report-dimension-badge badge-${evidenceCode.toLowerCase()}`}>
+                  {evidenceCode}
+                </span>
+                <div>
+                  <small>LIVE EVIDENCE · 可解释评分依据</small>
+                  <strong>{CODE_FALLBACK_LABEL[evidenceCode]}证据链</strong>
+                </div>
+              </div>
+              <div className="evidence-modal-score">
+                <span>维度评分</span>
+                <strong>
+                  {Math.round(byCode.get(evidenceCode)!.trust_score ?? 0)}
+                  <small>/ 100</small>
+                </strong>
+              </div>
+              <button
+                aria-label="关闭证据链"
+                className="evidence-modal-close"
+                onClick={() => setEvidenceCode(null)}
+                type="button"
+              >
+                ×
+              </button>
+            </header>
+
+            <div className="evidence-chain-summary">
+              <span>结论</span>
+              <p>{byCode.get(evidenceCode)!.summary}</p>
+              <div>
+                {byCode.get(evidenceCode)!.evidence.map((item) => (
+                  <span className="evidence-summary-item" key={`${item.source}-${item.evidence}`}>
+                    <small>{item.evidence}</small>
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            <section className="live-evidence" style={{ margin: "22px 28px 0" }}>
+              <h3>本次输入证据</h3>
+              {byCode.get(evidenceCode)!.evidence.map((item) => (
+                <article className="live-evidence-item" key={`${item.source}-${item.type}-${item.evidence}`}>
+                  <span className={`live-sev ${item.severity}`}>{item.severity.toUpperCase()}</span>
+                  <div>
+                    <p>{item.evidence}</p>
+                    <small>
+                      {item.source} · {item.type} · 置信度 {item.confidence.toFixed(2)}
+                      {item.reason ? ` · ${item.reason}` : ""}
+                    </small>
+                  </div>
+                </article>
+              ))}
+              {byCode.get(evidenceCode)!.limitations.length > 0 ? (
+                <div className="evidence-chain-summary" style={{ margin: "12px 0 0" }}>
+                  <span>局限</span>
+                  <p>{byCode.get(evidenceCode)!.limitations.join(" ")}</p>
+                </div>
+              ) : null}
+            </section>
+
+            <footer className="evidence-modal-footer">
+              <p><span /> 原始信号 <i /> 模型检测 <em /> 评分结论</p>
+              <button onClick={() => setEvidenceCode(null)} type="button">返回报告</button>
+            </footer>
+          </article>
+        </div>
+      ) : null}
     </div>
   );
 }
