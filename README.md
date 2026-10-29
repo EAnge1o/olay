@@ -18,6 +18,8 @@
 [![Docker Compose](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)](backend/docker-compose.yml)
 [![Tests](https://img.shields.io/badge/Tests-pytest-0A9EDC?logo=pytest&logoColor=white)](backend/tests/)
 
+**GitHub 仓库**：[github.com/EAnge1o/olay](https://github.com/EAnge1o/olay)
+
 [功能亮点](#-功能亮点) · [界面一览](#-界面一览) · [快速开始](#-快速开始) · [系统架构](#-系统架构) · [评测](#-评测) · [文档](#-文档)
 
 <img src="docs/images/report-overview.jpg" alt="TruLens 核验报告" width="86%"/>
