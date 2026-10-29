@@ -19,9 +19,9 @@
 
 TruLens 将一条种草笔记拆解为 **T / R / U / S** 四个证据维度，输出综合可信度、逐维度风险分、证据卡、证据链、局限说明和处理建议。它强调的不是一句简单的「真 / 假」，而是把判断依据摊开给用户看。
 
-| 实时核验 | 结构化报告 |
+| 实时分析过程 | 团队核验队列 |
 | :---: | :---: |
-| <img src="docs/screenshots/live-verification.png" width="100%" alt="TruLens 实时核验" /> | <img src="docs/screenshots/report.png" width="100%" alt="TruLens 核验报告" /> |
+| <img src="docs/screenshots/live-analysis.png" width="100%" alt="TruLens 实时分析过程" /> | <img src="docs/screenshots/team-queue.png" width="100%" alt="TruLens 团队核验队列" /> |
 
 > 页面中的帖子、账号、评论和分数均为演示样本，不代表真实人物、真实品牌合作或平台裁决。
 
@@ -43,30 +43,6 @@ TruLens 将一条种草笔记拆解为 **T / R / U / S** 四个证据维度，�
 - 内置启发式 Agent 与 `content-trust-engine-v10` 多模态引擎双后端，自动降级
 - 创作者发布前自检、消费者核验、团队风险队列三种工作界面
 - 报告支持导出、证据链查看、申诉和补充证据重新核验
-
-## 界面预览
-
-### 首页
-
-首页以工作区为第一视觉重点，而不是营销落地页。用户可以在第一屏看到四个分析角色、证据如何形成结论，以及不同角色对应的处理建议。
-
-![TruLens 首页](docs/screenshots/home.png)
-
-### 实时核验
-
-访问 `/?live=true` 进入独立实时核验页：
-
-- 粘贴小红书链接，或手动填写文案、评论、账号历史
-- 上传 JPG / PNG / WebP 图片
-- 一键填入示例数据，或开始完整 T / R / U / S 核验
-
-![TruLens 实时核验](docs/screenshots/live-verification.png)
-
-### 核验报告
-
-报告页展示综合 Trust Score、风险带、四维分布、逐维度分数、证据、模型局限和建议动作。分数背后可以继续查看账号快照、素材溯源和报告总结。
-
-![TruLens 核验报告](docs/screenshots/report.png)
 
 ## 系统架构
 
