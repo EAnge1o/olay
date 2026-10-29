@@ -1,277 +1,230 @@
 <div align="center">
 
-# TruLens · 美妆内容可信度核验 Agent
+<img src="docs/images/trulens-logo.jpg" alt="TruLens" width="300"/>
 
-一个面向美妆种草内容的可解释多模态内容可信度核验平台。
+# TruLens · 让每一次相信，都有依据
 
-<p>
-  <img alt="React" src="https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=white" />
-  <img alt="Vite" src="https://img.shields.io/badge/Vite-8-646CFF?style=flat-square&logo=vite&logoColor=white" />
-  <img alt="FastAPI" src="https://img.shields.io/badge/FastAPI-0.115-009688?style=flat-square&logo=fastapi&logoColor=white" />
-  <img alt="Python" src="https://img.shields.io/badge/Python-3.11+-3776AB?style=flat-square&logo=python&logoColor=white" />
-  <img alt="SQLite" src="https://img.shields.io/badge/SQLite-Dev-003B57?style=flat-square&logo=sqlite&logoColor=white" />
-  <img alt="Status" src="https://img.shields.io/badge/Status-Hackathon%20Prototype-F59E0B?style=flat-square" />
-</p>
+**面向美妆护肤种草内容的多模态真实性核验 Agent**
 
-<img src="docs/screenshots/home.png" width="960" alt="TruLens 首页" />
+一篇种草笔记能不能信？TruLens 同时派出四位 AI 专家——账号、图片、评论、文案——各自取证、两两对质，最后汇成一份附证据、可申诉、按身份给出下一步建议的核验报告。
+
+**Trust, with evidence.**
+
+[![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white)](backend/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.115%2B-009688?logo=fastapi&logoColor=white)](backend/)
+[![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)](fronted/)
+[![Vite](https://img.shields.io/badge/Vite-8-646CFF?logo=vite&logoColor=white)](fronted/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-4-06B6D4?logo=tailwindcss&logoColor=white)](fronted/)
+[![Docker Compose](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)](backend/docker-compose.yml)
+[![Tests](https://img.shields.io/badge/Tests-pytest-0A9EDC?logo=pytest&logoColor=white)](backend/tests/)
+
+[功能亮点](#-功能亮点) · [界面一览](#-界面一览) · [快速开始](#-快速开始) · [系统架构](#-系统架构) · [评测](#-评测) · [文档](#-文档)
+
+<img src="docs/images/report-overview.jpg" alt="TruLens 核验报告" width="86%"/>
 
 </div>
 
-TruLens 将一条种草笔记拆解为 **T / R / U / S** 四个证据维度，输出综合可信度、逐维度风险分、证据卡、证据链、局限说明和处理建议。它强调的不是一句简单的「真 / 假」，而是把判断依据摊开给用户看。
+---
 
-| 实时分析过程 | 团队核验队列 |
-| :---: | :---: |
-| <img src="docs/screenshots/live-analysis.png" width="100%" alt="TruLens 实时分析过程" /> | <img src="docs/screenshots/team-queue.png" width="100%" alt="TruLens 团队核验队列" /> |
+## ✨ 功能亮点
 
-> 页面中的帖子、账号、评论和分数均为演示样本，不代表真实人物、真实品牌合作或平台裁决。
+**🔍 四位 AI 专家，同时出动**
+四个维度并行取证，而不是一个黑盒打分：
 
-## 核心能力
+| 维度 | 专家 | 看什么 |
+|:---:|---|---|
+| **T** · 账号可信度 | 账号侦探 | 发布节奏、带货占比、历史内容一致性 |
+| **R** · 图片真实性 | 视觉取证师 | 高光与光源、肤质过渡、局部纹理异常 |
+| **U** · 评论区真实性 | 口碑观察员 | 句式相似度、集中发布时间、水军模式 |
+| **S** · 文案真实性 | 文案检查官 | 模板化话术、绝对化功效、断言是否有来源 |
 
-| 维度 | Code | 分析内容 |
-| --- | --- | --- |
-| 账号可信度 | `T` | 发布节奏、带货占比、历史内容同质化；至少需要 3 篇历史内容 |
-| 图片真实性 | `R` | 图片可见语义、图文一致性、C2PA / EXIF 来源记录，可接入视觉模型 |
-| 评论区真实性 | `U` | 重复模板、近似重复、导流模式、发布集中度 |
-| 文案真实性 | `S` | 绝对化表述、医疗化表达、无来源功效声明、合作披露 |
+**⚖️ 四个结果，先对质，再汇成一个分数**
+交叉验证把 T/R/U/S 两两比对，可信方向不一致的地方会被明确标出（例如"账号可信度 65 vs 文案真实性 25，分差 40，建议复核"），总分由分数、风险等级与证据数量共同计算，关系状态来自各维度分数与证据数量。
 
-主要功能：
+**🧾 每个判断，都附证据**
+报告区分 observation / evidence / inference，每条结论都有证据强度、来源、材料局限和分级处置建议（放行 · 轻提示 → 提示 · 补充核验 → 人工复核 · 处置）；材料不足时显示"暂不评分"，绝不假装打分。
 
-- 支持小红书笔记链接、分享文案、正文、评论、账号历史和图片输入
-- 上传后自动创建分析任务，前端通过 `upload -> status -> report` 轮询真实分析状态
-- 缺失的输入维度显示「暂不评分」，不参与综合分计算，也不被当作 0 分
-- 输出 Trust Score、风险等级、逐维度证据、局限说明和下一步复核建议
-- 内置启发式 Agent 与 `content-trust-engine-v10` 多模态引擎双后端，自动降级
-- 创作者发布前自检、消费者核验、团队风险队列三种工作界面
-- 报告支持导出、证据链查看、申诉和补充证据重新核验
+**🗣️ 不认同？可以申诉**
+用户可以对任何一个维度的结论提交申诉，查看原始信号与交叉关系，系统回应并公开评判过程。
 
-## 系统架构
+**🧴 创作者发布前自检**
+发布之前先交给自己审：粘贴文案与配图，得到逐条可解释的修改建议和"可以发布 / 建议修改"结论。
 
-```text
-React 19 + Vite
-      |
-      | /api
-      v
-FastAPI backend
-      |
-      +--> AnalysisService
-      |      |
-      |      +--> content-trust-engine-v10   (TRUST_ENGINE_ENABLED=true)
-      |      |      + DeepSeek / GLM / Qwen
-      |      |      + local fallback rules
-      |      |
-      |      +--> built-in heuristic agents
-      |             + TextAgent / ImageAgent / CommentAgent / AccountAgent
-      |
-      +--> Xiaohongshu crawler (optional)
-      +--> SQLite / PostgreSQL
-      +--> FileService (uploaded images and provenance metadata)
+**👥 团队版 · 批量核验**
+面向平台与品牌方：按风险排序的核验队列、风险/置信度分布、疑似同源内容自动成组（关联分组）、一键导出复核报告。
+
+**🔗 两种输入方式**
+文案 / 图片上传，或直接粘贴笔记链接（小红书采集，可选启用）。
+
+**🧯 负责任的 AI**
+所有演示帖子、评论、账号与分数均标注为虚构样本；AI 辅助判断，不替代平台最终裁决或医学结论。
+
+## 🎬 界面一览
+
+**官网首页 · 一篇种草笔记能不能信？TruLens 替你核实**
+
+<img src="docs/images/hero-website.jpg" width="100%"/>
+
+**四个维度，各自取证（T · 账号可信度）**
+
+<img src="docs/images/four-dimensions.jpg" width="100%"/>
+
+**核验工作台 · 粘贴正文、上传配图，补充评论区与账号历史**
+
+<img src="docs/images/app-input.jpg" width="100%"/>
+
+**交叉验证 · 两个维度存在明显分差，建议复核**
+
+<img src="docs/images/cross-check.jpg" width="100%"/>
+
+**决策与建议 · 分级策略，按消费者 / 创作者 / 平台运营 / 品牌方给出下一步**
+
+<img src="docs/images/decision-advice.jpg" width="100%"/>
+
+**创作者发布前自检 · 可信度 75/100，已核验 1/4 个维度，未评估的维度显示"暂不评分"**
+
+<img src="docs/images/creator-selfcheck.jpg" width="100%"/>
+
+**团队版 · 批量核验队列（按风险排序、问题类型筛选、导出复核报告）**
+
+<img src="docs/images/team-queue.jpg" width="100%"/>
+
+## 🚀 快速开始
+
+### Docker（推荐）
+
+```bash
+cd backend
+docker compose up --build                  # 默认镜像内置内容信任引擎 + SQLite
+# BUILD_TARGET=lean docker compose up --build      # 不含引擎包的精简镜像
+# docker compose --profile postgres up --build     # PostgreSQL 生产形态
 ```
 
-后端默认使用内置启发式 Agent，因此没有 API Key 也能完成基础演示。启用 `TRUST_ENGINE_ENABLED=true` 后，只要 `content_trust` 包可用，引擎会接管分析维度并生成可审计的执行轨迹。
+启动后打开 <http://127.0.0.1:8000/docs> 查看交互式 API 文档。
 
-## 评分口径
+### 手动运行
 
-内部分数都是风险分，越高越危险。API 边界再转换为前端展示用的可信分：
-
-```text
-trust_score = 100 - overall_score
-```
-
-| 维度 | 默认权重 |
-| --- | ---: |
-| `text` 文案真实性 | 0.35 |
-| `image` 图片真实性 | 0.30 |
-| `comment` 评论区真实性 | 0.20 |
-| `account` 账号可信度 | 0.15 |
-
-只有实际评估且返回分数的维度参与加权，权重会重新归一化。
-
-综合风险阈值：
-
-| 后端 | 中风险 | 高风险 |
-| --- | ---: | ---: |
-| `content_trust` 引擎 | 30 | 60 |
-| 内置启发式 Agent | 35 | 70 |
-
-> TruLens 输出的是风险提示和人工复核优先级，不是内容为假、账号为机器人或产品无效的概率。
-
-## 快速开始
-
-### 1. 启动后端
-
-要求 Python 3.11+。
+**后端**（Python 3.11+）
 
 ```bash
 cd backend
 python -m venv .venv
-
-# macOS / Linux
-source .venv/bin/activate
-
-# Windows PowerShell
-.\.venv\Scripts\Activate.ps1
-
+source .venv/bin/activate          # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
-copy .env.example .env
-python run.py
+cp .env.example .env               # 默认 mock provider，无需任何 API key 即可启动
+python run.py                      # http://127.0.0.1:8000
 ```
 
-后端默认运行在 `http://127.0.0.1:8000`，交互式 API 文档位于 `http://127.0.0.1:8000/docs`。
+可选增强：
 
-### 2. 启动前端
+```bash
+pip install -r requirements-engine.txt
+pip install -e ../content-trust-engine-v10    # 启用独立内容信任引擎
+# 并在 .env 中设置 TRUST_ENGINE_ENABLED=true
+pip install -r requirements-xhs.txt           # 启用小红书链接采集（需要 Chrome）
+```
+
+**前端**（Node 18+）
 
 ```bash
 cd fronted
 npm install
-npm run dev
+npm run dev                        # http://localhost:8443，/api 已代理到 127.0.0.1:8000
 ```
 
-打开 `http://127.0.0.1:8443`。
+**接入真实模型**：在 `backend/.env` 中配置 `GLM_API_KEY`（图像维度，多模态视觉模型）与 `DEEPSEEK_API_KEY`（文案 / 评论 / 账号维度与解释生成），未配置的维度自动降级为本地规则，缺材料时明确显示"暂不评分"。
 
-实时核验页：
+## 🏗️ 系统架构
 
-```text
-http://127.0.0.1:8443/?live=true
+```mermaid
+flowchart LR
+    subgraph FE["fronted · React 19 + Vite + Tailwind 4"]
+        UI["核验工作台 · 报告 · 申诉 · 发布前自检 · 团队队列"]
+    end
+    subgraph BE["backend · FastAPI"]
+        API["REST API /api"]
+        ORCH["任务编排 upload → status → report"]
+        T["T 账号可信度"]
+        R["R 图片真实性"]
+        U["U 评论区真实性"]
+        S["S 文案真实性"]
+        XV["交叉验证 · 证据链 · 分级决策建议"]
+    end
+    ENG["content-trust-engine-v10 内容信任引擎"]
+    LLM["LLM Providers<br/>GLM-VL · DeepSeek · Qwen-VL · mock"]
+    DB[("SQLite / PostgreSQL")]
+    REP["核验报告 + engine-trace"]
+
+    UI -->|"upload / status / report / engine-trace"| API
+    API --> ORCH
+    ORCH --> T & R & U & S
+    T & R & U & S --> ENG
+    T & R & U & S -.-> LLM
+    T & R & U & S --> XV
+    XV --> REP
+    REP --> UI
+    ORCH --> DB
 ```
 
-前端开发服务器默认将 `/api` 代理到 `http://127.0.0.1:8000`。如果后端运行在其他端口，可通过 `VITE_API_TARGET` 覆盖：
+- **可插拔模型**：`LLM_PROVIDER=mock` 开箱即跑；GLM-VL 驱动图像维度（自动重试、尊重 Retry-After），DeepSeek 驱动文案 / 评论 / 账号维度，Qwen-VL 作为视觉备选。
+- **独立引擎**：`content-trust-engine-v10` 提供稳定的同步 Python API，把 observation、evidence、inference 分层，输出 `review_priority` 人工分流建议。
+- **免 CORS**：前端 dev server 代理 `/api` 到后端，客户端始终同源。
 
-```bash
-cd fronted
-VITE_API_TARGET=http://127.0.0.1:8010 npm run dev
-```
-
-### 3. 启用内容可信度引擎
-
-最小演示不依赖任何外部模型。需要完整的多模态路径时：
-
-```bash
-cd backend
-pip install -r requirements-engine.txt
-pip install -e ../content-trust-engine-v10
-```
-
-在 `backend/.env` 中配置：
-
-```dotenv
-TRUST_ENGINE_ENABLED=true
-DEEPSEEK_API_KEY=your_deepseek_key
-GLM_API_KEY=your_glm_vision_key
-```
-
-`DeepSeek` 未配置时，文案、评论和账号维度会降级到本地规则。`GLM_API_KEY` 未配置且没有 `QWEN_API_KEY` 时，图片维度会明确显示「暂不评分」，不会伪造结论。
-
-### Docker
-
-默认镜像已经包含 `content-trust-engine-v10`：
-
-```bash
-docker compose -f backend/docker-compose.yml up --build
-```
-
-只构建不含引擎的轻量后端：
-
-```bash
-BUILD_TARGET=lean docker compose -f backend/docker-compose.yml up --build
-```
-
-启用 PostgreSQL profile：
-
-```bash
-docker compose -f backend/docker-compose.yml --profile postgres up --build
-```
-
-## API
-
-核心流程：
-
-```text
-POST /api/upload
-  -> GET /api/status/{task_id}
-  -> GET /api/report/{task_id}
-```
-
-主要端点：
+## 📡 核心 API
 
 | 方法 | 路径 | 说明 |
-| --- | --- | --- |
-| `GET` | `/api/health` | 健康检查与当前分析后端 |
-| `GET` | `/api/agents` | 可用分析维度和流水线 |
-| `POST` | `/api/upload` | 上传内容并创建分析任务 |
-| `POST` | `/api/analyze/{task_id}` | 启动或重新分析任务 |
-| `GET` | `/api/status/{task_id}` | 查询任务进度和维度状态 |
-| `GET` | `/api/report/{task_id}` | 获取完整可信度报告 |
-| `GET` | `/api/samples/{sample_id}` | 获取原始样本和图片元信息 |
-| `GET` | `/api/engine-trace/{task_id}` | 获取模型引擎的完整执行轨迹 |
-| `GET` | `/api/team/queue` | 团队风险队列 |
-| `POST` | `/api/creator/check` | 创作者发布前自检 |
+|:---:|---|---|
+| `POST` | `/api/upload` | 提交正文、评论、账号历史与图片，创建自动分析任务 |
+| `GET` | `/api/status/{task_id}` | 轮询任务状态 `pending / running / completed / failed` |
+| `GET` | `/api/report/{task_id}` | 总分、风险等级、四维分数、证据、交叉验证、决策建议与置信度 |
+| `GET` | `/api/engine-trace/{task_id}` | 角色运行轨迹、证据链、主要证据、限制与模型元数据 |
 
-完整字段、状态机、错误码和环境变量见 [backend/docs/API_CONTRACT.md](backend/docs/API_CONTRACT.md)。
+完整契约见 [backend/docs/API_CONTRACT.md](backend/docs/API_CONTRACT.md)。
 
-## 项目结构
+## 📊 评测
 
-```text
-olay/
-├── fronted/                     # React 19 + Vite 前端
-│   ├── src/
-│   │   ├── App.tsx              # 首页、工作区、对话和报告流程
-│   │   ├── LiveAnalysis.tsx     # 独立实时核验页
-│   │   ├── LiveReport.tsx       # 共享报告视图
-│   │   ├── useLiveAnalysis.ts   # 上传、轮询和报告状态源
-│   │   └── api.ts               # 类型化 API 客户端
-│   └── public/                  # Logo、演示素材和证据图片
-├── backend/                     # FastAPI 服务
-│   ├── app/
-│   │   ├── agents/              # 内置启发式 Agent
-│   │   ├── services/            # 分析、报告、团队、抓取和引擎接入
-│   │   ├── models/              # SQLAlchemy 数据模型
-│   │   └── schemas/             # Pydantic API Schema
-│   ├── tests/                   # API 契约和端到端测试
-│   └── docs/API_CONTRACT.md     # 前后端联调契约
-├── content-trust-engine-v10/    # 可选的多模态可信度引擎
-│   ├── content_trust/           # Python 包
-│   ├── prompts/                 # 版本化模型提示词
-│   └── tests/                   # 引擎单元测试
-├── xhs/                         # 小红书抓取器
-└── docs/screenshots/            # README 界面截图
-```
-
-## 测试与验证
+`eval/run_eval.py` 对运行中的服务做黑盒评估（不修改后端代码、模型调用与阈值）：`competition-submission/TruLens_TestDataset` 的 22 条样本（18 条伪造 + 4 条对照），覆盖四维分数、总分、风险等级、交叉验证摘要与耗时。
 
 ```bash
-# 后端
-cd backend
-./.venv/Scripts/python -m pytest
-./.venv/Scripts/python scripts/smoke_test.py
-
-# 引擎集成
-./.venv/Scripts/python scripts/engine_smoke_test.py
-
-# 前端
-cd ../fronted
-npm run build
+python eval/run_eval.py    # 先启动后端；结果写入 eval/results.csv 与 eval/summary.md
 ```
 
-macOS / Linux 下将 `.venv/Scripts/python` 替换为 `.venv/bin/python`。
+## 🧪 测试
 
-`scripts/smoke_test.py` 会在隔离的临时 SQLite 数据库中完成 `上传 -> 四维分析 -> 报告` 全链路，不污染本地开发数据。
+```bash
+cd backend
+pytest                     # 契约、API 流程、engine-trace 等测试
+```
 
-## 当前边界
+## 📁 目录结构
 
-- 当前版本是黑客松原型，接口没有鉴权，生产部署前需要增加身份认证和权限控制。
-- 暂无任务列表 / 历史任务查询 API，前端目前只能通过已有 `task_id` 查询。
-- 小红书抓取需要在 Chrome 中登录一次，具体配置见 `backend/.env.example`。
-- 图片真实性依赖外部视觉模型；未配置 Key 时，R 维度保持「暂不评分」。
-- 评论文本模式只能提示异常，不能证明评论为假、付费或协同。
-- 引擎交付包中仍有少量测试断言未随最新 schema 更新，详见 [content-trust-engine-v10/DELIVERY_NOTES.md](content-trust-engine-v10/DELIVERY_NOTES.md)。
+```
+olay/
+├── fronted/                    # React 19 + Vite + Tailwind 4 前端（工作台 / 官网 / 团队版）
+├── backend/                    # FastAPI 服务
+│   ├── app/agents/             # account · image · comment · text 四位 AI 专家
+│   ├── app/api/                # upload · status · report · engine-trace
+│   ├── app/services/llm/       # GLM-VL / DeepSeek / Qwen-VL / mock 可插拔 provider
+│   ├── tests/                  # pytest 契约与流程测试
+│   └── docker-compose.yml      # 一键启动（默认内置引擎，可选 PostgreSQL）
+├── content-trust-engine-v10/   # 独立内容信任分析引擎（observation / evidence / inference）
+├── eval/                       # 22 条样本黑盒评测脚本与结果
+├── competition-submission/     # 比赛材料：源码包、测试数据集、设计文档
+└── docs/images/                # README 截图资产
+```
 
-## 相关文档
+## 👥 团队
 
-- [后端 API 契约](backend/docs/API_CONTRACT.md)
-- [产品设计 Spec](design-spec.md)
-- [品牌资产与使用边界](brand-spec.md)
-- [Content Trust Engine README](content-trust-engine-v10/README.md)
+**No Five Days** · 2026 L'Oréal Beauty Tech 挑战赛「信任守护师 · 创造者的 AI 卫士」赛题作品。
 
-## License
+<div align="center">
 
-当前仓库尚未包含 `LICENSE` 文件。除非仓库所有者后续明确发布授权条款，否则默认保留所有权利。
+<img src="docs/images/brand-ending.jpg" alt="让每一次相信，都有依据" width="62%"/>
+
+**让每一次相信，都有依据。** *Trust, with evidence.*
+
+</div>
+
+---
+
+> ⚠️ **免责声明**：本项目内所有演示帖子、评论、账号与分数均为虚构样本 / 演示数据；TruLens 提供的是 AI 辅助判断，不构成平台最终裁决或医学结论；未提供充分材料时对应维度显示「暂不评分」。
