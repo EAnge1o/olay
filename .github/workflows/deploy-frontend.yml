@@ -12,6 +12,8 @@ permissions:
   contents: read
   pages: write
   id-token: write
+  # Needed by configure-pages to enable Pages on first deploy.
+  administration: write
 
 concurrency:
   group: pages
