@@ -132,10 +132,10 @@ const portrait =
 const postImage =
   "https://images.unsplash.com/photo-1752245818739-890854ca3b81?crop=faces&fit=crop&fm=jpg&q=85&w=900&h=1100";
 const roleAvatarByCode: Record<DimensionCode, string> = {
-  T: "/agents/t.png",
-  R: "/agents/r.png",
-  U: "/agents/u.png",
-  S: "/agents/s.png",
+  T: "agents/t.png",
+  R: "agents/r.png",
+  U: "agents/u.png",
+  S: "agents/s.png",
 };
 
 function Icon({
@@ -254,7 +254,7 @@ function TruLensMark({ size = 25 }: { size?: number }) {
 function Logo() {
   return (
     <button className="logo" onClick={() => window.scrollTo({ top: 0 })}>
-      <img alt="TruLens" src="/trulens-nav-logo.png" />
+      <img alt="TruLens" src="trulens-nav-logo.png" />
     </button>
   );
 }
@@ -3053,7 +3053,7 @@ function LandingNavigation({ onStart, onTeam }: { onStart: () => void; onTeam: (
   return (
     <nav aria-label="主要导航" className="home-nav cinematic-nav landing-navigation">
       <button className="logo landing-brand" onClick={() => window.scrollTo({ top: 0 })}>
-        <img alt="TruLens" src="/trulens-nav-logo.png" />
+        <img alt="TruLens" src="trulens-nav-logo.png" />
       </button>
       <div className="landing-nav-desktop">
         <div className="landing-nav-links">
@@ -3565,7 +3565,7 @@ const learnContent = {
       label: "回合 3 · 图片",
       kind: "image",
       image: {
-        src: "/evidence/skin-comparison.jpg",
+        src: "evidence/skin-comparison.jpg",
         alt: "虚构的护肤前后对比图",
       },
       samples: ["使用前", "使用后"],
@@ -4126,7 +4126,7 @@ function LandingFooter() {
       <div className="landing-footer-main">
         <div className="landing-footer-brand-area">
           <button className="landing-footer-brand" onClick={() => window.scrollTo({ top: 0, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" })}>
-            <img alt="TruLens" src="/trulens-nav-logo.png" />
+            <img alt="TruLens" src="trulens-nav-logo.png" />
           </button>
           <input aria-label="输入要鉴别的内容" placeholder="我今天帮你鉴别什么？" />
         </div>
@@ -7080,11 +7080,11 @@ function ReportEvidenceModal({
             <div className="account-evidence-layout">
               <div className="evidence-source-pair">
                 <figure>
-                  <img alt={`${showAccountActivity ? "眠云的护肤手账" : "贴贴银河"}账号主页原始材料`} src="/evidence/account-profile.jpg" />
+                  <img alt={`${showAccountActivity ? "眠云的护肤手账" : "贴贴银河"}账号主页原始材料`} src="evidence/account-profile.jpg" />
                   <figcaption>图 1 · 账号主页与公开资料</figcaption>
                 </figure>
                 <figure>
-                  <img alt={`${showAccountActivity ? "眠云的护肤手账" : "贴贴银河"}历史美妆护肤笔记原始材料`} src="/evidence/account-history.jpg" />
+                  <img alt={`${showAccountActivity ? "眠云的护肤手账" : "贴贴银河"}历史美妆护肤笔记原始材料`} src="evidence/account-history.jpg" />
                   <figcaption>图 2 · 历史笔记内容抽样</figcaption>
                 </figure>
               </div>
@@ -7121,7 +7121,7 @@ function ReportEvidenceModal({
           <>
             <div className="image-evidence-layout">
               <div className="report-forensic-image">
-                <img alt="同一人物左右脸肤质对比原始材料" src="/evidence/skin-comparison.jpg" />
+                <img alt="同一人物左右脸肤质对比原始材料" src="evidence/skin-comparison.jpg" />
                 <span className="forensic-anchor anchor-one">①</span>
                 <span className="forensic-anchor anchor-two">②</span>
                 <small>图 3 · 左右脸肤质对比原图</small>
@@ -7141,8 +7141,8 @@ function ReportEvidenceModal({
           <>
             <div className="comment-evidence-layout">
               <div className="comment-source-stack">
-                <figure><img alt="评论区原始材料上半部分" src="/evidence/comments-1.jpg" /><figcaption>图 4 · 评论原文</figcaption></figure>
-                <figure><img alt="评论区原始材料下半部分" src="/evidence/comments-2.jpg" /><figcaption>图 5 · 评论原文</figcaption></figure>
+                <figure><img alt="评论区原始材料上半部分" src="evidence/comments-1.jpg" /><figcaption>图 4 · 评论原文</figcaption></figure>
+                <figure><img alt="评论区原始材料下半部分" src="evidence/comments-2.jpg" /><figcaption>图 5 · 评论原文</figcaption></figure>
               </div>
               <div className="evidence-document comment-evidence-document">
                 <div className="comment-analysis-head"><span>评论区原文抽样</span><small>可见样本 12 条 · 具体问题与追问为主</small></div>
